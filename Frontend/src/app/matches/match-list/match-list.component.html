@@ -1,0 +1,124 @@
+<div class="page">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="page-head">
+            <div class="page-head-meta">
+                <div class="page-head-eyebrow">Gestion des matchs</div>
+                <h1 class="page-head-title">Matchs</h1>
+                <div class="page-head-sub">{{ filtered.length }} résultat(s) — page {{ page }} / {{ totalPages }}</div>
+            </div>
+            <div class="page-head-actions">
+                <a routerLink="/matches/new" class="btn btn-primary">
+                    <svg width="16" height="16" class="icon icon-sm" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Nouveau match
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Strip -->
+        <div class="filter-strip">
+            <span class="t-label">Filtres</span>
+            <div class="filter-sep"></div>
+            <select class="field-input field-input-sm" style="width:160px" [formControl]="statusFilter">
+                <option value="">Tous les statuts</option>
+                <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+            </select>
+            <select class="field-input field-input-sm" style="width:160px" [formControl]="typeFilter">
+                <option value="">Tous les types</option>
+                <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+            </select>
+            <button class="btn btn-ghost btn-sm"
+                (click)="statusFilter.reset(); typeFilter.reset()">Réinitialiser</button>
+        </div>
+
+        <!-- State: loading -->
+        <div class="loader" *ngIf="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- State: error -->
+        <div class="alert alert-err mb-16" *ngIf="error">{{ error }}</div>
+
+        <!-- State: empty -->
+        <div class="empty" *ngIf="!loading && !error && paged.length === 0">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 8v8M8 12h8" />
+                </svg>
+            </div>
+            <div class="empty-title">Aucun match trouvé</div>
+            <div class="empty-body">Modifiez vos filtres ou créez votre premier match.</div>
+            <a routerLink="/matches/new" class="btn btn-primary mt-12">Créer un match</a>
+        </div>
+
+        <!-- SofaScore Style Dense Match List -->
+        <div class="sf-list" *ngIf="!loading && paged.length > 0">
+            <div class="sf-row" *ngFor="let m of paged" (click)="goToDetail(m.id!)">
+
+                <!-- Time & Status Column -->
+                <div class="sf-time">
+                    <div class="sf-time-val">{{ m.dateDebut | date:'HH:mm' }}</div>
+                    <div class="sf-status sf-status-live" *ngIf="m.statut === 'EN_COURS'">Live</div>
+                    <div class="sf-status sf-status-past" *ngIf="m.statut === 'TERMINE'">Fin</div>
+                    <div class="sf-status sf-status-past" *ngIf="m.statut === 'PLANIFIE'">Plan.</div>
+                    <div class="sf-status sf-status-past" *ngIf="m.statut === 'ANNULE'">Annulé</div>
+                </div>
+
+                <!-- Teams & Scores Column -->
+                <div class="sf-match">
+                    <div class="sf-team" [class.winner]="m.statut === 'TERMINE' && m.scoreEquipe1 > m.scoreEquipe2">
+                        <div class="sf-team-name">{{ m.equipe1 }}</div>
+                        <div class="sf-team-score">{{ ['EN_COURS', 'TERMINE'].includes(m.statut) ? m.scoreEquipe1 : '-'
+                            }}</div>
+                    </div>
+                    <div class="sf-team" [class.winner]="m.statut === 'TERMINE' && m.scoreEquipe2 > m.scoreEquipe1">
+                        <div class="sf-team-name">{{ m.equipe2 }}</div>
+                        <div class="sf-team-score">{{ ['EN_COURS', 'TERMINE'].includes(m.statut) ? m.scoreEquipe2 : '-'
+                            }}</div>
+                    </div>
+                </div>
+
+                <!-- Metadata Column -->
+                <div class="sf-meta">
+                    <div style="font-weight: 500; color: var(--text-2);">{{ m.type }}</div>
+                    <div>{{ m.dateDebut | date:'dd MMM yyyy' }}</div>
+                    <div style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;"
+                        title="{{ m.terrainId ? (terrainMap[m.terrainId] || 'Court inconnu') : '' }}">
+                        {{ m.terrainId ? (terrainMap[m.terrainId] || 'Court inconnu') : 'Non assigné' }}
+                    </div>
+                </div>
+
+                <!-- Actions Column -->
+                <div class="sf-actions" (click)="$event.stopPropagation()">
+                    <a [routerLink]="['/matches', m.id, 'edit']" class="btn btn-ghost btn-sq btn-sm" title="Modifier">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </a>
+                    <button class="btn btn-ghost btn-sq btn-sm" style="color:var(--red)" (click)="delete(m.id!, $event)"
+                        title="Supprimer">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-1 14H6L5 6" />
+                            <path d="M10 11v6M14 11v6" />
+                            <path d="M9 6V4h6v2" />
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <app-pagination [page]="page" [totalPages]="totalPages" (pageChange)="onPageChange($event)"></app-pagination>
+
+    </div>
+</div>
