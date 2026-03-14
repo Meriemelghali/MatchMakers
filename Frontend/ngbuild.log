@@ -1,0 +1,28 @@
+- Generating browser application bundles (phase: setup)...
+✔ Browser application bundle generation complete.
+✔ Browser application bundle generation complete.
+
+Error: src/app/matches/match-detail/match-detail.component.ts:39:17 - error NG2003: No suitable injection token for parameter 'sanitizer' of class 'MatchDetailComponent'.
+  Consider using the @Inject decorator to specify an injection token.
+
+39         private sanitizer: import('@angular/platform-browser').DomSanitizer
+                   ~~~~~~~~~
+
+  src/app/matches/match-detail/match-detail.component.ts:39:28
+    39         private sanitizer: import('@angular/platform-browser').DomSanitizer
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This type is not supported as injection token.
+
+
+Error: src/app/matches/matches.module.ts:11:60 - error NG6001: The class 'MatchDetailComponent' is listed in the declarations of the NgModule 'MatchesModule', but is not a directive, a component, or a pipe. Either remove it from the NgModule's declarations, or add an appropriate Angular decorator.
+
+11     declarations: [MatchListComponent, MatchFormComponent, MatchDetailComponent],
+                                                              ~~~~~~~~~~~~~~~~~~~~
+
+  src/app/matches/match-detail/match-detail.component.ts:14:14
+    14 export class MatchDetailComponent implements OnInit, OnDestroy {
+                    ~~~~~~~~~~~~~~~~~~~~
+    'MatchDetailComponent' is declared here.
+
+
+
