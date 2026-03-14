@@ -1,0 +1,188 @@
+<div class="page">
+    <div class="container-sm">
+
+        <a routerLink="/matches" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="m15 18-6-6 6-6" />
+            </svg>
+            Retour aux matchs
+        </a>
+
+        <div class="page-head mb-24">
+            <div class="page-head-meta">
+                <div class="page-head-eyebrow">{{ isEdit ? 'Modification' : 'Création' }}</div>
+                <h1 class="page-head-title">{{ isEdit ? 'Modifier le match' : 'Planifier un match' }}</h1>
+                <div class="page-head-sub">Définissez les équipes, le lieu et les paramètres du match.</div>
+            </div>
+        </div>
+
+        <div class="loader" *ngIf="loading">
+            <div class="spinner"></div>
+        </div>
+        <div class="alert alert-err mb-16" *ngIf="error">{{ error }}</div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
+
+            <!-- 2-Column Split Layout for Elite Vibe -->
+            <div style="display: flex; gap: 32px; align-items: flex-start;">
+
+                <!-- Left Col: Main Match Details -->
+                <div style="flex: 2; display: flex; flex-direction: column; gap: 24px;">
+
+                    <div class="card">
+                        <div class="section-head">
+                            <div class="section-title-bar">Affiche du match</div>
+                        </div>
+                        <div class="field mb-16">
+                            <label class="field-label">Titre de l'événement *</label>
+                            <input class="field-input" formControlName="titre"
+                                placeholder="Ex: Finale Championnat Régional">
+                            <div class="field-error" *ngIf="f['titre'].touched && f['titre'].errors?.['required']">
+                                Saisie requise</div>
+                        </div>
+
+                        <div class="form-grid mb-16">
+                            <div class="field">
+                                <label class="field-label">Équipe domicile *</label>
+                                <input class="field-input" formControlName="equipe1"
+                                    placeholder="Nom de l'équipe recevante">
+                                <div class="field-error"
+                                    *ngIf="f['equipe1'].touched && f['equipe1'].errors?.['required']">Requis</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Équipe visiteur *</label>
+                                <input class="field-input" formControlName="equipe2"
+                                    placeholder="Nom de l'équipe visiteuse">
+                                <div class="field-error"
+                                    *ngIf="f['equipe2'].touched && f['equipe2'].errors?.['required']">Requis</div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label class="field-label">Type de compétition *</label>
+                                <select class="field-input" formControlName="type">
+                                    <option value="">— Sélectionner —</option>
+                                    <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+                                </select>
+                                <div class="field-error" *ngIf="f['type'].touched && f['type'].errors?.['required']">
+                                    Requis</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Arbitre désigné</label>
+                                <input class="field-input" formControlName="arbitre"
+                                    placeholder="Nom de l'arbitre principal">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-head">
+                            <div class="section-title-bar">Calendrier & Lieu</div>
+                        </div>
+
+                        <div class="form-grid mb-16">
+                            <div class="field">
+                                <label class="field-label">Date de début *</label>
+                                <input class="field-input" type="datetime-local" formControlName="dateDebut">
+                                <div class="field-error"
+                                    *ngIf="f['dateDebut'].touched && f['dateDebut'].errors?.['required']">Requis</div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Date de fin prévisionnelle *</label>
+                                <input class="field-input" type="datetime-local" formControlName="dateFin">
+                                <div class="field-error"
+                                    *ngIf="f['dateFin'].touched && f['dateFin'].errors?.['required']">Requis</div>
+                            </div>
+                        </div>
+
+                        <!-- THE FIX: Rich Terrain Selector -->
+                        <div class="field mb-16">
+                            <label class="field-label flex items-center justify-between">
+                                <span>Infrastructure / Terrain</span>
+                                <a routerLink="/terrains/new" target="_blank" class="t-brand"
+                                    style="text-transform:none; letter-spacing:0; font-weight:500; font-size:12px;">+
+                                    Nouveau terrain</a>
+                            </label>
+                            <select class="field-input" formControlName="terrainId">
+                                <option [ngValue]="null">— Aucun terrain assigné —</option>
+                                <option *ngFor="let t of terrains" [ngValue]="t.id">
+                                    {{ t.nom }} ({{ t.ville }} - {{ t.typeSport }}) - {{ t.prixParHeure }} TND/h
+                                </option>
+                            </select>
+                            <div class="t-muted mt-8" style="font-size: 11.5px;">Seuls les terrains ayant le statut
+                                'DISPONIBLE' sont affichés.</div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label">Capacité spectateurs</label>
+                            <input class="field-input" type="number" formControlName="capaciteSpectateurs"
+                                placeholder="ex. 5000">
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="section-head">
+                            <div class="section-title-bar">Détails de l'organisation</div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Description ou Notes</label>
+                            <textarea class="field-input" formControlName="description"
+                                placeholder="Consignes particulières, logistique requise..."></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Col: Summary Panel -->
+                <div style="flex: 1; position: sticky; top: calc(var(--nav-h) + 32px);">
+                    <div class="card card-inset" style="background: var(--layer-1); border: 1px solid var(--border-s);">
+                        <div class="mb-16">
+                            <div
+                                style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-1); line-height: 1.2;">
+                                {{ form.value.titre || 'Titre du match' }}
+                            </div>
+                            <div
+                                style="font-size: 13px; color: var(--brand); font-weight: 600; margin-top: 4px; text-transform: uppercase;">
+                                {{ form.value.type || 'TYPE' }}
+                            </div>
+                        </div>
+
+                        <div class="score-block mb-16" style="border-radius: 12px;">
+                            <div class="score-team" style="padding: 16px 10px;">
+                                <div class="score-team-name" style="margin-bottom:0">{{ form.value.equipe1 || 'Dom.' }}
+                                </div>
+                            </div>
+                            <div class="score-sep" style="padding: 16px 10px;">
+                                <div class="score-vs">VS</div>
+                            </div>
+                            <div class="score-team" style="padding: 16px 10px;">
+                                <div class="score-team-name" style="margin-bottom:0">{{ form.value.equipe2 || 'Ext.' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-grid" style="gap: 8px 12px;">
+                            <div class="info-key">Date</div>
+                            <div class="info-val t-mono" style="font-size:12px;">{{ form.value.dateDebut ?
+                                (form.value.dateDebut | date:'dd/MM/yy HH:mm') : '—' }}</div>
+                            <div class="info-key">Terrain</div>
+                            <div class="info-val" style="font-size:12.5px;">{{ form.value.terrainId ? 'ID: ' +
+                                form.value.terrainId : 'Non assigné' }}</div>
+                            <div class="info-key">Arbitre</div>
+                            <div class="info-val" style="font-size:12.5px;">{{ form.value.arbitre || '—' }}</div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg" [disabled]="submitting">
+                            {{ submitting ? 'Enregistrement...' : (isEdit ? 'Confirmer la modification' : 'Créer et
+                            publier') }}
+                        </button>
+                        <button type="button" routerLink="/matches" class="btn btn-ghost w-full mt-12">Annuler</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

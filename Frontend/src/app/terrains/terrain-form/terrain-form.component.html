@@ -1,0 +1,195 @@
+<div class="page">
+    <div class="container-sm">
+
+        <a routerLink="/terrains" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="m15 18-6-6 6-6" />
+            </svg>
+            Retour aux terrains
+        </a>
+
+        <div class="page-head mb-24">
+            <div class="page-head-meta">
+                <div class="page-head-eyebrow">{{ isEdit ? 'Modification' : 'Nouveau' }}</div>
+                <h1 class="page-head-title">{{ isEdit ? 'Modifier le terrain' : 'Créer un terrain' }}</h1>
+                <div class="page-head-sub">Définissez les spécifications, l'emplacement et les équipements de
+                    l'infrastructure.</div>
+            </div>
+        </div>
+
+        <div class="loader" *ngIf="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <div *ngIf="!loading">
+            <div class="alert alert-err mb-16" *ngIf="error">{{ error }}</div>
+
+            <form [formGroup]="form" (ngSubmit)="submit()">
+
+                <div style="display: flex; gap: 32px; align-items: flex-start;">
+
+                    <!-- Left Col: Form fields -->
+                    <div style="flex: 2; display: flex; flex-direction: column; gap: 24px;">
+
+                        <div class="card">
+                            <div class="section-head">
+                                <div class="section-title-bar">Informations Générales</div>
+                            </div>
+                            <div class="field mb-16">
+                                <label class="field-label">Nom de l'infrastructure *</label>
+                                <input class="field-input" formControlName="nom"
+                                    placeholder="Ex. Complexe Sportif Les Jasmins">
+                                <div class="field-error" *ngIf="f['nom'].touched && f['nom'].errors?.['required']">
+                                    Saisie requise</div>
+                            </div>
+                            <div class="form-grid mb-16">
+                                <div class="field">
+                                    <label class="field-label">Adresse *</label>
+                                    <input class="field-input" formControlName="adresse" placeholder="Rue, quartier...">
+                                    <div class="field-error"
+                                        *ngIf="f['adresse'].touched && f['adresse'].errors?.['required']">Saisie requise
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="field-label">Ville *</label>
+                                    <input class="field-input" formControlName="ville" placeholder="Ex. Tunis">
+                                    <div class="field-error"
+                                        *ngIf="f['ville'].touched && f['ville'].errors?.['required']">Saisie requise
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label class="field-label">Discipline sportive *</label>
+                                    <select class="field-input" formControlName="typeSport">
+                                        <option value="">— Sélectionner —</option>
+                                        <option *ngFor="let s of sports" [value]="s">{{ s }}</option>
+                                    </select>
+                                    <div class="field-error"
+                                        *ngIf="f['typeSport'].touched && f['typeSport'].errors?.['required']">Saisie
+                                        requise</div>
+                                </div>
+                                <div class="field">
+                                    <label class="field-label">Type de surface *</label>
+                                    <select class="field-input" formControlName="typeSurface">
+                                        <option value="">— Sélectionner —</option>
+                                        <option *ngFor="let s of surfaces" [value]="s">{{ s.replace('_', ' ') }}
+                                        </option>
+                                    </select>
+                                    <div class="field-error"
+                                        *ngIf="f['typeSurface'].touched && f['typeSurface'].errors?.['required']">Saisie
+                                        requise</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="section-head">
+                                <div class="section-title-bar">Spécifications & Tarification</div>
+                            </div>
+                            <div class="form-grid-3 mb-16">
+                                <div class="field">
+                                    <label class="field-label">Capacité d'accueil</label>
+                                    <input class="field-input" type="number" formControlName="capacite"
+                                        placeholder="Nombre">
+                                </div>
+                                <div class="field">
+                                    <label class="field-label">Prix unitaire / h</label>
+                                    <input class="field-input" type="number" step="0.5" formControlName="prixParHeure"
+                                        placeholder="TND">
+                                </div>
+                                <div class="field">
+                                    <label class="field-label">Contact (Tél.)</label>
+                                    <input class="field-input" formControlName="contact" placeholder="+216 ...">
+                                </div>
+                            </div>
+                            <div class="form-grid mb-16">
+                                <div class="field">
+                                    <label class="field-label">Latitude GPS</label>
+                                    <input class="field-input" type="number" step="any" formControlName="latitude"
+                                        placeholder="ex. 36.8189">
+                                </div>
+                                <div class="field">
+                                    <label class="field-label">Longitude GPS</label>
+                                    <input class="field-input" type="number" step="any" formControlName="longitude"
+                                        placeholder="ex. 10.1658">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Description ou règles du terrain</label>
+                                <textarea class="field-input" formControlName="description"
+                                    placeholder="Informations complémentaires, horaires d'accès spécifiques, etc."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="section-head">
+                                <div class="section-title-bar">Équipements & Services annexes</div>
+                            </div>
+                            <div
+                                style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:16px">
+                                <label class="check-group"><input type="checkbox" formControlName="eclairage"><span
+                                        class="check-label">Éclairage nocturne</span></label>
+                                <label class="check-group"><input type="checkbox" formControlName="vestiaires"><span
+                                        class="check-label">Vestiaires douches</span></label>
+                                <label class="check-group"><input type="checkbox" formControlName="parking"><span
+                                        class="check-label">Parking privé</span></label>
+                                <label class="check-group"><input type="checkbox" formControlName="tribunes"><span
+                                        class="check-label">Gradins / Tribunes</span></label>
+                                <label class="check-group"><input type="checkbox" formControlName="bar"><span
+                                        class="check-label">Buvette / Café</span></label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Col: Live Preview / Action Panel -->
+                    <div style="flex: 1; position: sticky; top: calc(var(--nav-h) + 32px);">
+                        <div class="card card-inset"
+                            style="background: var(--layer-1); border: 1px solid var(--border-s);">
+                            <div class="mb-16">
+                                <div
+                                    style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-1); line-height: 1.2;">
+                                    {{ form.value.nom || 'Nom du terrain' }}
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-3); font-weight: 500; margin-top: 4px;">
+                                    {{ form.value.adresse || 'Adresse...' }}, {{ form.value.ville || 'Ville' }}
+                                </div>
+                            </div>
+
+                            <div class="tc" style="pointer-events: none; margin-bottom: 20px;">
+                                <div class="tc-stripe"></div>
+                                <div class="tc-body" style="padding: 16px;">
+                                    <div class="flex items-center justify-between">
+                                        <div class="tc-sport-badge">{{ form.value.typeSport || 'SPORT' }}</div>
+                                        <span class="t-muted" style="font-size:11.5px">{{ form.value.typeSurface ?
+                                            form.value.typeSurface.replace('_', ' ') : 'Surface' }}</span>
+                                    </div>
+                                </div>
+                                <div class="tc-footer" style="padding: 12px 16px;">
+                                    <div class="tc-price">
+                                        <span class="tc-price-val" style="font-size: 16px;">{{ form.value.prixParHeure
+                                            || '0' }}</span>
+                                        <span class="tc-price-unit" style="font-size: 10px;">TND/h</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="divider"></div>
+
+                            <button type="submit" class="btn btn-primary w-full btn-lg" [disabled]="submitting">
+                                {{ submitting ? 'Traitement...' : (isEdit ? 'Enregistrer les modifications' : 'Créer et
+                                publier') }}
+                            </button>
+                            <button type="button" routerLink="/terrains"
+                                class="btn btn-ghost w-full mt-12">Retour</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
