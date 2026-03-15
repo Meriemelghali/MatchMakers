@@ -3,6 +3,10 @@ import { RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
   {
+    path: 'events',
+    loadChildren: () => import('./events/events.module').then(m => m.EventsModule)
+  },
+  {
     path: 'matches',
     loadChildren: () => import('./matches/matches.module').then(m => m.MatchesModule)
   },
