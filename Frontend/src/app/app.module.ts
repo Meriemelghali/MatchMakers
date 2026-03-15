@@ -4,14 +4,25 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { LoginComponent } from './Auth/login/login.component';
+import { CreateUserComponent } from './Auth/create-user/create-user.component';
+import { FormsModule } from '@angular/forms';
+import { PublicLayoutComponent } from './public-layout/public-layout.component';
+import { AuthLayoutComponent } from './auth-layout/auth-layout.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    LoginComponent,
+    CreateUserComponent,
+    PublicLayoutComponent,
+    AuthLayoutComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    HttpClientModule,
+    FormsModule,
     HttpClientModule
   ],
   providers: [],
