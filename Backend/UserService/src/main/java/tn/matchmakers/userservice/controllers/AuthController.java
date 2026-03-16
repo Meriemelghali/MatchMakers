@@ -71,7 +71,13 @@ public class AuthController {
                 "email", user.getEmail(),
                 "firstName", user.getFirstName(),
                 "lastName", user.getLastName(),
-                "role", user.getRole().name()
+                "roles", user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(java.util.stream.Collectors.toList()),
+                "permissions", user.getRoles().stream()
+                        .flatMap(role -> role.getPermissions().stream())
+                        .map(permission -> permission.getName())
+                        .collect(java.util.stream.Collectors.toSet())
         ));
     }
 }

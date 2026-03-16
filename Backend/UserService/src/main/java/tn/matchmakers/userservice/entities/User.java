@@ -2,6 +2,7 @@ package tn.matchmakers.userservice.entities;
 
 import lombok.*;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.security.core.GrantedAuthority;
@@ -11,12 +12,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
 import tn.matchmakers.userservice.entities.enums.Sex;
 import tn.matchmakers.userservice.entities.enums.ThemePreference;
-import tn.matchmakers.userservice.entities.enums.Role;
+import tn.matchmakers.userservice.entities.Role;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Document(collection = "users")
 @Getter
@@ -45,7 +44,10 @@ public class User extends BaseEntity implements UserDetails {
     private String profilePictureUrl;
 
     private ThemePreference theme = ThemePreference.LIGHT;
-    private Role role = Role.SPORTIF;
+
+    @DBRef
+    private Set<Role> roles = new HashSet<>();
+
     private Sex sex ;
     private AccountStatus accountStatus = AccountStatus.PENDING;
     private int failedLoginAttempts = 0;
@@ -57,9 +59,41 @@ public class User extends BaseEntity implements UserDetails {
     @Indexed
     private String classId;
 
+    // ─── Helpers
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
+    public boolean hasRole(String roleName) {
+        return this.roles.stream().anyMatch(r -> r.getName().equals(roleName));
+    }
+
+    public boolean hasPermission(String permissionName) {
+        return this.roles.stream()
+                .flatMap(r -> r.getPermissions().stream())
+                .anyMatch(p -> p.getName().equals(permissionName));
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+
+        // Ajoute chaque rôle avec le préfixe ROLE_ (convention Spring Security)
+        roles.forEach(role ->
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()))
+        );
+
+        // Ajoute chaque permission directement (sans préfixe)
+        roles.stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                .forEach(authorities::add);
+
+        return authorities;
     }
 
     @Override
