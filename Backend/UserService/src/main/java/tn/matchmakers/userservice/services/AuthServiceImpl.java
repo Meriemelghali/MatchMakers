@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
 
     // PASSWORD VALIDATION
     private void validatePassword(LoginRequest request, User user) {
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             handleFailedLoginAttempt(user);
             throw new BadCredentialsException("Invalid credentials");
         }
