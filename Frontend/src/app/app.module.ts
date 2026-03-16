@@ -9,6 +9,7 @@ import { CreateUserComponent } from './features/Auth/create-user/create-user.com
 import { FormsModule } from '@angular/forms';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { RouterModule } from '@angular/router';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    HttpClientModule
+    HttpClientModule,
+    RouterModule
   ],
   providers: [],
   bootstrap: [AppComponent]
