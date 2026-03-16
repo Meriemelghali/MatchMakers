@@ -4,6 +4,8 @@ import { PublicLayoutComponent } from './layouts/public-layout/public-layout.com
 import { LoginComponent } from './features/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { authGuard } from './core/guards/auth.guard';  
+import { RegisterComponent } from './features/Auth/register/register.component';
+
 
 const routes: Routes = [
   //par défaut 
@@ -13,6 +15,7 @@ const routes: Routes = [
     component: PublicLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent },
       // autres pages publiques
     ]
   },

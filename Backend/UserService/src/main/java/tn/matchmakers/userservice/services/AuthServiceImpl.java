@@ -118,7 +118,13 @@ public class AuthServiceImpl implements AuthService {
                 Instant.now().plusMillis(jwtService.getAccessExpirationMs()),
                 Instant.now().plusMillis(jwtService.getRefreshExpirationMs()),
                 user.getEmail(),
-                user.getRole()
+                user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(java.util.stream.Collectors.toList()),
+                user.getRoles().stream()
+                        .flatMap(role -> role.getPermissions().stream())
+                        .map(permission -> permission.getName())
+                        .collect(java.util.stream.Collectors.toSet())
         );
     }
 

@@ -2,9 +2,11 @@ package tn.matchmakers.userservice.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.userservice.dto.UserResponseDto;
 import tn.matchmakers.userservice.mapper.UserMapper;
+import tn.matchmakers.userservice.services.UserServiceImpl;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 import java.util.List;
@@ -32,5 +34,12 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build(); // 204 No Content
+    }
+    @PostMapping("/{userId}/roles/{roleName}")
+    //@PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDto> assignRole(
+            @PathVariable String userId,
+            @PathVariable String roleName) {
+        return ResponseEntity.ok(userService.assignRoleToUser(userId, roleName));
     }
 }

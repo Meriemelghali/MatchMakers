@@ -28,11 +28,11 @@ export class LoginComponent {
     this.authService.login(request).subscribe({
       next: (res) => {
         this.authService.saveTokens(res);
-        this.router.navigate(['/matches']); // après login -> page matches
+        this.router.navigate(['/events']); 
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.error || 'Erreur de connexion'; // ← "error" pas "message"
+        this.errorMessage = err.error?.error || 'Erreur de connexion'; 
       },
       complete: () => this.loading = false
     });
