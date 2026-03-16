@@ -27,4 +27,7 @@ public class EventCreateDto {
 
     @NotBlank(message = "L'id du créateur est requis")
     private String createdBy;
+
+    private String eventTypeId;
+    private Long maxTeam;
 }

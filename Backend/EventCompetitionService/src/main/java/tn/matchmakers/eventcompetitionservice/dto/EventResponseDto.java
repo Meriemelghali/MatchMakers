@@ -22,14 +22,13 @@ public class EventResponseDto {
     private Map<String, String> createdBy;
     private LocalDateTime createdAt;
     public EventResponseDto(Event event) {
-        this.id = event.getId();
-        this.name = event.getName();
-        this.description = event.getDescription();
-        this.location = event.getLocation();
-        this.startDate = event.getStartDate();
-        this.endDate = event.getEndDate();
+        this.id          = event.getId();
+        this.name        = event.getName();
+        this.description = event.getDescriptionEvent();
+        this.startDate   = event.getStartDate();
+        this.endDate     = event.getEndDate();
         this.statutEvent = event.getStatutEvent();
-        this.createdBy = event.getCreatedBy();
-        this.createdAt = event.getCreatedAt();
+        this.createdBy   = event.getOrganizerUserId();
+        this.createdAt   = event.getCreatedAt();
     }
 }

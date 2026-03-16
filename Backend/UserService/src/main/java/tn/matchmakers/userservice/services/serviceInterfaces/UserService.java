@@ -12,5 +12,6 @@ public interface UserService {
     User getUserById(String id);
     void deleteUser(String id);
     UserResponseDto createUser(UserCreateDto userCreateDto);
+    UserResponseDto assignRoleToUser(String userId, String roleName);
 
 }
