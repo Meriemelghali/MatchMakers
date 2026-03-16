@@ -3,10 +3,10 @@ package tn.matchmakers.userservice.dto;
 import lombok.Builder;
 import lombok.Data;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
-import tn.matchmakers.userservice.entities.enums.Role;
 import tn.matchmakers.userservice.entities.enums.Sex;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,7 +17,7 @@ public class UserResponseDto {
     private String username;
     private String email;
     private String phoneNumber;
-    private Role role;
+    private List<String> roles;;
     private AccountStatus accountStatus;
     private LocalDateTime createdAt;
     private String profilePictureUrl;

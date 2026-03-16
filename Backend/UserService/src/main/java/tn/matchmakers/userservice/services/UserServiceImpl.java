@@ -9,9 +9,10 @@ import tn.matchmakers.userservice.dto.UserCreateDto;
 import tn.matchmakers.userservice.dto.UserResponseDto;
 import tn.matchmakers.userservice.entities.User;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
-import tn.matchmakers.userservice.entities.enums.Role;
+import tn.matchmakers.userservice.entities.Role;
 import tn.matchmakers.userservice.exceptions.DuplicateEntityException;
 import tn.matchmakers.userservice.mapper.UserMapper;
+import tn.matchmakers.userservice.repositories.RoleRepository;
 import tn.matchmakers.userservice.repositories.UserRepository;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     @Override
     public UserResponseDto createUser(UserCreateDto userCreateDto) {
@@ -36,6 +38,10 @@ public class UserServiceImpl implements UserService {
         if (!userCreateDto.getPassword().equals(userCreateDto.getConfirmPassword())) {
             throw new IllegalArgumentException("Passwords do not match");
         }
+        // Récupère le rôle SPORTIF depuis la DB
+        Role sportifRole = roleRepository.findByName("SPORTIF")
+                .orElseThrow(() -> new RuntimeException("Role SPORTIF not found — run DataInitializer"));
+
         // Create and save user
         User user = new User();
         user.setFirstName(userCreateDto.getFirstName());
@@ -46,9 +52,8 @@ public class UserServiceImpl implements UserService {
         user.setPhoneNumber(userCreateDto.getPhoneNumber());
         user.setAccountStatus(AccountStatus.ACTIVE);
         user.setSex(userCreateDto.getSex());
-        user.setRole(Role.SPORTIF);
-        // temporary
-        if (Role.SPORTIF.equals(user.getRole())) {
+        user.addRole(sportifRole);
+        if (user.hasRole("SPORTIF")) {
             user.setClassId("1");
         }
         User savedUser = userRepository.save(user);
