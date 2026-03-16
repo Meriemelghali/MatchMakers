@@ -56,7 +56,7 @@ export class RegisterComponent {
       error: (err) => {
         this.loading = false;
         if (err.error?.error) {
-          this.errorMessage = err.error.error;  // ← prend le message exact du backend
+          this.errorMessage = err.error.error;  
         } else if (err.error?.message) {
           this.errorMessage = err.error.message;
         } else {

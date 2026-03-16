@@ -1,1 +1,109 @@
-<p>event-list works!</p>
+<div class="page-wrapper">
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <p class="breadcrumb"><span class="breadcrumb-line"></span> GESTION DES ÉVÈNEMENTS</p>
+        <h1 class="page-title">Gestion des Évènements</h1>
+        <p class="page-subtitle">{{ events.length }} évènements planifiés</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary">
+          <span class="btn-icon">📅</span> Réservations
+        </button>
+        <button class="btn-primary">
+          <span class="btn-icon">+</span> Nouvel évènement
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="events-grid">
+
+      <!-- Card COMPÉTITION -->
+      <div class="event-card competition">
+        <div class="card-header">
+          <span class="badge badge-competition">COMPÉTITION</span>
+          <div class="card-actions">
+            <button class="icon-btn">✏️</button>
+            <button class="icon-btn danger">🗑️</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="event-title-row">
+            <h2 class="event-title">SPRING CUP</h2>
+            <span class="status-badge planned">PLANNED</span>
+            <span class="event-icon">🏆</span>
+          </div>
+
+          <div class="match-visual">
+            <div class="field-bg">
+              <span class="club">Club A</span>
+              <span class="vs">VS</span>
+              <span class="club">Club B</span>
+            </div>
+          </div>
+
+          <div class="event-meta">
+            <p><span class="meta-icon">📅</span> 09 Avr - 17 Avr 2026</p>
+            <p><span class="meta-icon">📍</span> Monastir</p>
+            <p><span class="meta-icon">👥</span> Organisé par <strong>Meriem ELGHALI</strong></p>
+          </div>
+        </div>
+
+        <button class="btn-card">Gérer les Éliminations</button>
+      </div>
+
+      <!-- Card ÉVÈNEMENT SIMPLE -->
+      <div class="event-card simple">
+        <div class="card-header">
+          <span class="badge badge-simple">ÉVÈNEMENT SIMPLE</span>
+          <div class="card-actions">
+            <button class="icon-btn">✏️</button>
+            <button class="icon-btn danger">🗑️</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="event-title-row">
+            <h2 class="event-title">FRIENDLY MATCH DAY</h2>
+            <span class="status-badge planned">PLANNED</span>
+            <span class="event-icon">📅</span>
+          </div>
+
+          <div class="matches-list">
+            <div class="match-row" *ngFor="let match of friendlyMatches">
+              <div class="match-info">
+                <p class="match-name">{{ match.name }}</p>
+                <p class="match-sub">{{ match.sub }}</p>
+              </div>
+              <div class="match-teams left">
+                <p>{{ match.teamA }}</p>
+                <p>{{ match.teamB }}</p>
+              </div>
+              <div class="match-time">
+                <p class="time-val">{{ match.time }}</p>
+                <span class="live-badge">LIVE</span>
+              </div>
+              <div class="match-teams right">
+                <p>{{ match.teamA }}</p>
+                <p>{{ match.teamB }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="event-meta">
+            <p><span class="meta-icon">📅</span> 14 Août 2026</p>
+            <p><span class="meta-icon">👥</span> Organisé par <strong>Meriem ELGHALI</strong></p>
+          </div>
+        </div>
+
+        <button class="btn-card">Voir le Programme du Jour</button>
+      </div>
+
+    </div>
+  </main>
+</div>
