@@ -22,7 +22,7 @@ export interface AuthResponse {
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8080/auth'; // ton backend
+  private apiUrl = 'http://localhost:8081/users/auth'; 
 
   constructor(private http: HttpClient) { }
 

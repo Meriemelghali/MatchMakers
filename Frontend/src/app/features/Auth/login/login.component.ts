@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, LoginRequest } from 'src/app/services/auth.service';
+import { AuthService, LoginRequest } from 'src/app/core/services/auth.service';
 import { NgForm } from '@angular/forms'; 
 
 @Component({
@@ -32,7 +32,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Erreur de connexion';
+        this.errorMessage = err.error?.error || 'Erreur de connexion'; // ← "error" pas "message"
       },
       complete: () => this.loading = false
     });
