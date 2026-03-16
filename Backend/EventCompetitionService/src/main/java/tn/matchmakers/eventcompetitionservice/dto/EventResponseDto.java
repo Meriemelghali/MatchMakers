@@ -27,6 +27,7 @@ public class EventResponseDto {
         this.description = event.getDescriptionEvent();
         this.startDate   = event.getStartDate();
         this.endDate     = event.getEndDate();
+        this.location    = event.getLocation();
         this.statutEvent = event.getStatutEvent();
         this.createdBy   = event.getOrganizerUserId();
         this.createdAt   = event.getCreatedAt();

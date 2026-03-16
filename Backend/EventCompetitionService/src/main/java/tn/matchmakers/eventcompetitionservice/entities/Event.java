@@ -23,6 +23,8 @@ public class Event extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;
 
+    private String location;
+
     private StatutEvent statutEvent = StatutEvent.PLANNED;
 
     private String sportId;
