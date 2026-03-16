@@ -1,8 +1,8 @@
 package tn.matchmakers.userservice.dto;
 
-import tn.matchmakers.userservice.entities.enums.Role;
-
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 
 public record AuthResponse(
         String accessToken,
@@ -10,5 +10,6 @@ public record AuthResponse(
         Instant accessExpiresAt,
         Instant refreshExpiresAt,
         String email,
-        Role role) {
+        List<String> roles,
+        Set<String> permissions) {
 }
