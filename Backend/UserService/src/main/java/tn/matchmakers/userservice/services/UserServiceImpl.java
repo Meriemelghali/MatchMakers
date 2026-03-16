@@ -90,5 +90,23 @@ public class UserServiceImpl implements UserService {
         }
         userRepository.deleteById(id);
     }
+    public UserResponseDto assignRoleToUser(String userId, String roleName) {
+        // Récupère l'utilisateur
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé: " + userId));
+
+        // Récupère le rôle depuis la DB
+        Role role = roleRepository.findByName(roleName.toUpperCase())
+                .orElseThrow(() -> new RuntimeException("Rôle non trouvé: " + roleName));
+
+        // Ajoute le rôle seulement s'il ne l'a pas déjà
+        if (user.hasRole(roleName.toUpperCase())) {
+            throw new IllegalArgumentException("L'utilisateur a déjà le rôle: " + roleName);
+        }
+
+        user.addRole(role);
+        User savedUser = userRepository.save(user);
+        return UserMapper.mapToUserResponseDto(savedUser);
+    }
 
 }
