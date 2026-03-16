@@ -1,0 +1,72 @@
+<div class="login-page">
+  
+  <!-- Partie gauche : formulaire -->
+  <div class="login-left">
+    <div class="login-box">
+      
+      <!-- Logo + titre -->
+      <div class="brand">
+        <img src="assets/logo.png" alt="MatchMakers Logo" class="logo" />
+      </div>
+
+      <!-- Formulaire -->
+      <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)">
+        
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-wrapper">
+            <span class="icon">✉</span>
+            <input 
+              type="email" 
+              name="email" 
+              ngModel 
+              required 
+              placeholder="votre@email.com" 
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Mot de passe</label>
+          <div class="input-wrapper">
+            <span class="icon">🔒</span>
+            <input 
+              type="password" 
+              name="password" 
+              ngModel 
+              required 
+              placeholder="••••••••" 
+            />
+          </div>
+        </div>
+
+        <div class="options">
+          <label class="remember">
+            <input type="checkbox" /> Se souvenir de moi
+          </label>
+          <a href="#" class="forgot">Mot de passe oublié?</a>
+        </div>
+
+        <button type="submit" [disabled]="loading" class="btn-login">
+          {{ loading ? 'Connexion...' : 'Se connecter →' }}
+        </button>
+
+        <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+        <p class="register-link">
+          Pas encore de compte? <a routerLink="/register">Créer un compte</a>
+        </p>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Partie droite : image -->
+  <div class="login-right">
+    <div class="overlay">
+      <h2>Rejoignez la communauté sportive</h2>
+      <p>Créez votre profil, constituez vos équipes et organisez vos matchs en quelques clics.</p>
+    </div>
+  </div>
+
+</div>

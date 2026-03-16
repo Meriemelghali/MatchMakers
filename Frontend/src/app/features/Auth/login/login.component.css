@@ -1,0 +1,211 @@
+.login-page {
+  display: flex;
+  height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Gauche ── */
+.login-left {
+  width: 35%;
+  background: #080B10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.logo {
+  width: 300px;
+  margin-bottom: 10px;
+}
+
+/* ── Inputs ── */
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  color: #ccc;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #ff6a00;
+}
+
+.icon {
+  font-size: 16px;
+  color: #888;
+}
+
+.input-wrapper input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+  width: 100%;
+}
+
+.input-wrapper input::placeholder {
+  color: #555;
+}
+
+/* Autofill fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #2a2a2a inset;
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+}
+
+/* ── Options ── */
+.options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.remember {
+  color: #aaa;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.forgot {
+  color: #ff6a00;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.forgot:hover {
+  text-decoration: underline;
+}
+
+/* ── Bouton ── */
+.btn-login {
+  width: 100%;
+  padding: 13px;
+  background: #ff6a00;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-login:hover {
+  background: #e05e00;
+}
+
+.btn-login:disabled {
+  background: #a04400;
+  cursor: not-allowed;
+}
+
+/* ── Erreur ── */
+.error {
+  color: #ff4444;
+  font-size: 13px;
+  margin-top: 12px;
+  text-align: center;
+}
+
+/* ── Register link ── */
+.register-link {
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+  margin-top: 20px;
+}
+
+.register-link a {
+  color: #ff6a00;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* ── Droite ── */
+.login-right {
+  width: 65%;
+  background-image: url('/assets/football-team.jpg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Fondu gauche */
+.login-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(to right, #080B10 0%, transparent 100%);
+  z-index: 1;
+}
+
+/* ── Overlay bas ── */
+.overlay {
+  position: absolute;
+  bottom: 32px;
+  left: 32px;
+  right: 32px;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 24px;
+  color: #fff;
+}
+
+.overlay h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.overlay p {
+  font-size: 13px;
+  color: #ddd;
+  line-height: 1.5;
+}

@@ -16,7 +16,9 @@ import tn.matchmakers.userservice.repositories.UserRepository;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,8 +46,9 @@ public class UserServiceImpl implements UserService {
         user.setPhoneNumber(userCreateDto.getPhoneNumber());
         user.setAccountStatus(AccountStatus.ACTIVE);
         user.setSex(userCreateDto.getSex());
+        user.setRole(Role.SPORTIF);
         // temporary
-        if(user.getRole().equals(Role.SPORTIF)){
+        if (Role.SPORTIF.equals(user.getRole())) {
             user.setClassId("1");
         }
         User savedUser = userRepository.save(user);
@@ -65,6 +68,22 @@ public class UserServiceImpl implements UserService {
     public User getUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+    }
+
+    @Override
+    public List<UserResponseDto> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::mapToUserResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteUser(String id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("User not found");
+        }
+        userRepository.deleteById(id);
     }
 
 }
