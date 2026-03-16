@@ -86,6 +86,7 @@ public class EventServiceImpl implements EventService {
         event.setStartDate(dto.getStartDate());
         event.setEndDate(dto.getEndDate());
         event.setStatutEvent(StatutEvent.PLANNED);
+        event.setLocation(dto.getLocation());
         event.setOrganizerUserId(createdByMap);
         event.setEventType(eventType);
 

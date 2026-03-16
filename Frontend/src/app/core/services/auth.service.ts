@@ -45,5 +45,7 @@ export class AuthService {
     return !!localStorage.getItem('accessToken');
   }
 
-  
+  register(payload: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/create`, payload);
+  }
 }
