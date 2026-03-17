@@ -1,5 +1,6 @@
 // auth-layout.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-auth-layout',
@@ -10,6 +11,14 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
   navOpen = false;
   now = new Date();
   private clockInterval: any;
+  // ── Profil ──
+  profileOpen = false;
+  userName = '';
+  userRole = '';
+  userInitials = '';
+  userPhoto = '';
+
+  constructor(private router: Router) {}
 
   navLinks = [
     {
@@ -36,6 +45,48 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
 
   ngOnInit() {
     this.clockInterval = setInterval(() => this.now = new Date(), 30000);
+    this.loadUserInfo();
+    document.addEventListener('click', () => {
+    this.profileOpen = false;
+  });
   }
   ngOnDestroy() { clearInterval(this.clockInterval); }
+    loadUserInfo(): void {
+    const firstName = localStorage.getItem('firstName') || '';
+    const lastName  = localStorage.getItem('lastName')  || '';
+    const email     = localStorage.getItem('userEmail') || '';
+
+    if (firstName || lastName) {
+      this.userName = `${firstName} ${lastName}`.trim();
+    } else {
+      const raw = email.split('@')[0];
+      this.userName = raw.split('.').map((p: string) =>
+        p.charAt(0).toUpperCase() + p.slice(1)
+      ).join(' ');
+    }
+
+    // Initiales
+    this.userInitials = this.userName
+      .split(' ')
+      .map((p: string) => p[0]?.toUpperCase() || '')
+      .join('')
+      .slice(0, 2);
+
+    // Rôle
+    this.userRole = localStorage.getItem('userRole') || 'Admin';
+  }
+  logout(): void {
+    localStorage.clear();
+    this.profileOpen = false;
+    this.router.navigate(['/login']);
+  }
+  myprofile(): void {}
+  getDropdownBottom(): string {
+    const el = document.querySelector('.profile-card');
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      return (window.innerHeight - rect.top + 8) + 'px';
+    }
+    return '120px';
+  }
 }
