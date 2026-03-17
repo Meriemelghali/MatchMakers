@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService, LoginRequest } from 'src/app/core/services/auth.service';
+import { AuthService, LoginRequest } from 'src/app/core/services/AuthService/auth.service';
 import { NgForm } from '@angular/forms'; 
 
 @Component({

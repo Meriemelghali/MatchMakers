@@ -1,109 +1,188 @@
-<div class="page-wrapper">
-  <!-- Main -->
-  <main class="main-content">
+<div class="page">
+  <div class="container">
 
-    <!-- Header -->
-    <div class="page-header">
-      <div class="header-left">
-        <p class="breadcrumb"><span class="breadcrumb-line"></span> GESTION DES ÉVÈNEMENTS</p>
-        <h1 class="page-title">Gestion des Évènements</h1>
-        <p class="page-subtitle">{{ events.length }} évènements planifiés</p>
+    <!-- Page Header -->
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Gestion des événements</div>
+        <h1 class="page-head-title">Gestion des Évènements</h1>
+        <div class="page-head-sub">{{ planifiesCount }} événement(s) planifié(s)</div>
       </div>
-      <div class="header-actions">
-        <button class="btn-secondary">
-          <span class="btn-icon">📅</span> Réservations
+      <div class="page-head-actions">
+        <button class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Réservations
         </button>
-        <button class="btn-primary">
-          <span class="btn-icon">+</span> Nouvel évènement
-        </button>
+        <a routerLink="/events/new" class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Nouvel événement
+        </a>
       </div>
+    </div>
+
+    <!-- Filter Strip -->
+    <div class="filter-strip">
+      <span class="t-label">Filtres</span>
+      <div class="filter-sep"></div>
+      <select class="field-input field-input-sm" style="width:160px" [(ngModel)]="selectedStatut" (change)="applyFilters()">
+        <option value="">Tous les statuts</option>
+        <option *ngFor="let s of statutOptions" [value]="s.value">{{ s.label }}</option>
+      </select>
+      <select class="field-input field-input-sm" style="width:160px" [(ngModel)]="selectedType" (change)="applyFilters()">
+        <option value="">Tous les types</option>
+        <option value="COMPETITION">Compétition</option>
+        <option value="SIMPLE">Événement simple</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loader" *ngIf="isLoading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-err mb-16" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+    <!-- Empty -->
+    <div class="empty" *ngIf="!isLoading && !errorMsg && filteredEvents.length === 0">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+        </svg>
+      </div>
+      <div class="empty-title">Aucun événement trouvé</div>
+      <div class="empty-body">Modifiez vos filtres ou créez votre premier événement.</div>
+      <a routerLink="/events/new" class="btn btn-primary mt-12">Créer un événement</a>
     </div>
 
     <!-- Cards Grid -->
-    <div class="events-grid">
+    <div class="grid-auto" *ngIf="!isLoading && filteredEvents.length > 0">
+      <div class="ev-card" *ngFor="let ev of filteredEvents">
 
-      <!-- Card COMPÉTITION -->
-      <div class="event-card competition">
-        <div class="card-header">
-          <span class="badge badge-competition">COMPÉTITION</span>
-          <div class="card-actions">
-            <button class="icon-btn">✏️</button>
-            <button class="icon-btn danger">🗑️</button>
-          </div>
-        </div>
+        <!-- Stripe top -->
+        <div class="ev-card-stripe" [ngClass]="ev.competition ? 'stripe-competition' : 'stripe-simple'"></div>
 
-        <div class="card-body">
-          <div class="event-title-row">
-            <h2 class="event-title">SPRING CUP</h2>
-            <span class="status-badge planned">PLANNED</span>
-            <span class="event-icon">🏆</span>
-          </div>
+        <div class="ev-card-body">
 
-          <div class="match-visual">
-            <div class="field-bg">
-              <span class="club">Club A</span>
-              <span class="vs">VS</span>
-              <span class="club">Club B</span>
+          <!-- Top row: type badge + actions -->
+          <div class="ev-card-top">
+            <span class="ev-type-badge" [ngClass]="ev.competition ? 'badge-type-competition' : 'badge-type-simple'">
+              {{ ev.competition ? 'Compétition' : 'Événement simple' }}
+            </span>
+            <div class="ev-actions">
+              <a [routerLink]="['/events', ev.id, 'edit']" class="btn btn-ghost btn-sq btn-sm" title="Modifier" (click)="$event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </a>
+              <button class="btn btn-ghost btn-sq btn-sm btn-del" title="Supprimer" (click)="deleteEvent(ev.id); $event.stopPropagation()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+                </svg>
+              </button>
             </div>
           </div>
 
-          <div class="event-meta">
-            <p><span class="meta-icon">📅</span> 09 Avr - 17 Avr 2026</p>
-            <p><span class="meta-icon">📍</span> Monastir</p>
-            <p><span class="meta-icon">👥</span> Organisé par <strong>Meriem ELGHALI</strong></p>
-          </div>
-        </div>
-
-        <button class="btn-card">Gérer les Éliminations</button>
-      </div>
-
-      <!-- Card ÉVÈNEMENT SIMPLE -->
-      <div class="event-card simple">
-        <div class="card-header">
-          <span class="badge badge-simple">ÉVÈNEMENT SIMPLE</span>
-          <div class="card-actions">
-            <button class="icon-btn">✏️</button>
-            <button class="icon-btn danger">🗑️</button>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="event-title-row">
-            <h2 class="event-title">FRIENDLY MATCH DAY</h2>
-            <span class="status-badge planned">PLANNED</span>
-            <span class="event-icon">📅</span>
+          <!-- Title + statut badge + icon -->
+          <div class="ev-title-row">
+            <span class="ev-title">{{ ev.name | uppercase }}</span>
+            <span class="badge" [ngClass]="getStatutClass(ev.statut)">{{ ev.statut }}</span>
+            <div class="ev-icon">
+              <!-- Trophy icon for competition -->
+              <svg *ngIf="ev.competition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
+                <path d="M12 17v4"/><path d="M8 21h8"/>
+                <path d="M6 5h12v6a6 6 0 0 1-12 0V5z"/>
+              </svg>
+              <!-- Calendar icon for simple -->
+              <svg *ngIf="!ev.competition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
           </div>
 
-          <div class="matches-list">
-            <div class="match-row" *ngFor="let match of friendlyMatches">
-              <div class="match-info">
-                <p class="match-name">{{ match.name }}</p>
-                <p class="match-sub">{{ match.sub }}</p>
+          <!-- Competition visual: Club A VS Club B -->
+          <div class="ev-visual" *ngIf="ev.competition">
+            <svg class="ev-visual-bg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1">
+              <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
+              <path d="M12 17v4"/><path d="M8 21h8"/><path d="M6 5h12v6a6 6 0 0 1-12 0V5z"/>
+            </svg>
+            <span class="ev-visual-team">Club A</span>
+            <span class="ev-visual-vs">VS</span>
+            <span class="ev-visual-team">Club B</span>
+          </div>
+
+          <!-- Match list for simple events -->
+          <div class="sf-list" *ngIf="!ev.competition && friendlyMatches.length > 0">
+            <div class="sf-row" *ngFor="let m of friendlyMatches">
+              <div class="sf-name">
+                <div class="sf-name-main">{{ m.name }}</div>
+                <div class="sf-name-sub">{{ m.sub }}</div>
               </div>
-              <div class="match-teams left">
-                <p>{{ match.teamA }}</p>
-                <p>{{ match.teamB }}</p>
+              <div class="sf-teams">
+                <div class="sf-team-row">
+                  <span class="sf-team-name">{{ m.teamA }}</span>
+                </div>
+                <div class="sf-team-row">
+                  <span class="sf-team-name">{{ m.teamB }}</span>
+                </div>
               </div>
-              <div class="match-time">
-                <p class="time-val">{{ match.time }}</p>
-                <span class="live-badge">LIVE</span>
-              </div>
-              <div class="match-teams right">
-                <p>{{ match.teamA }}</p>
-                <p>{{ match.teamB }}</p>
+              <div class="sf-time-col">
+                <span class="sf-time-badge live">{{ m.time }}</span>
+                <span class="sf-live-label">Live</span>
               </div>
             </div>
           </div>
 
-          <div class="event-meta">
-            <p><span class="meta-icon">📅</span> 14 Août 2026</p>
-            <p><span class="meta-icon">👥</span> Organisé par <strong>Meriem ELGHALI</strong></p>
+          <!-- Meta: date, location, organizer -->
+          <div class="ev-meta">
+            <div class="ev-meta-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>{{ ev.startDate | date:'dd MMM yyyy' }}
+                <ng-container *ngIf="ev.endDate"> - {{ ev.endDate | date:'dd MMM yyyy' }}</ng-container>
+              </span>
+            </div>
+            <div class="ev-meta-row" *ngIf="ev.location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>{{ ev.location }}</span>
+            </div>
+            <div class="ev-meta-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Organisé par <strong>{{ ev.organizerId || '—' }}</strong></span>
+            </div>
           </div>
+
         </div>
 
-        <button class="btn-card">Voir le Programme du Jour</button>
-      </div>
+        <!-- Footer CTA -->
+        <div class="ev-footer">
+          <button class="btn btn-ghost btn-cta">
+            {{ ev.competition ? 'Gérer les Éliminations' : 'Voir le Programme du Jour' }}
+          </button>
+        </div>
 
+      </div>
     </div>
-  </main>
+
+  </div>
 </div>
