@@ -40,10 +40,59 @@
     </div>
 
     <!-- Clock / Bottom Meta -->
-    <div class="sidebar-bottom">
-      <div class="sidebar-clock">{{ now | date:'HH:mm' }}</div>
-      <div style="font-size:10px; color:var(--text-3); margin-top:4px">Tunis, TN</div>
+<div class="sidebar-bottom">
+
+  <!-- Profile wrapper -->
+  <div class="profile-wrapper">
+
+    <!-- Profile card -->
+    <div class="profile-card"
+         (click)="profileOpen = !profileOpen; $event.stopPropagation()">
+
+      <div class="avatar-wrap">
+        <div class="avatar-initials">{{ userInitials }}</div>
+        <div class="online-dot"></div>
+      </div>
+
+      <div class="profile-text">
+        <div class="profile-welcome">Welcome,</div>
+        <div class="profile-name">{{ userName || '[Connecté]' }}</div>
+        <div class="profile-role">{{ userRole }}</div>
+      </div>
+
     </div>
+
+    <!-- Dropdown -->
+    <div class="profile-dropdown" *ngIf="profileOpen" [style.bottom]="getDropdownBottom()">
+
+      <div class="dd-item avail-result">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Mon Profil
+      </div>
+
+      <div class="dd-sep"></div>
+
+      <div class="dd-item danger" (click)="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Se déconnecter
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="sidebar-clock">{{ now | date:'HH:mm' }}</div>
+  <div style="font-size:10px; color:var(--text-3); margin-top:4px">Tunis, TN</div>
+
+</div>
 
   </div>
 </nav>
