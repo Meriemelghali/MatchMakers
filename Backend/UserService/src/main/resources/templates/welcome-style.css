@@ -1,0 +1,59 @@
+/* welcome-style.css - Charte orange & noir */
+
+/* Corps du mail */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000000; /* noir */
+    margin: 0;
+    padding: 20px;
+}
+
+/* Conteneur principal */
+.container {
+    max-width: 600px;
+    margin: auto;
+    background-color: #1a1a1a; /* gris très foncé pour contraste */
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    color: #ffffff; /* texte blanc par défaut */
+}
+
+/* Titres */
+h1 {
+    color: #ff6600; /* orange vif */
+    font-size: 26px;
+    margin-bottom: 20px;
+}
+
+/* Paragraphes */
+p {
+    font-size: 16px;
+    color: #e0e0e0; /* gris clair pour texte */
+    line-height: 1.6;
+}
+
+/* Bouton */
+a.button {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #ff6600; /* orange */
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+}
+
+a.button:hover {
+    background-color: #e55b00; /* orange plus foncé au hover */
+}
+
+/* Footer */
+.footer {
+    font-size: 12px;
+    color: #999999;
+    margin-top: 25px;
+    text-align: center;
+}
