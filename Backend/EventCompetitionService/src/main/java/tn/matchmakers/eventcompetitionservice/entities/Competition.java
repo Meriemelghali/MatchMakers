@@ -3,6 +3,8 @@ package tn.matchmakers.eventcompetitionservice.entities;
 import lombok.*;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+import tn.matchmakers.eventcompetitionservice.entities.enums.CompetitionFormat;
+import tn.matchmakers.eventcompetitionservice.entities.enums.CompetitionStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +20,14 @@ public class Competition extends BaseEntity {
     private Long maxTeam;
 
     // Équipes participantes
-    @DBRef
     @Builder.Default
     private List<String> teamIds = new ArrayList<>();
 
     // Classement
-    @DBRef
     @Builder.Default
     private List<String> matchIds = new ArrayList<>();
+
+    private CompetitionFormat format;
+    private CompetitionStatus status;
+
 }
