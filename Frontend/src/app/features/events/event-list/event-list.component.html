@@ -94,7 +94,7 @@
           <!-- Title + statut badge + icon -->
           <div class="ev-title-row">
             <span class="ev-title">{{ ev.name | uppercase }}</span>
-            <span class="badge" [ngClass]="getStatutClass(ev.statut)">{{ ev.statut }}</span>
+            <span class="badge" [ngClass]="getStatutClass(ev.statutEvent)">{{ ev.statutEvent }}</span>
             <div class="ev-icon">
               <!-- Trophy icon for competition -->
               <svg *ngIf="ev.competition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -123,23 +123,47 @@
           </div>
 
           <!-- Match list for simple events -->
-          <div class="sf-list" *ngIf="!ev.competition && friendlyMatches.length > 0">
-            <div class="sf-row" *ngFor="let m of friendlyMatches">
+          <!-- Match list for friendly events — vraies données -->
+          <div class="sf-list" *ngIf="!ev.isCompetition && getMatchesForEvent(ev.id).length > 0">
+            <div class="sf-row" *ngFor="let m of getMatchesForEvent(ev.id)">
               <div class="sf-name">
-                <div class="sf-name-main">{{ m.name }}</div>
-                <div class="sf-name-sub">{{ m.sub }}</div>
+                <div class="sf-name-main">{{ m.titre }}</div>
+                <div class="sf-name-sub">{{ m.type }}</div>
               </div>
               <div class="sf-teams">
                 <div class="sf-team-row">
-                  <span class="sf-team-name">{{ m.teamA }}</span>
+                  <span class="sf-team-name">{{ m.equipe1 }}</span>
                 </div>
                 <div class="sf-team-row">
-                  <span class="sf-team-name">{{ m.teamB }}</span>
+                  <span class="sf-team-name">{{ m.equipe2 }}</span>
                 </div>
               </div>
               <div class="sf-time-col">
-                <span class="sf-time-badge live">{{ m.time }}</span>
-                <span class="sf-live-label">Live</span>
+                <span class="sf-time-badge" [class.live]="isMatchLive(m)">
+                  {{ getMatchTime(m) }}
+                </span>
+                <span class="sf-live-label" *ngIf="isMatchLive(m)">Live</span>
+                <span class="sf-live-label" *ngIf="!isMatchLive(m)">{{ m.statut }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Si pas de matches chargés mais teamIds présents -->
+          <div class="sf-list" *ngIf="!ev.isCompetition && getMatchesForEvent(ev.id).length === 0 && ev.teamIds && ev.teamIds.length > 0">
+            <div class="sf-row">
+              <div class="sf-name">
+                <div class="sf-name-main">{{ ev.eventTypeName }}</div>
+                <div class="sf-name-sub">{{ ev.startDate | date:'dd MMM yyyy' }}</div>
+              </div>
+              <div class="sf-teams">
+                <div class="sf-team-row" *ngFor="let teamId of ev.teamIds">
+                  <span class="sf-team-name">{{ teamId }}</span>
+                </div>
+              </div>
+              <div class="sf-time-col">
+                <span class="sf-time-badge" [ngClass]="getStatutClass(ev.statutEvent)">
+                  {{ ev.startDate | date:'HH:mm' }}
+                </span>
               </div>
             </div>
           </div>
@@ -168,7 +192,7 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
-              <span>Organisé par <strong>{{ ev.organizerId || '—' }}</strong></span>
+              <span>Organisé par <strong>{{ ev.createdBy?.name || '—' }}</strong></span>
             </div>
           </div>
 
