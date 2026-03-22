@@ -1,0 +1,209 @@
+<div class="page" *ngIf="match">
+
+    <!-- Elite Match Header Banner -->
+    <div
+        style="border-bottom: 1px solid var(--border-s); background: linear-gradient(180deg, rgba(232,80,10,0.06) 0%, transparent 100%); padding: 40px 0 0 0; margin-bottom: 64px;">
+        <div class="container" style="max-width: 1000px;">
+
+            <a routerLink="/matches" class="back-link mb-24">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+                Retour aux matchs
+            </a>
+
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                <div>
+                    <div class="page-head-eyebrow">{{ match.type }}</div>
+                    <h1 class="page-head-title" style="font-size: 36px; margin-bottom: 16px; letter-spacing: -0.03em;">
+                        {{ match.titre }}</h1>
+                    <div class="flex items-center gap-10">
+                        <span class="badge" [class]="'badge-' + match.statut.toLowerCase()">{{ match.statut }}</span>
+                        <span class="score-live" *ngIf="match.statut === 'EN_COURS'">
+                            <div class="pulse"></div> En direct
+                        </span>
+                        <span class="t-muted text-sm" *ngIf="match.terrainId">Terrain: {{ terrainName || 'Chargement...'
+                            }}</span>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- SVG Explitic Size Fix -->
+                    <a [routerLink]="['/matches', match.id, 'edit']" class="btn btn-secondary"
+                        style="background: var(--layer-2); border-color: var(--border-s);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Modifier le match
+                    </a>
+                </div>
+            </div>
+
+            <!-- Large Scoreboard overlapping the border -->
+            <div class="score-block"
+                style="transform: translateY(32px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); background: rgba(20,25,32,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                <div class="score-team" style="padding: 40px; flex: 1;">
+                    <div class="score-team-name" style="font-size:14px">{{ match.equipe1 }}</div>
+                    <div class="score-number" style="font-size:72px">{{ match.scoreEquipe1 }}</div>
+                </div>
+                <div class="score-sep" style="padding: 40px 24px; background: rgba(0,0,0,0.2);">
+                    <div class="score-vs" style="font-size:16px">VS</div>
+                </div>
+                <div class="score-team" style="padding: 40px; flex: 1;">
+                    <div class="score-team-name" style="font-size:14px">{{ match.equipe2 }}</div>
+                    <div class="score-number" style="font-size:72px">{{ match.scoreEquipe2 }}</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 1000px;">
+
+        <!-- Premium Dual Column Layout -->
+        <div style="display: flex; gap: 32px; align-items: flex-start;">
+
+            <!-- Left Col: Main Content (Timeline) -->
+            <div style="flex: 2; display: flex; flex-direction: column; gap: 24px;">
+                <div class="card">
+                    <div class="section-head">
+                        <div class="section-title-bar">Fil du match <span class="t-muted">({{ match.evenements?.length
+                                || 0 }})</span></div>
+                    </div>
+
+                    <div class="empty" *ngIf="!match.evenements?.length" style="padding:40px 0">
+                        <div class="empty-title">Aucun événement enregistré</div>
+                        <div class="empty-body">Les buts et cartons apparaîtront ici.</div>
+                    </div>
+
+                    <div class="timeline" *ngIf="match.evenements?.length">
+                        <div *ngFor="let e of match.evenements" class="timeline-item">
+                            <div class="timeline-min" style="color: var(--text-1); font-weight: 700;">{{ e.minute }}'
+                            </div>
+
+                            <div class="timeline-icon" [ngClass]="getIconClass(e.type)"
+                                [innerHTML]="getSvgIcon(e.type)"></div>
+
+                            <div class="timeline-body">
+                                <div class="timeline-type" style="color: var(--text-2);">{{ e.type.replace('_', ' ') }}
+                                </div>
+                                <div class="timeline-player"
+                                    style="font-weight: 600; font-size: 15px; color: var(--text-1);">{{ e.joueur ||
+                                    'Équipe' }}</div>
+                                <div class="timeline-team" *ngIf="e.equipe" style="color: var(--brand);">
+                                    {{ e.equipe === 'equipe1' ? match.equipe1 : match.equipe2 }}
+                                </div>
+                            </div>
+
+                            <button class="btn btn-ghost btn-sq btn-sm" (click)="deleteEvent(e.id!)"
+                                title="Supprimer l'événement">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6l-1 14H6L5 6" />
+                                    <path d="M10 11v6M14 11v6" />
+                                    <path d="M9 6V4h6v2" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Col: Sidebar (Actions & Details) -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 24px;">
+
+                <!-- Status Management -->
+                <div class="card" *ngIf="availableStatuses.length > 0">
+                    <div class="section-head">
+                        <div class="section-title-bar">Gestion du Statut</div>
+                    </div>
+                    <div class="flex flex-col gap-8">
+                        <button *ngFor="let s of availableStatuses" class="btn btn-secondary w-full"
+                            style="justify-content: center; background: var(--layer-2);" (click)="changeStatus(s)">
+                            <span style="color: var(--text-2)">Basculer vers</span> <span
+                                style="color: var(--text-1); font-weight: 600;">{{ s }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Saisir un evénement -->
+                <div class="card" *ngIf="match.statut === 'EN_COURS'">
+                    <div class="section-head">
+                        <div class="section-title-bar" style="color: var(--brand);">+ Nouvel événement</div>
+                    </div>
+                    <form [formGroup]="eventForm" (ngSubmit)="submitEvent()">
+                        <div class="field mb-16">
+                            <label class="field-label">Type d'action *</label>
+                            <select class="field-input" formControlName="type">
+                                <option value="">— Sélectionner —</option>
+                                <option *ngFor="let t of eventTypes" [value]="t">{{ t.replace('_', ' ') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-grid mb-16">
+                            <div class="field">
+                                <label class="field-label">Minute *</label>
+                                <input class="field-input" type="number" formControlName="minute" placeholder="ex. 45">
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Cible</label>
+                                <select class="field-input" formControlName="equipe">
+                                    <option value="">— Équipe —</option>
+                                    <option value="equipe1">{{ match.equipe1 }} (Dom.)</option>
+                                    <option value="equipe2">{{ match.equipe2 }} (Ext.)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field mb-24">
+                            <label class="field-label">Joueur concerné</label>
+                            <input class="field-input" formControlName="joueur" placeholder="Nom du joueur">
+                        </div>
+
+                        <button type="submit" class="btn w-full"
+                            style="background: var(--brand); color: #fff; border: none; height: 40px; border-radius: 8px;"
+                            [disabled]="updating || eventForm.invalid">
+                            {{ updating ? 'Traitement...' : 'Enregistrer' }}
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Info Details -->
+                <div class="card">
+                    <div class="section-head">
+                        <div class="section-title-bar">Informations Logistiques</div>
+                    </div>
+                    <div class="info-grid mb-16" style="grid-template-columns: 80px 1fr; gap: 12px 16px;">
+                        <div class="info-key">Début</div>
+                        <div class="info-val t-mono" style="font-size: 12.5px;">{{ formatDate(match.dateDebut) }}</div>
+
+                        <div class="info-key">Fin (prévue)</div>
+                        <div class="info-val t-mono" style="font-size: 12.5px; color: var(--text-3);">{{
+                            formatDate(match.dateFin) }}</div>
+
+                        <div class="info-key">Arbitre</div>
+                        <div class="info-val" style="font-weight: 500;">{{ match.arbitre || 'Non assigné' }}</div>
+
+                        <div class="info-key">Capacité</div>
+                        <div class="info-val">{{ match.capaciteSpectateurs || '—' }} spectateurs</div>
+                    </div>
+
+                    <div *ngIf="match.description">
+                        <div class="divider"></div>
+                        <p class="t-body" style="font-size: 13px; color: var(--text-2);">{{ match.description }}</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="loader" *ngIf="loading">
+    <div class="spinner"></div>
+</div>
+<div class="alert alert-err" *ngIf="error" style="margin:40px auto;max-width:600px">{{ error }}</div>

@@ -1,0 +1,153 @@
+<div class="page">
+  <div class="container">
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Récompenses</div>
+        <h1 class="page-head-title">Récompenses</h1>
+        <div class="page-head-sub">{{ filtered.length }} récompense(s)</div>
+      </div>
+      <div class="page-head-actions">
+        <a routerLink="/rewards/create" class="btn btn-primary btn-sm">
+          Ajouter une récompense
+        </a>
+      </div>
+    </div>
+
+    <div class="filter-strip">
+      <span class="t-label">Filtres</span>
+      <div class="filter-sep"></div>
+
+      <div class="field" style="max-width:180px;">
+        <label class="field-label">Joueur (ID)</label>
+        <input class="field-input field-input-sm" [(ngModel)]="playerId" (ngModelChange)="applyFilters()"
+               placeholder="playerId..." />
+      </div>
+
+      <div class="field" style="max-width:180px;">
+        <label class="field-label">Équipe (ID)</label>
+        <input class="field-input field-input-sm" [(ngModel)]="teamId" (ngModelChange)="applyFilters()"
+               placeholder="teamId..." />
+      </div>
+
+      <div class="field" style="max-width:220px;">
+        <label class="field-label">Recherche</label>
+        <input class="field-input field-input-sm" [(ngModel)]="q" (ngModelChange)="page = 1; applyLocalFilters()"
+               placeholder="Nom, joueur, équipe..." />
+      </div>
+
+      <div class="field" style="max-width:160px;">
+        <label class="field-label">Type</label>
+        <select class="field-input field-input-sm" [(ngModel)]="typeFilter" (ngModelChange)="page = 1; applyLocalFilters()">
+          <option value="">Tous</option>
+          <option value="TROPHY">TROPHY</option>
+          <option value="MEDAL">MEDAL</option>
+          <option value="CERTIFICATE">CERTIFICATE</option>
+          <option value="MVP">MVP</option>
+          <option value="BEST_PLAYER">BEST_PLAYER</option>
+          <option value="BEST_TEAM">BEST_TEAM</option>
+        </select>
+      </div>
+
+      <div class="field" style="max-width:160px;">
+        <label class="field-label">Rarity</label>
+        <select class="field-input field-input-sm" [(ngModel)]="rarityFilter" (ngModelChange)="page = 1; applyLocalFilters()">
+          <option value="">Toutes</option>
+          <option value="COMMON">COMMON</option>
+          <option value="RARE">RARE</option>
+          <option value="EPIC">EPIC</option>
+          <option value="LEGENDARY">LEGENDARY</option>
+        </select>
+      </div>
+
+      <div class="field" style="max-width:160px;">
+        <label class="field-label">Status</label>
+        <select class="field-input field-input-sm" [(ngModel)]="statusFilter" (ngModelChange)="page = 1; applyLocalFilters()">
+          <option value="">Tous</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="REVOKED">REVOKED</option>
+        </select>
+      </div>
+
+      <div class="field" style="max-width:170px;">
+        <label class="field-label">Tri</label>
+        <select class="field-input field-input-sm" [(ngModel)]="sort" (ngModelChange)="page = 1; applyLocalFilters()">
+          <option value="DATE_DESC">Date (desc)</option>
+          <option value="DATE_ASC">Date (asc)</option>
+          <option value="POINTS_DESC">Points (desc)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-ghost btn-sm" (click)="resetFilters()">Réinitialiser</button>
+    </div>
+
+    <div class="grid-2 mt-24" *ngIf="!loading && filtered.length > 0">
+      <div class="card-inset">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Répartition par type</span>
+          </div>
+        </div>
+        <canvas #typeChart></canvas>
+      </div>
+
+      <div class="card-inset">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Récompenses par équipe</span>
+          </div>
+        </div>
+        <canvas #teamChart></canvas>
+      </div>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="alert alert-err mb-16" *ngIf="!loading && error">{{ error }}</div>
+
+    <div class="empty" *ngIf="!loading && !error && filtered.length === 0">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v8M8 12h8" />
+        </svg>
+      </div>
+      <div class="empty-title">Aucune récompense</div>
+      <div class="empty-body">Les trophées, médailles et MVP apparaîtront ici.</div>
+    </div>
+
+    <div class="grid-auto mt-24" *ngIf="!loading && filtered.length > 0">
+      <div class="card card-interactive" *ngFor="let r of visible" [routerLink]="['/rewards', r.id]">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>{{ r.type }}</span>
+          </div>
+          <span class="tag">
+            {{ r.dateAwarded | date:'dd MMM yyyy' }}
+          </span>
+        </div>
+        <div class="t-display" style="font-size:18px;">{{ r.name }}</div>
+        <div class="t-body mt-8">
+          <span class="t-dim">Joueur :</span> {{ r.playerName || 'N/A' }}<br />
+          <span class="t-dim">Équipe :</span> {{ r.teamName || 'N/A' }}
+          <div class="t-muted mt-8" style="font-size:12px;">
+            <span *ngIf="r.rarity">{{ r.rarity }}</span>
+            <span *ngIf="r.status"> • {{ r.status }}</span>
+            <span *ngIf="r.points !== undefined && r.points !== null"> • {{ r.points }} pts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <app-pagination
+      class="mt-12"
+      [page]="page"
+      [totalPages]="totalPages"
+      (pageChange)="setPage($event)">
+    </app-pagination>
+
+  </div>
+</div>
+
