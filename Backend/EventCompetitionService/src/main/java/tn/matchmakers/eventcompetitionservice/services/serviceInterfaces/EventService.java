@@ -1,7 +1,8 @@
 package tn.matchmakers.eventcompetitionservice.services.serviceInterfaces;
 
-import tn.matchmakers.eventcompetitionservice.dto.EventCreateDto;
+import tn.matchmakers.eventcompetitionservice.dto.CreateEventRequest;
 import tn.matchmakers.eventcompetitionservice.dto.EventResponseDto;
+import tn.matchmakers.eventcompetitionservice.dto.UpdateEventRequest;
 import tn.matchmakers.eventcompetitionservice.dto.external.MatchDto;
 import tn.matchmakers.eventcompetitionservice.dto.external.SportDto;
 import tn.matchmakers.eventcompetitionservice.entities.Event;
@@ -12,10 +13,10 @@ import java.util.List;
 
 public interface EventService {
     // ─── CRUD
-    EventResponseDto createEvent (EventCreateDto eventCreateDto, String token);
+    EventResponseDto createEvent(CreateEventRequest dto, String token);
     List<Event> getAll();
     Event getById(String id);
-    Event update(String id, EventCreateDto dto);
+    EventResponseDto update(String id, UpdateEventRequest dto, String token);
     void delete(String id);
     // ─── Métier
     Event changeStatut(String id, StatutEvent statut);
@@ -26,4 +27,11 @@ public interface EventService {
     // ─── Appels externes
     SportDto getSportDetails(String sportId);
     List<MatchDto> getMatchesForCompetition(String competitionId);
+    EventResponseDto joinTeam(String eventId, String teamId, String token);
+    EventResponseDto leaveTeam(String eventId, String teamId, String token);
+
+    // ─── Localisation
+    List<Event> getByLocation(String city);
+    List<Event> getByLocationAndStatut(String city, StatutEvent statut);
+
 }

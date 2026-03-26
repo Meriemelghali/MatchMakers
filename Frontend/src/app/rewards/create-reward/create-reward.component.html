@@ -1,0 +1,146 @@
+<div class="page">
+  <div class="container-sm">
+
+    <a routerLink="/rewards" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux récompenses
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Nouvelle récompense</div>
+        <h1 class="page-head-title">Créer une récompense</h1>
+        <div class="page-head-sub">
+          Associe des trophées, médailles et distinctions à tes joueurs ou équipes.
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <div class="form-section">
+        <div class="form-section-title">Informations principales</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Nom de la récompense</label>
+            <input class="field-input" type="text" formControlName="name"
+                   placeholder="Ballon d’or, Meilleur buteur..." />
+            <div class="field-error" *ngIf="form.controls.name.touched && form.controls.name.invalid">
+              Le nom est obligatoire.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Type</label>
+            <select class="field-input" formControlName="type">
+              <option value="">Choisir un type</option>
+              <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+            </select>
+            <div class="field-error" *ngIf="form.controls.type.touched && form.controls.type.invalid">
+              Le type est obligatoire.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Date d’attribution</label>
+            <input class="field-input" type="date" formControlName="dateAwarded" />
+            <div class="field-error"
+                 *ngIf="form.controls.dateAwarded.touched && form.controls.dateAwarded.invalid">
+              La date est obligatoire.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Évènement (ID)</label>
+            <input class="field-input" type="text" formControlName="eventId"
+                   placeholder="eventId lié (optionnel)" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Points</label>
+            <input class="field-input" type="number" min="0" formControlName="points" placeholder="0" />
+          </div>
+          <div class="field">
+            <label class="field-label">Rarity</label>
+            <select class="field-input" formControlName="rarity">
+              <option [ngValue]="null">(optionnel)</option>
+              <option *ngFor="let r of rarities" [ngValue]="r">{{ r }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Image (URL)</label>
+            <input class="field-input" type="text" formControlName="imageUrl" placeholder="https://..." />
+          </div>
+          <div class="field">
+            <label class="field-label">Awarded by</label>
+            <input class="field-input" type="text" formControlName="awardedBy" placeholder="Admin, Coach..." />
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label class="field-label">Description</label>
+          <textarea class="field-input" rows="3" formControlName="description"
+                    placeholder="Contexte de la récompense, critères d’attribution, remarques..."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Cible</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Joueur (ID)</label>
+            <input class="field-input" type="text" formControlName="playerId"
+                   placeholder="Identifiant joueur (optionnel)" />
+          </div>
+          <div class="field">
+            <label class="field-label">Nom du joueur</label>
+            <input class="field-input" type="text" formControlName="playerName"
+                   placeholder="Nom affiché sur la récompense" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Équipe (ID)</label>
+            <input class="field-input" type="text" formControlName="teamId"
+                   placeholder="Identifiant équipe (optionnel)" />
+          </div>
+          <div class="field">
+            <label class="field-label">Nom de l’équipe</label>
+            <input class="field-input" type="text" formControlName="teamName"
+                   placeholder="Nom d’équipe affiché" />
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="flex justify-between items-center">
+        <div class="t-muted" style="font-size:12px;">
+          Tu pourras modifier ces informations plus tard.
+        </div>
+        <button class="btn btn-primary btn-lg" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Créer la récompense</span>
+          <span *ngIf="loading">Création...</span>
+        </button>
+      </div>
+
+      <div class="alert alert-err mt-16" *ngIf="error">{{ error }}</div>
+      <div class="alert alert-info mt-16" *ngIf="success">
+        Récompense créée avec succès, redirection...
+      </div>
+
+    </form>
+  </div>
+</div>

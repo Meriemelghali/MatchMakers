@@ -12,4 +12,7 @@ public class MatchDto {
     private String teamAId;
     private String teamBId;
     private String competitionId;
+    private String terrainId;
+    private String eventId;
+    private String type;
 }

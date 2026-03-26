@@ -1,0 +1,145 @@
+<div class="page">
+  <div class="container-sm">
+
+    <a routerLink="/teams" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux équipes
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Nouvelle équipe</div>
+        <h1 class="page-head-title">Créer une équipe</h1>
+        <div class="page-head-sub">Paramètre ton équipe pour l’utiliser dans les matchs et classements.</div>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Informations générales -->
+      <div class="form-section">
+        <div class="form-section-title">Informations générales</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Nom de l’équipe</label>
+            <input class="field-input" type="text" formControlName="name" placeholder="Real Tunis, Phoenix FC..." />
+            <div class="field-error" *ngIf="form.controls.name.touched && form.controls.name.invalid">
+              Le nom est obligatoire.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Sport</label>
+            <select class="field-input"
+                    formControlName="sportId"
+                    (change)="onSportChange(form.get('sportId')?.value)">
+              <option value="">-- Sélectionner un sport --</option>
+              <option *ngFor="let s of sports" [value]="s.id">{{ s.nameSport }}</option>
+            </select>
+            <div class="field-error"
+                *ngIf="form.controls.sportId.touched && form.controls.sportId.invalid">
+              Le sport est obligatoire.
+            </div>
+          </div>
+        </div> <!-- ← fermeture du premier form-grid -->
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Ville</label>
+            <input class="field-input" type="text" formControlName="city" placeholder="Tunis..." />
+          </div>
+          <div class="field">
+            <label class="field-label">Pays</label>
+            <input class="field-input" type="text" formControlName="country" placeholder="Tunisie..." />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Année de création</label>
+            <input class="field-input" type="number" formControlName="foundedYear" placeholder="2020" />
+          </div>
+          <div class="field">
+            <label class="field-label">Coach</label>
+            <input class="field-input" type="text" formControlName="coachName" placeholder="Nom du coach" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Stade</label>
+            <input class="field-input" type="text" formControlName="homeStadium" placeholder="Nom du stade" />
+          </div>
+          <div class="field">
+            <label class="field-label">Site web</label>
+            <input class="field-input" type="text" formControlName="websiteUrl" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Email contact</label>
+            <input class="field-input" type="email" formControlName="contactEmail" placeholder="contact@..." />
+          </div>
+          <div class="field">
+            <label class="field-label">Téléphone</label>
+            <input class="field-input" type="text" formControlName="contactPhone" placeholder="+216 ..." />
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label class="field-label">Visibilité</label>
+          <label class="t-body" style="display:flex; gap:10px; align-items:center;">
+            <input type="checkbox" formControlName="isPublic" />
+            <span>Equipe publique</span>
+          </label>
+        </div>
+
+        <div class="field mt-16">
+          <label class="field-label">Description</label>
+          <textarea class="field-input" rows="4" formControlName="description"
+            placeholder="Objectifs de l’équipe, fréquence des matchs, niveau, ambiance..."></textarea>
+        </div>
+      </div> <!-- ← fermeture form-section -->
+
+      <!-- Identité visuelle -->
+      <div class="form-section">
+        <div class="form-section-title">Identité visuelle</div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="field-label">Logo (mock)</label>
+            <input class="field-input" type="file" (change)="onLogoChange($event)" />
+            <div class="t-muted" style="font-size:12px; margin-top:6px;">
+              Le fichier n’est pas réellement envoyé, seul un aperçu local est utilisé pour le moment.
+            </div>
+          </div>
+
+          <div class="card-inset" *ngIf="logoPreview">
+            <div class="t-label mb-8">Aperçu</div>
+            <img [src]="logoPreview" alt="Logo preview" style="max-width:120px; border-radius:8px;" />
+          </div>
+        </div>
+      </div> <!-- ← fermeture form-section -->
+
+      <div class="divider"></div>
+
+      <div class="flex justify-between items-center">
+        <div class="t-muted" style="font-size:12px;">
+          Tu pourras modifier ces informations plus tard.
+        </div>
+        <button class="btn btn-primary btn-lg" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Créer l’équipe</span>
+          <span *ngIf="loading">Création...</span>
+        </button>
+      </div>
+
+      <div class="alert alert-err mt-16" *ngIf="error">{{ error }}</div>
+      <div class="alert alert-info mt-16" *ngIf="success">Équipe créée avec succès, redirection...</div>
+
+    </form>
+  </div>
+</div>

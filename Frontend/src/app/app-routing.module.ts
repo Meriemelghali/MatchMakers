@@ -38,6 +38,18 @@ const routes: Routes = [
         loadChildren: () =>
           import('./terrains/terrains.module').then(m => m.TerrainsModule)
       },
+      {
+        path: 'teams',
+        loadChildren: () => import('./teams/teams.module').then(m => m.TeamsModule)
+      },
+      {
+        path: 'rewards',
+        loadChildren: () => import('./rewards/rewards.module').then(m => m.RewardsModule)
+      },
+      {
+        path: 'leaderboard',
+        loadChildren: () => import('./features/leaderboard/leaderboard.module').then(m => m.LeaderboardModule)
+      },
       // autres routes privées ici
     ]
   },
