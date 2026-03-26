@@ -1,0 +1,165 @@
+<div class="page" *ngIf="!loading && reward; else loadingTpl">
+  <div class="container-sm">
+
+    <a routerLink="/rewards" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux récompenses
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Récompense</div>
+        <h1 class="page-head-title">{{ reward?.name }}</h1>
+        <div class="page-head-sub">
+          {{ reward?.type }} • attribuée le {{ reward?.dateAwarded | date:'dd MMM yyyy' }}
+          <span *ngIf="reward?.rarity"> • {{ reward?.rarity }}</span>
+          <span *ngIf="reward?.status"> • {{ reward?.status }}</span>
+          <span *ngIf="reward?.points !== undefined && reward?.points !== null"> • {{ reward?.points }} pts</span>
+        </div>
+      </div>
+
+      <div class="page-head-actions">
+        <button class="btn btn-ghost" type="button" (click)="delete()" [disabled]="deleting">
+          Supprimer
+        </button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+
+      <div class="form-section">
+        <div class="form-section-title">Détails</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Nom</label>
+            <input class="field-input" type="text" formControlName="name" />
+            <div class="field-error" *ngIf="form.controls.name.touched && form.controls.name.invalid">
+              Le nom est obligatoire.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Type</label>
+            <select class="field-input" formControlName="type">
+              <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+            </select>
+            <div class="field-error" *ngIf="form.controls.type.touched && form.controls.type.invalid">
+              Le type est obligatoire.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Date d’attribution</label>
+            <input class="field-input" type="date" formControlName="dateAwarded" />
+          </div>
+          <div class="field">
+            <label class="field-label">Évènement (ID)</label>
+            <input class="field-input" type="text" formControlName="eventId" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Points</label>
+            <input class="field-input" type="number" min="0" formControlName="points" />
+          </div>
+          <div class="field">
+            <label class="field-label">Rarity</label>
+            <select class="field-input" formControlName="rarity">
+              <option [ngValue]="null">(optionnel)</option>
+              <option *ngFor="let r of rarities" [ngValue]="r">{{ r }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Image (URL)</label>
+            <input class="field-input" type="text" formControlName="imageUrl" />
+          </div>
+          <div class="field">
+            <label class="field-label">Awarded by</label>
+            <input class="field-input" type="text" formControlName="awardedBy" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Status</label>
+            <select class="field-input" formControlName="status">
+              <option [ngValue]="null">(optionnel)</option>
+              <option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">Revoked reason</label>
+            <input class="field-input" type="text" formControlName="revokedReason"
+                   [disabled]="form.value.status !== 'REVOKED'" />
+          </div>
+        </div>
+
+        <div class="field mt-16">
+          <label class="field-label">Description</label>
+          <textarea class="field-input" rows="3" formControlName="description"></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section-title">Cible</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="field-label">Joueur (ID)</label>
+            <input class="field-input" type="text" formControlName="playerId" />
+          </div>
+          <div class="field">
+            <label class="field-label">Nom du joueur</label>
+            <input class="field-input" type="text" formControlName="playerName" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Équipe (ID)</label>
+            <input class="field-input" type="text" formControlName="teamId" />
+          </div>
+          <div class="field">
+            <label class="field-label">Nom de l’équipe</label>
+            <input class="field-input" type="text" formControlName="teamName" />
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="flex justify-between items-center">
+        <div class="t-muted" style="font-size:12px;">
+          Tu peux ajuster tous les champs de cette récompense.
+        </div>
+        <button class="btn btn-primary btn-lg" type="submit" [disabled]="saving">
+          <span *ngIf="!saving">Enregistrer</span>
+          <span *ngIf="saving">Enregistrement...</span>
+        </button>
+      </div>
+
+      <div class="alert alert-err mt-16" *ngIf="error">{{ error }}</div>
+      <div class="alert alert-info mt-16" *ngIf="success">{{ success }}</div>
+
+    </form>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="page">
+    <div class="container-sm">
+      <div class="loader">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>

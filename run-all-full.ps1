@@ -1,0 +1,158 @@
+$ErrorActionPreference = "Stop"
+
+# Run the full stack (all Spring microservices + Angular frontend + PythonAI).
+# Logs: .logs/<Service>.log
+#
+# Notes:
+# - Some services may require extra infra (RabbitMQ, etc.). We still try to start everything.
+# - MongoDB is assumed available at localhost:27017 (or configure env vars for Atlas as needed).
+
+$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+Set-Location $root
+
+$logs = Join-Path $root ".logs"
+New-Item -ItemType Directory -Force -Path $logs | Out-Null
+
+$m2 = Join-Path $root ".m2"
+$tmp = Join-Path $root ".tmp"
+$pipCache = Join-Path $root ".pip-cache"
+New-Item -ItemType Directory -Force -Path $tmp, $pipCache | Out-Null
+
+function Get-PortPids([int]$port) {
+  $lines = netstat -ano | Select-String (":$port") | ForEach-Object { $_.ToString().Trim() }
+  $pids = @()
+  foreach ($l in $lines) {
+    $tok = ($l -split '\s+')
+    $procPid = $tok[-1]
+    if ($procPid -match '^\d+$') { $pids += [int]$procPid }
+  }
+  $pids | Select-Object -Unique
+}
+
+function Stop-PortIfSafe([int]$port) {
+  $pids = Get-PortPids $port
+  foreach ($procId in $pids) {
+    $p = Get-Process -Id $procId -ErrorAction SilentlyContinue
+    if (-not $p) { continue }
+    $pname = ""
+    if ($p.ProcessName) { $pname = $p.ProcessName }
+    $name = $pname.ToLowerInvariant()
+
+    # Stop only processes likely started by this stack.
+    if ($name -in @('java', 'node', 'python', 'pythonw')) {
+      "Stopping PID $procId ($($p.ProcessName)) on port $port" | Out-Host
+      try { Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue } catch {}
+    }
+  }
+}
+
+function Wait-Port([int]$port, [int]$seconds = 120) {
+  $deadline = (Get-Date).AddSeconds($seconds)
+  while ((Get-Date) -lt $deadline) {
+    try {
+      $client = New-Object System.Net.Sockets.TcpClient
+      $iar = $client.BeginConnect("127.0.0.1", $port, $null, $null)
+      $ok = $iar.AsyncWaitHandle.WaitOne(400)
+      if ($ok -and $client.Connected) { $client.Close(); return $true }
+      $client.Close()
+    } catch {}
+    Start-Sleep -Milliseconds 600
+  }
+  return $false
+}
+
+function Start-Svc([string]$name, [string]$dir) {
+  $out = Join-Path $logs "$name.log"
+  $err = Join-Path $logs "$name.err.log"
+  Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
+  "Starting $name ... log: $out" | Out-Host
+  $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run"
+  Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
+    -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
+}
+
+function Start-Frontend() {
+  $out = Join-Path $logs "Frontend.log"
+  $err = Join-Path $logs "Frontend.err.log"
+  Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
+  "Starting Frontend ... log: $out" | Out-Host
+  $dir = Join-Path $root "Frontend"
+  $cmd = "cd `"$dir`"; node .\\node_modules\\@angular\\cli\\bin\\ng.js serve --configuration development --host 127.0.0.1 --port 4200"
+  Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
+    -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
+}
+
+function Start-PythonAi() {
+  $dir = Join-Path $root "PythonAI"
+  if (-not (Test-Path $dir)) { return }
+
+  $out = Join-Path $logs "PythonAI.log"
+  $err = Join-Path $logs "PythonAI.err.log"
+  Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
+  "Starting PythonAI ... log: $out" | Out-Host
+
+  $venvPy = Join-Path $dir ".venv\\Scripts\\python.exe"
+  if (-not (Test-Path $venvPy)) {
+    powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
+  }
+
+  # deps once (avoid restricted user temp)
+  $sentinel = Join-Path $dir ".venv\\.deps_ok"
+  if (-not (Test-Path $sentinel)) {
+    $env:TEMP = $tmp
+    $env:TMP = $tmp
+    $env:PIP_CACHE_DIR = $pipCache
+    & $venvPy -m pip install --disable-pip-version-check -r (Join-Path $dir "requirements.txt") *>> $out
+    New-Item -ItemType File -Force -Path $sentinel | Out-Null
+  }
+
+  Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
+    -ArgumentList "-m","uvicorn","app:app","--host","0.0.0.0","--port","8001" `
+    -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
+}
+
+# Clean ports (avoid "Address already in use")
+foreach ($p in @(8081,8082,8083,8084,8085,8086,8087,8088,8089,8090,8091,8092,4200,8001)) { Stop-PortIfSafe $p }
+
+# Start all Spring services
+Start-Svc "UserService" (Join-Path $root "Backend\\UserService")
+Start-Svc "ReclamationService" (Join-Path $root "Backend\\ReclamationService")
+Start-Svc "EventCompetitionService" (Join-Path $root "Backend\\EventCompetitionService")
+Start-Svc "SportService" (Join-Path $root "Backend\\SportService")
+Start-Svc "TeamService" (Join-Path $root "Backend\\TeamService")
+Start-Svc "RewardService" (Join-Path $root "Backend\\RewardService")
+Start-Svc "MatchService" (Join-Path $root "Backend\\MatchService")
+Start-Svc "TerrainService" (Join-Path $root "Backend\\TerrainService")
+Start-Svc "ReservationService" (Join-Path $root "Backend\\ReservationService")
+Start-Svc "SocialService" (Join-Path $root "Backend\\SocialService")
+Start-Svc "FinanceService" (Join-Path $root "Backend\\FinanceService")
+Start-Svc "ProductService" (Join-Path $root "Backend\\ProductService")
+
+# Wait a bit for ports to open
+$services = @(
+  @{ name="users"; port=8081 },
+  @{ name="reclamations"; port=8082 },
+  @{ name="events"; port=8083 },
+  @{ name="sports"; port=8084 },
+  @{ name="teams"; port=8085 },
+  @{ name="rewards"; port=8086 },
+  @{ name="matchs"; port=8087 },
+  @{ name="terrain"; port=8088 },
+  @{ name="reservations"; port=8089 },
+  @{ name="social"; port=8090 },
+  @{ name="finance"; port=8091 },
+  @{ name="products"; port=8092 }
+)
+
+foreach ($s in $services) {
+  $ok = Wait-Port $s.port 180
+  "READY $($s.name) port=$($s.port) ok=$ok" | Out-Host
+}
+
+# Start UI + PythonAI
+Start-Frontend
+Start-PythonAi
+
+"UI: http://127.0.0.1:4200" | Out-Host
+"PythonAI: http://127.0.0.1:8001/health" | Out-Host
+

@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
-
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AppRoutingModule } from './app-routing.module';
@@ -13,6 +12,7 @@ import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component
 import { RouterModule } from '@angular/router';
 import { RegisterComponent } from './features/Auth/register/register.component';
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -21,6 +21,7 @@ import { RegisterComponent } from './features/Auth/register/register.component';
     AuthLayoutComponent,
     RegisterComponent
   ],
+  
   imports: [
     BrowserModule,
     AppRoutingModule,
