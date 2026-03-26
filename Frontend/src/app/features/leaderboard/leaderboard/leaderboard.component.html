@@ -1,0 +1,295 @@
+<div class="page">
+  <div class="container">
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Classements</div>
+        <h1 class="page-head-title">Leaderboard</h1>
+        <div class="page-head-sub">
+          Top equipes et joueurs, calcule dynamiquement depuis Matchs + Recompenses.
+          <span *ngIf="lastUpdated">Derniere mise a jour: {{ lastUpdated | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      <div class="page-head-actions">
+        <div class="field" style="max-width:180px;">
+          <label class="field-label">Periode</label>
+          <select class="field-input field-input-sm" [ngModel]="period" (ngModelChange)="onPeriodChange($event)">
+            <option value="WEEK">Semaine</option>
+            <option value="MONTH">Mois</option>
+            <option value="ALL">Saison</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary btn-sm" type="button" (click)="load()" [disabled]="loading">
+          <span *ngIf="!loading">Rafraichir</span>
+          <span *ngIf="loading">Chargement...</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="alert alert-err mb-16" *ngIf="!loading && error">{{ error }}</div>
+
+    <div class="grid-auto mt-16" *ngIf="!loading && !error && spotlights.length > 0">
+      <div class="card card-interactive" *ngFor="let s of spotlights">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>{{ s.title }}</span>
+          </div>
+        </div>
+        <div class="t-display" style="font-size:18px;">{{ s.subtitle }}</div>
+        <div class="t-body mt-8">
+          <div class="t-display" style="font-size:22px;">{{ s.value }}</div>
+          <div class="t-muted mt-6">{{ s.meta }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt-16" *ngIf="!loading && !error">
+
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Top equipes</span>
+          </div>
+        </div>
+
+        <div class="tbl-wrap" *ngIf="topTeams.length; else noTeams">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Equipe</th>
+                <th>Pts</th>
+                <th>MJ</th>
+                <th>V</th>
+                <th>N</th>
+                <th>D</th>
+                <th>BP</th>
+                <th>BC</th>
+                <th>GD</th>
+                <th class="no-print">PDF</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of topTeams">
+                <td>{{ t.rank }}</td>
+                <td>
+                  <a *ngIf="teamRoute(t.name) as link; else teamNameTpl" [routerLink]="link" class="ai-link">
+                    {{ t.name }}
+                  </a>
+                  <ng-template #teamNameTpl>{{ t.name }}</ng-template>
+                </td>
+                <td>{{ t.points }}</td>
+                <td>{{ t.played }}</td>
+                <td>{{ t.wins }}</td>
+                <td>{{ t.draws }}</td>
+                <td>{{ t.losses }}</td>
+                <td>{{ t.goalsFor }}</td>
+                <td>{{ t.goalsAgainst }}</td>
+                <td>{{ t.goalDiff }}</td>
+                <td class="no-print">
+                  <a *ngIf="teamRoute(t.name) as link2" [routerLink]="[link2[0], link2[1], 'report']" class="btn btn-ghost btn-sm">
+                    PDF
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #noTeams>
+          <div class="empty">
+            <div class="empty-title">Aucune equipe</div>
+            <div class="empty-body">Ajoute des matchs termines pour generer le classement.</div>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Top joueurs</span>
+          </div>
+        </div>
+
+        <div class="tbl-wrap" *ngIf="topPlayers.length; else noPlayers">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Joueur</th>
+                <th>Equipe</th>
+                <th>Points</th>
+                <th>Recompenses</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of topPlayers">
+                <td>{{ p.rank }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.team || '—' }}</td>
+                <td>{{ p.points }}</td>
+                <td>{{ p.rewards }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #noPlayers>
+          <div class="empty">
+            <div class="empty-title">Aucun joueur</div>
+            <div class="empty-body">Ajoute des recompenses avec points pour generer le classement joueurs.</div>
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+
+    <div class="grid-2 mt-16" *ngIf="!loading && !error">
+      <div class="card ai-card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>AI Insights</span>
+          </div>
+          <span class="tag">Simple</span>
+        </div>
+
+        <div class="ai-controls">
+          <div class="field" style="min-width:220px;">
+            <label class="field-label">Equipe</label>
+            <select class="field-input field-input-sm" [(ngModel)]="aiTeam" (ngModelChange)="refreshAi()">
+              <option *ngFor="let t of teamOptions" [ngValue]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="field" style="min-width:180px;">
+            <label class="field-label">Mode</label>
+            <select class="field-input field-input-sm" [(ngModel)]="aiMode" (ngModelChange)="refreshAi()">
+              <option value="COACH">Coach</option>
+              <option value="SCOUT">Scout</option>
+              <option value="SIM">What-if</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" type="button" (click)="refreshAi()">
+            Generer
+          </button>
+        </div>
+
+        <div class="ai-list" *ngIf="aiInsights.length">
+          <div class="ai-item" *ngFor="let i of aiInsights" [class.warn]="i.level === 'WARN'">
+            <div class="ai-title">
+              <span class="chip" [class.action]="i.level === 'ACTION'" [class.warn]="i.level === 'WARN'">
+                {{ i.level }}
+              </span>
+              <span>{{ i.title }}</span>
+            </div>
+            <div class="ai-body">{{ i.body }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card ai-card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>What-if Simulator</span>
+          </div>
+          <span class="tag">Points</span>
+        </div>
+
+        <div class="ai-controls">
+          <div class="field" style="min-width:220px;">
+            <label class="field-label">Equipe</label>
+            <select class="field-input field-input-sm" [(ngModel)]="simTeam" (ngModelChange)="refreshSim()">
+              <option *ngFor="let t of teamOptions" [ngValue]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="field" style="max-width:120px;">
+            <label class="field-label">Victoires</label>
+            <input class="field-input field-input-sm" type="number" min="0" [(ngModel)]="simWins" (ngModelChange)="refreshSim()" />
+          </div>
+
+          <div class="field" style="max-width:120px;">
+            <label class="field-label">Nuls</label>
+            <input class="field-input field-input-sm" type="number" min="0" [(ngModel)]="simDraws" (ngModelChange)="refreshSim()" />
+          </div>
+
+          <div class="field" style="max-width:120px;">
+            <label class="field-label">Defaites</label>
+            <input class="field-input field-input-sm" type="number" min="0" [(ngModel)]="simLosses" (ngModelChange)="refreshSim()" />
+          </div>
+        </div>
+
+        <div class="ai-sim" *ngIf="simResult">
+          <div class="sim-row">
+            <div class="sim-k">Base</div>
+            <div class="sim-v">{{ simResult.basePoints }} pts</div>
+          </div>
+          <div class="sim-row">
+            <div class="sim-k">Gain</div>
+            <div class="sim-v">+{{ simResult.delta }} pts</div>
+          </div>
+          <div class="sim-row total">
+            <div class="sim-k">Total</div>
+            <div class="sim-v">{{ simResult.newPoints }} pts</div>
+          </div>
+
+          <div class="t-muted mt-12" style="font-size:12px;">
+            Formule: 3 pts victoire, 1 pt nul. Les buts (GD) ne sont pas simules ici.
+          </div>
+        </div>
+      </div>
+
+      <div class="card ai-card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Assistant IA (LLM)</span>
+          </div>
+          <span class="tag">FREE</span>
+        </div>
+
+        <div class="ai-ask">
+          <label class="field-label">Question</label>
+          <textarea class="ai-textarea" rows="4" [(ngModel)]="llmQuestion" placeholder="Ex: Pourquoi Team A est #1 ?"></textarea>
+
+          <div class="ai-ask-actions">
+            <button class="btn btn-secondary btn-sm" type="button" (click)="askLlm()" [disabled]="llmLoading">
+              <span *ngIf="!llmLoading">Demander</span>
+              <span *ngIf="llmLoading">Analyse...</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button"
+              (click)="llmPreset('Explique en 5 points pourquoi la meilleure equipe est #1 et quel risque elle doit surveiller.')"
+              [disabled]="llmLoading">
+              Exemple 1
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button"
+              (click)="llmPreset('Propose une prediction: qui peut entrer dans le top 3 et pourquoi, basee sur les stats actuelles.')"
+              [disabled]="llmLoading">
+              Exemple 2
+            </button>
+          </div>
+
+          <div class="alert alert-err mt-12" *ngIf="llmError">{{ llmError }}</div>
+
+          <div class="ai-answer" *ngIf="llmAnswer">
+            <div class="ai-answer-head">
+              <div class="t-muted" style="font-size:12px;">{{ llmMeta }}</div>
+            </div>
+            <div class="ai-answer-body">{{ llmAnswer }}</div>
+          </div>
+
+          <div class="t-muted mt-12" style="font-size:12px;" *ngIf="!llmAnswer && !llmError">
+            Service gratuit: Python + Ollama (local) sur `http://localhost:8001/leaderboard`.
+            Si Ollama n'est pas lance, tu auras un fallback, mais l'UI reste fonctionnelle.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+

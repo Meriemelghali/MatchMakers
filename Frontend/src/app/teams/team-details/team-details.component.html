@@ -1,0 +1,265 @@
+<div class="page" *ngIf="!loading && team">
+  <div class="container">
+
+    <a routerLink="/teams" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux équipes
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Fiche équipe</div>
+        <h1 class="page-head-title">{{ team?.name }}</h1>
+        <div class="page-head-sub">
+          {{ team?.sport }} • {{ membersCount() }} joueur(s)
+        </div>
+      </div>
+
+      <div class="page-head-actions">
+        <button class="btn btn-secondary btn-sm" type="button" *ngIf="!editing" (click)="toggleEdit()">
+          Modifier
+        </button>
+        <a class="btn btn-secondary btn-sm" *ngIf="!editing && team?.id as tid" [routerLink]="['/teams', tid, 'report']">
+          PDF
+        </a>
+        <button class="btn btn-ghost btn-sm" type="button" *ngIf="!editing" (click)="delete()" [disabled]="deleting">
+          Supprimer
+        </button>
+
+        <button class="btn btn-ghost btn-sm" type="button" *ngIf="editing" (click)="toggleEdit()" [disabled]="saving">
+          Annuler
+        </button>
+        <button class="btn btn-primary btn-sm" type="button" *ngIf="editing" (click)="save()" [disabled]="saving">
+          <span *ngIf="!saving">Enregistrer</span>
+          <span *ngIf="saving">Enregistrement...</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="alert alert-info mt-16" *ngIf="success">{{ success }}</div>
+
+    <div class="grid-2 mt-16">
+
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Infos</span>
+          </div>
+        </div>
+        <ng-container *ngIf="!editing; else editTeamTpl">
+          <div class="info-grid">
+            <div class="info-key">Sport</div>
+            <div class="info-val">{{ team?.sport }}</div>
+
+            <div class="info-key">Créée le</div>
+            <div class="info-val">{{ team?.createdAt | date:'dd MMM yyyy' }}</div>
+
+            <div class="info-key">Membres</div>
+            <div class="info-val">{{ membersCount() }}</div>
+
+            <div class="info-key">Ville</div>
+            <div class="info-val">{{ team?.city || '—' }}</div>
+
+            <div class="info-key">Pays</div>
+            <div class="info-val">{{ team?.country || '—' }}</div>
+
+            <div class="info-key">Annee</div>
+            <div class="info-val">{{ team?.foundedYear || '—' }}</div>
+
+            <div class="info-key">Coach</div>
+            <div class="info-val">{{ team?.coachName || '—' }}</div>
+
+            <div class="info-key">Stade</div>
+            <div class="info-val">{{ team?.homeStadium || '—' }}</div>
+
+            <div class="info-key">Site web</div>
+            <div class="info-val">{{ team?.websiteUrl || '—' }}</div>
+
+            <div class="info-key">Email</div>
+            <div class="info-val">{{ team?.contactEmail || '—' }}</div>
+
+            <div class="info-key">Telephone</div>
+            <div class="info-val">{{ team?.contactPhone || '—' }}</div>
+
+            <div class="info-key">Public</div>
+            <div class="info-val">{{ team?.isPublic ? 'Oui' : 'Non' }}</div>
+          </div>
+
+          <div class="t-body mt-16">
+            {{ team?.description || 'Aucune description pour cette équipe.' }}
+          </div>
+        </ng-container>
+
+        <ng-template #editTeamTpl>
+          <form [formGroup]="form" class="mt-8">
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">Nom</label>
+                <input class="field-input" type="text" formControlName="name" />
+              </div>
+              <div class="field">
+                <label class="field-label">Sport</label>
+                <input class="field-input" type="text" formControlName="sport" />
+              </div>
+            </div>
+
+            <div class="form-grid mt-16">
+              <div class="field">
+                <label class="field-label">Ville</label>
+                <input class="field-input" type="text" formControlName="city" />
+              </div>
+              <div class="field">
+                <label class="field-label">Pays</label>
+                <input class="field-input" type="text" formControlName="country" />
+              </div>
+            </div>
+
+            <div class="form-grid mt-16">
+              <div class="field">
+                <label class="field-label">Coach</label>
+                <input class="field-input" type="text" formControlName="coachName" />
+              </div>
+              <div class="field">
+                <label class="field-label">Stade</label>
+                <input class="field-input" type="text" formControlName="homeStadium" />
+              </div>
+            </div>
+
+            <div class="form-grid mt-16">
+              <div class="field">
+                <label class="field-label">Annee de creation</label>
+                <input class="field-input" type="number" formControlName="foundedYear" placeholder="2020" />
+              </div>
+              <div class="field">
+                <label class="field-label">Logo (URL)</label>
+                <input class="field-input" type="text" formControlName="logoUrl" placeholder="https://..." />
+              </div>
+            </div>
+
+            <div class="form-grid mt-16">
+              <div class="field">
+                <label class="field-label">Site web</label>
+                <input class="field-input" type="text" formControlName="websiteUrl" placeholder="https://..." />
+              </div>
+              <div class="field">
+                <label class="field-label">Email contact</label>
+                <input class="field-input" type="email" formControlName="contactEmail" placeholder="contact@..." />
+              </div>
+            </div>
+
+            <div class="form-grid mt-16">
+              <div class="field">
+                <label class="field-label">Telephone</label>
+                <input class="field-input" type="text" formControlName="contactPhone" placeholder="+216 ..." />
+              </div>
+              <div class="field">
+                <label class="field-label">Visibilite</label>
+                <label class="t-body" style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                  <input type="checkbox" formControlName="isPublic" />
+                  <span>Equipe publique</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field mt-16">
+              <label class="field-label">Description</label>
+              <textarea class="field-input" rows="3" formControlName="description"></textarea>
+            </div>
+          </form>
+        </ng-template>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>Performance récente</span>
+          </div>
+        </div>
+        <div class="card-inset">
+          <canvas #performanceChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-24">
+      <div class="section-head">
+        <div class="section-title-bar">
+          <span>Membres</span>
+        </div>
+      </div>
+
+      <div class="filter-strip" style="margin-top:0;">
+        <span class="t-label">Gestion</span>
+        <div class="filter-sep"></div>
+
+        <div class="field" style="max-width:180px;">
+          <label class="field-label">Player ID</label>
+          <input class="field-input field-input-sm" [(ngModel)]="joinPlayerId" placeholder="mockPlayer" />
+        </div>
+
+        <div class="field" style="max-width:200px;">
+          <label class="field-label">Username</label>
+          <input class="field-input field-input-sm" [(ngModel)]="joinUsername" placeholder="Mock User" />
+        </div>
+
+        <div class="field" style="max-width:150px;">
+          <label class="field-label">Role</label>
+          <select class="field-input field-input-sm" [(ngModel)]="joinRole">
+            <option value="MEMBER">MEMBER</option>
+            <option value="CAPTAIN">CAPTAIN</option>
+            <option value="COACH">COACH</option>
+          </select>
+        </div>
+
+        <button class="btn btn-secondary btn-sm" (click)="join()" [disabled]="joining">
+          <span *ngIf="!joining">Join</span>
+          <span *ngIf="joining">Joining...</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" (click)="leave()" [disabled]="leaving">
+          <span *ngIf="!leaving">Leave</span>
+          <span *ngIf="leaving">Leaving...</span>
+        </button>
+      </div>
+
+      <div class="tbl-wrap" *ngIf="team?.members?.length; else noMembers">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Joueur</th>
+              <th>Rôle</th>
+              <th>Depuis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let m of team?.members">
+              <td>{{ m.username }}</td>
+              <td>{{ m.role }}</td>
+              <td>{{ m.joinDate | date:'dd/MM/yyyy' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noMembers>
+        <div class="empty">
+          <div class="empty-title">Aucun membre</div>
+          <div class="empty-body">Les joueurs apparaîtront ici lorsqu’ils rejoindront cette équipe.</div>
+        </div>
+      </ng-template>
+    </div>
+
+  </div>
+</div>
+
+<div class="loader" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="page" *ngIf="!loading && error">
+  <div class="container">
+    <div class="alert alert-err mt-16">{{ error }}</div>
+  </div>
+</div>
+
