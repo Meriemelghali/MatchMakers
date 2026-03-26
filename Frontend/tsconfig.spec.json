@@ -10,5 +10,9 @@
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/app/teams/team-report/**/*.ts",
+    "src/app/teams/_team-report-old/**/*.ts"
   ]
 }

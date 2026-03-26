@@ -12,4 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class EventType extends BaseEntity {
     private String typeName;
     private Boolean isCompetition;
+    private Boolean requiresTeams;
+    private Boolean requiresMatches;
 }
