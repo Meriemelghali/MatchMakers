@@ -743,6 +743,36 @@ select.field-input option {
   color: var(--text-3);
 }
 
+.badge-pending {
+  background-color: #facc15;
+  color: #000;
+}
+
+.badge-reserved {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.badge-confirmed {
+  background-color: #22c55e;
+  color: white;
+}
+
+.badge-annule {
+  background-color: #ef4444;
+  color: white;
+}
+
+.badge-completed {
+  background-color: #6b7280;
+  color: white;
+}
+
+.badge-no-show {
+  background-color: #111827;
+  color: white;
+}
+
 /* ── SCORE BLOCK ── */
 .score-block {
   display: grid;

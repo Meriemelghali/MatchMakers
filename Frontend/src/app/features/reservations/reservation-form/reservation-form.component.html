@@ -1,0 +1,91 @@
+<div class="page">
+  <div class="container-sm">
+    <a routerLink="/reservations" class="back-link mb-16" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-3);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Retour aux réservations
+    </a>
+
+    <div class="page-head mb-24">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">{{ isEdit ? 'Modification' : 'Réservation' }}</div>
+        <h1 class="page-head-title">{{ isEdit ? 'Modifier la Réservation' : 'Nouvelle Réservation' }}</h1>
+        <div class="page-head-sub">{{ isEdit ? 'Ajustez les détails de votre session.' : 'Réservez votre terrain pour une partie en quelques clics.' }}</div>
+      </div>
+    </div>
+
+    <!-- Loading/Error States -->
+    <div *ngIf="loadingData" class="card mb-16" style="text-align: center; padding: 32px;">
+      <div class="spinner mb-12"></div>
+      <div class="t-muted">Chargement des terrains et des sports...</div>
+    </div>
+
+    <div *ngIf="loadError" class="alert alert-err mb-16">
+      Erreur lors du chargement des options. Veuillez vérifier la connexion aux services.
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" #resForm="ngForm" *ngIf="!loadingData && !loadError" class="flex flex-col gap-24">
+      
+      <div class="card">
+        <div class="form-section">
+          <div class="form-section-title">Détails de la réservation</div>
+          
+          <div class="form-grid mb-24">
+            <div class="field">
+              <label class="field-label" for="terrainId">Terrain *</label>
+              <select id="terrainId" name="terrainId" class="field-input" [(ngModel)]="formData.terrainId" required>
+                <option value="" disabled selected>— Sélectionner un terrain —</option>
+                <option *ngFor="let terrain of terrains" [value]="terrain.id">
+                  {{ terrainLabel(terrain) }}
+                </option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="sportId">Sport *</label>
+              <select id="sportId" name="sportId" class="field-input" [(ngModel)]="formData.sportId" required>
+                <option value="" disabled selected>— Sélectionner un sport —</option>
+                <option *ngFor="let sport of sports" [value]="sport.id">
+                  {{ sport.nameSport }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label" for="startTime">Date et Heure *</label>
+              <input type="datetime-local" id="startTime" name="startTime" class="field-input" [(ngModel)]="formData.startTimeR" required>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="statutR">Statut Initial *</label>
+              <select id="statutR" name="statutR" class="field-input" [(ngModel)]="formData.statutR" required>
+                <option *ngFor="let s of statuts" [value]="s.value">
+                  {{ s.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="t-muted mt-12" style="font-size: 12px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle; margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            La durée par défaut de la session est fixée à 1 heure.
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="alert alert-err">
+        Erreur lors de l'enregistrement. Veuillez vérifier les disponibilités du terrain.
+      </div>
+
+      <div class="flex gap-16 justify-end">
+        <button type="button" class="btn btn-ghost btn-lg" routerLink="/reservations">Annuler</button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="resForm.invalid || loading" style="min-width: 200px;">
+          {{ loading ? 'Enregistrement...' : (isEdit ? 'Enregistrer les modifications' : 'Confirmer la réservation') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
