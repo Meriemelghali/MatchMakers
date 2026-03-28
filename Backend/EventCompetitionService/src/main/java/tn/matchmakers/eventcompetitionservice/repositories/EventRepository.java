@@ -16,8 +16,12 @@ public interface EventRepository extends MongoRepository<Event, String> {
 
     boolean existsByName(String name);
     List<Event> findByStatutEvent(StatutEvent statut);
+    List<Event> findByStartDateBetween(LocalDate from, LocalDate to);
     @Query("{ 'organizerUserId.id': ?0 }")
     List<Event> findByOrganizerId(String userId);
-    List<Event> findByStartDateBetween(LocalDate from, LocalDate to);
+
     List<Event> findByEventTypeId(String eventTypeId);
+    List<Event> findByLocationContainingIgnoreCase(String city);
+    List<Event> findByLocationContainingIgnoreCaseAndStatutEvent(
+            String city, StatutEvent statut);
 }

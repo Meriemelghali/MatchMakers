@@ -6,7 +6,6 @@ import { TerrainDetailComponent } from './terrain-detail/terrain-detail.componen
 import { ReservationsListComponent } from './reservations-list/reservations-list.component';
 
 const routes: Routes = [
-    
     { path: '', component: TerrainListComponent },
     { path: 'reservations', component: ReservationsListComponent },
     { path: 'new', component: TerrainFormComponent },

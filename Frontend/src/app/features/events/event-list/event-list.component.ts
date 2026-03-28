@@ -1,6 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { EventService } from '../../../core/services/EventService/event.service';
+import { MatchService } from '../../../matches/services/match.service';
 import { Event, StatutEvent } from '../event.model';
+import { Match } from '../../../matches/models/match.model';
 
 @Component({
   selector: 'app-event-list',
@@ -19,6 +23,8 @@ export class EventListComponent implements OnInit, OnDestroy {
   selectedStatut = '';
   selectedType = '';
 
+  matchesByEvent: Record<string, Match[]> = {};
+
   statutOptions = [
   { label: 'Planifié', value: StatutEvent.PLANNED },
   { label: 'En cours', value: StatutEvent.ONGOING },
@@ -26,13 +32,10 @@ export class EventListComponent implements OnInit, OnDestroy {
   { label: 'Annulé',   value: StatutEvent.CANCELLED },
 ];
 
-  friendlyMatches = [
-    { name: 'Match 1', sub: 'Match 1', teamA: 'Team A', teamB: 'Team B', time: '15:00' },
-    { name: 'Match 2', sub: 'Match 2', teamA: 'Team A', teamB: 'Team B', time: '12:55' },
-    { name: 'Match 3', sub: 'Match 3', teamA: 'Team A', teamB: 'Team B', time: '13:59' },
-  ];
-
-  constructor(private eventService: EventService) {}
+  constructor(
+    private eventService: EventService,
+    private matchService: MatchService
+  ) {}
 
   ngOnInit(): void {
     this.updateTime();
@@ -51,7 +54,7 @@ export class EventListComponent implements OnInit, OnDestroy {
   }
 
   get planifiesCount(): number {
-    return this.filteredEvents.filter(e => e.statut === StatutEvent.PLANNED).length;
+    return this.filteredEvents.filter(e => e.statutEvent === StatutEvent.PLANNED).length;
   }
 
   loadEvents(): void {
@@ -61,6 +64,7 @@ export class EventListComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.events = data;
         this.applyFilters();
+        this.loadMatchesForEvents(data);
         this.isLoading = false;
       },
       error: () => {
@@ -70,25 +74,61 @@ export class EventListComponent implements OnInit, OnDestroy {
     });
   }
 
-  applyFilters(): void {
-  if (this.selectedStatut) {
-    // ✅ appel backend avec le statut
-    this.isLoading = true;
-    this.eventService.getByStatut(this.selectedStatut as StatutEvent).subscribe({
-      next: (data) => {
-        this.filteredEvents = this.filterByType(data);
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMsg = 'Erreur lors du filtrage.';
-        this.isLoading = false;
-      }
+  // ── Charger les matches pour chaque event qui en a 
+  loadMatchesForEvents(events: Event[]): void {
+    // on ne charge que les events avec teamIds (Friendly Match)
+    const friendlyEvents = events.filter(
+      e => !e.isCompetition && e.teamIds && e.teamIds.length > 0
+    );
+
+    if (friendlyEvents.length === 0) return;
+
+    // Pour chaque event, chercher les matches par terrainId
+    friendlyEvents.forEach(ev => {
+      if (!ev.terrainId) return;
+
+      this.matchService.filterByTerrain(ev.terrainId).pipe(
+        catchError(() => of([]))
+      ).subscribe(matches => {
+        // filtrer les matches qui correspondent à la date de l'event
+        this.matchesByEvent[ev.id] = matches.filter(m =>
+          m.dateDebut.startsWith(ev.startDate)
+        );
+      });
     });
-  } else {
-    // pas de filtre statut → filtre local sur les données déjà chargées
-    this.filteredEvents = this.filterByType(this.events);
   }
-}
+  getMatchesForEvent(eventId: string): Match[] {
+    return this.matchesByEvent[eventId] || [];
+  }
+
+  getMatchTime(match: Match): string {
+    if (!match.dateDebut) return '--:--';
+    return new Date(match.dateDebut).toLocaleTimeString('fr-FR', {
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  isMatchLive(match: Match): boolean {
+    return match.statut === 'EN_COURS';
+  }
+
+  applyFilters(): void {
+    if (this.selectedStatut) {
+      this.isLoading = true;
+      this.eventService.getByStatut(this.selectedStatut as StatutEvent).subscribe({
+        next: (data) => {
+          this.filteredEvents = this.filterByType(data);
+          this.isLoading = false;
+        },
+        error: () => {
+          this.errorMsg = 'Erreur lors du filtrage.';
+          this.isLoading = false;
+        }
+      });
+    } else {
+      this.filteredEvents = this.filterByType(this.events);
+    }
+  }
+  
 filterByType(data: Event[]): Event[] {
   if (!this.selectedType) return data;
   return data.filter(e =>
@@ -110,11 +150,11 @@ filterByType(data: Event[]): Event[] {
     });
   }
 
-  getStatutClass(statut: StatutEvent): string {
+  getStatutClass(statut: string): string {
     const map: Record<string, string> = {
-      PLANNED: 'badge-planifie',
-      ONGOING: 'badge-en_cours',
-      FINISHED: 'badge-termine',
+      PLANNED:   'badge-planifie',
+      ONGOING:   'badge-en_cours',
+      FINISHED:  'badge-termine',
       CANCELLED: 'badge-annule',
     };
     return map[statut] ?? '';
