@@ -80,7 +80,7 @@ public class ReservationServiceImpl implements ReservationService {
         r.setStatut(ReservationStatus.CONFIRMEE);
         r.setUpdatedAt(LocalDateTime.now());
         Reservation saved = reservationRepository.save(r);
-        publierEvenement("reservation.confirmed", saved);
+        publierEvenement("reservation.reserved", saved);
         return toDTO(saved);
     }
 
