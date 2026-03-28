@@ -29,6 +29,14 @@ const routes: Routes = [
         loadChildren: () => import('./features/events/events.module').then(m => m.EventsModule)
       },
       {
+        path: 'social',
+        loadChildren: () => import('./features/social/social.module').then(m => m.SocialModule)
+      },
+      {
+        path: 'reservations',
+        loadChildren: () => import('./features/reservations/reservations.module').then(m => m.ReservationsModule)
+      },
+      {
         path: 'matches',
         loadChildren: () =>
           import('./matches/matches.module').then(m => m.MatchesModule)
