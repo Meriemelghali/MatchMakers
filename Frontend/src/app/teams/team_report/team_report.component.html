@@ -1,0 +1,151 @@
+<div class="page">
+  <div class="container">
+
+    <div class="no-print">
+      <a [routerLink]="team?.id ? ['/teams', team?.id] : ['/teams']" class="back-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Retour a l'equipe
+      </a>
+    </div>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Rapport PDF</div>
+        <h1 class="page-head-title">Equipe + Recompenses</h1>
+        <div class="page-head-sub">
+          <span *ngIf="team as t">{{ t.name }} • {{ t.sport }}</span>
+          <span class="t-muted"> • Genere le {{ now | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      <div class="page-head-actions no-print">
+        <button class="btn btn-primary btn-sm" type="button" (click)="print()" [disabled]="loading || !!error">
+          Imprimer / Enregistrer en PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="alert alert-err mb-16" *ngIf="!loading && error">{{ error }}</div>
+
+    <ng-container *ngIf="!loading && !error && team as t">
+      <div class="grid-2 mt-16">
+        <div class="card">
+          <div class="section-head">
+            <div class="section-title-bar"><span>Infos equipe</span></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-key">Nom</div>
+            <div class="info-val">{{ t.name }}</div>
+            <div class="info-key">Sport</div>
+            <div class="info-val">{{ t.sport }}</div>
+            <div class="info-key">Ville</div>
+            <div class="info-val">{{ t.city || '—' }}</div>
+            <div class="info-key">Pays</div>
+            <div class="info-val">{{ t.country || '—' }}</div>
+            <div class="info-key">Coach</div>
+            <div class="info-val">{{ t.coachName || '—' }}</div>
+            <div class="info-key">Stade</div>
+            <div class="info-val">{{ t.homeStadium || '—' }}</div>
+            <div class="info-key">Contact</div>
+            <div class="info-val">{{ t.contactEmail || '—' }}<span *ngIf="t.contactPhone"> • {{ t.contactPhone }}</span></div>
+          </div>
+          <div class="t-body mt-16">
+            {{ t.description || 'Aucune description.' }}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-head">
+            <div class="section-title-bar"><span>Resume recompenses</span></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-key">Total</div>
+            <div class="info-val">{{ rewardCount() }}</div>
+            <div class="info-key">Points</div>
+            <div class="info-val">{{ totalRewardPoints() }}</div>
+            <div class="info-key">COMMON</div>
+            <div class="info-val">{{ rarityCount('COMMON') }}</div>
+            <div class="info-key">RARE</div>
+            <div class="info-val">{{ rarityCount('RARE') }}</div>
+            <div class="info-key">EPIC</div>
+            <div class="info-val">{{ rarityCount('EPIC') }}</div>
+            <div class="info-key">LEGENDARY</div>
+            <div class="info-val">{{ rarityCount('LEGENDARY') }}</div>
+          </div>
+          <div class="t-muted mt-16" style="font-size:12px;">
+            Astuce: utilise "Enregistrer sous PDF" dans la fenetre d'impression.
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-24">
+        <div class="section-head">
+          <div class="section-title-bar"><span>Recompenses ({{ rewards.length }})</span></div>
+        </div>
+
+        <div class="tbl-wrap" *ngIf="rewards.length; else noRewards">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Rarity</th>
+                <th>Status</th>
+                <th>Points</th>
+                <th>Joueur</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of rewards">
+                <td>{{ r.dateAwarded | date:'dd/MM/yyyy' }}</td>
+                <td>{{ r.name }}</td>
+                <td>{{ r.type }}</td>
+                <td>{{ r.rarity || '—' }}</td>
+                <td>{{ r.status || '—' }}</td>
+                <td>{{ r.points ?? 0 }}</td>
+                <td>{{ r.playerName || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #noRewards>
+          <div class="empty">
+            <div class="empty-title">Aucune recompense</div>
+            <div class="empty-body">Assigne des recompenses a cette equipe pour les voir ici.</div>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="card mt-24" *ngIf="t.members?.length">
+        <div class="section-head">
+          <div class="section-title-bar"><span>Membres ({{ t.members?.length }})</span></div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Joueur</th>
+                <th>Role</th>
+                <th>Depuis</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let m of t.members">
+                <td>{{ m.username }}</td>
+                <td>{{ m.role }}</td>
+                <td>{{ m.joinDate | date:'dd/MM/yyyy' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>

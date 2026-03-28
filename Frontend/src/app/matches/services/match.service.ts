@@ -58,4 +58,7 @@ export class MatchService {
     deleteEvent(matchId: string, eventId: string): Observable<Match> {
         return this.http.delete<Match>(`${this.base}/${matchId}/evenements/${eventId}`);
     }
+    filterByTerrain(terrainId: string): Observable<Match[]> {
+        return this.http.get<Match[]>(`${this.base}/terrain/${terrainId}`);
+    }
 }

@@ -1,0 +1,221 @@
+<div class="page">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">
+          {{ isEditMode ? 'Modifier' : 'Créer' }} un événement
+        </div>
+        <h1 class="page-head-title">
+          {{ isEditMode ? 'Modifier l\'événement' : 'Nouvel événement' }}
+        </h1>
+      </div>
+      <div class="page-head-actions">
+        <button class="btn btn-ghost btn-sm" (click)="cancel()">Annuler</button>
+      </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" *ngIf="isLoading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Success -->
+    <div class="alert alert-success mb-16" *ngIf="successMsg">{{ successMsg }}</div>
+
+    <!-- Error -->
+    <div class="alert alert-err mb-16" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!isLoading || isEditMode">
+      <div class="form-card">
+
+        <!-- ── Informations de base ─────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Informations générales</div>
+
+          <div class="field">
+            <label class="field-label">Nom de l'événement *</label>
+            <input class="field-input" formControlName="name"
+                   placeholder="Ex: Tournoi Régional Football 2026"
+                   [class.field-error]="isFieldInvalid('name')"/>
+            <span class="field-hint err" *ngIf="isFieldInvalid('name')">
+              Le nom est requis (minimum 3 caractères)
+            </span>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Description *</label>
+            <textarea class="field-input" formControlName="description" rows="3"
+                      placeholder="Décrivez l'événement..."
+                      [class.field-error]="isFieldInvalid('description')"></textarea>
+            <span class="field-hint err" *ngIf="isFieldInvalid('description')">
+              La description est requise
+            </span>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Lieu *</label>
+            <input class="field-input" formControlName="location"
+                   placeholder="Ex: Tunis, Stade de Radès"
+                   [class.field-error]="isFieldInvalid('location')"/>
+            <span class="field-hint err" *ngIf="isFieldInvalid('location')">
+              Le lieu est requis
+            </span>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">Date de début *</label>
+              <input class="field-input" type="date" formControlName="startDate"
+                     [class.field-error]="isFieldInvalid('startDate')"/>
+            </div>
+            <div class="field">
+              <label class="field-label">Date de fin *</label>
+              <input class="field-input" type="date" formControlName="endDate"
+                     [class.field-error]="isFieldInvalid('endDate')"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Type d'événement ────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Type d'événement</div>
+
+          <div class="field">
+            <label class="field-label">Type *</label>
+            <select class="field-input" formControlName="eventTypeId"
+                    (change)="onEventTypeChange(form.get('eventTypeId')?.value)"
+                    [class.field-error]="isFieldInvalid('eventTypeId')">
+              <option value="">-- Sélectionner un type --</option>
+              <option *ngFor="let t of eventTypes" [value]="t.id">
+                {{ t.typeName }} {{ t.isCompetition ? '🏆' : t.requiresTeams ? '👥' : '📅' }}
+              </option>
+            </select>
+            <span class="field-hint err" *ngIf="isFieldInvalid('eventTypeId')">
+              Le type est requis
+            </span>
+          </div>
+
+          <!-- Info badge selon le type sélectionné -->
+          <div class="alert alert-info" *ngIf="selectedEventType">
+            <span *ngIf="isCompetition">
+              🏆 <strong>Compétition</strong> — Un bracket sera créé automatiquement
+            </span>
+            <span *ngIf="requiresTeams">
+              👥 <strong>Match avec équipes</strong> — Les équipes seront directement assignées
+            </span>
+            <span *ngIf="!isCompetition && !requiresTeams">
+              📅 <strong>Événement simple</strong> — Inscription individuelle
+            </span>
+          </div>
+        </div>
+
+        <!-- ── Champs compétition ──────────────────────────────── -->
+        <div class="form-section" *ngIf="isCompetition">
+          <div class="form-section-title">Détails de la compétition</div>
+
+          <div class="field">
+            <label class="field-label">Nom de la compétition *</label>
+            <input class="field-input" formControlName="competitionName"
+                   placeholder="Ex: Championnat Régional 2026"
+                   [class.field-error]="isFieldInvalid('competitionName')"/>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">Nombre max d'équipes *</label>
+              <input class="field-input" type="number" formControlName="maxTeam"
+                     placeholder="Ex: 8" min="2"
+                     [class.field-error]="isFieldInvalid('maxTeam')"/>
+            </div>
+            <div class="field">
+              <label class="field-label">Format *</label>
+              <select class="field-input" formControlName="format"
+                      [class.field-error]="isFieldInvalid('format')">
+                <option value="">-- Sélectionner --</option>
+                <option *ngFor="let f of formatOptions" [value]="f.value">
+                  {{ f.label }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Champs équipes (Friendly) ──────────────────────── -->
+        <div class="form-section" *ngIf="requiresTeams">
+          <div class="form-section-title">Équipes participantes</div>
+
+          <div class="field">
+            <label class="field-label">IDs des équipes * (séparés par virgule)</label>
+            <input class="field-input" formControlName="teamIds"
+                   placeholder="Ex: team-001, team-002"
+                   [class.field-error]="isFieldInvalid('teamIds')"/>
+            <span class="field-hint">Minimum 2 équipes requises</span>
+          </div>
+        </div>
+
+        <!-- ── Infos techniques ────────────────────────────────── -->
+        <div class="form-section">
+            <div class="form-section-title">Informations techniques</div>
+
+            <!-- Sport dropdown -->
+            <div class="field">
+                <label class="field-label">Sport</label>
+                <select class="field-input" formControlName="sportId"
+                        (change)="onSportChange(form.get('sportId')?.value)"
+                        [class.field-error]="isFieldInvalid('sportId')">
+                <option value="">-- Sélectionner un sport --</option>
+                <option *ngFor="let s of sports" [value]="s.id">
+                    {{ s.nameSport }}
+                    <ng-container *ngIf="s.sportCategories?.length">
+                    ({{ s.sportCategories[0]?.nameSportC }})
+                    </ng-container>
+                </option>
+                </select>
+                <span class="field-hint err" *ngIf="isFieldInvalid('sportId')">
+                Le sport est requis
+                </span>
+                <!-- affiche le sport sélectionné -->
+                <span class="field-hint" *ngIf="form.get('sportId')?.value">
+                ✓ {{ getSelectedSportName() }}
+                </span>
+            </div>
+
+            <!-- Terrain dropdown -->
+            <div class="field">
+                <label class="field-label">Terrain</label>
+                <select class="field-input" formControlName="terrainId">
+                <option value="">-- Sélectionner un terrain (optionnel) --</option>
+                <option *ngFor="let t of filteredTerrains" [value]="t.id">
+                    {{ t.nom }} — {{ t.ville }}
+                    <ng-container *ngIf="t.capacite"> ({{ t.capacite }} places)</ng-container>
+                </option>
+                </select>
+                <!-- affiche le terrain sélectionné -->
+                <span class="field-hint" *ngIf="form.get('terrainId')?.value">
+                ✓ {{ getSelectedTerrainName() }}
+                </span>
+            </div>
+
+        </div>
+
+        <!-- ── Actions ─────────────────────────────────────────── -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" (click)="cancel()">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              {{ isEditMode ? 'Mettre à jour' : 'Créer l\'événement' }}
+            </span>
+            <span *ngIf="isLoading">Chargement...</span>
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</div>
