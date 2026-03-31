@@ -1,0 +1,53 @@
+<div class="page">
+  <div class="container-sm">
+    <a routerLink="/social" class="back-link mb-16" style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-3);">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Retour au forum
+    </a>
+
+    <div class="page-head mb-24">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Forum</div>
+        <h1 class="page-head-title">Nouvelle Discussion</h1>
+        <div class="page-head-sub">Partagez vos idées ou discutez avec la communauté MatchMakers.</div>
+      </div>
+    </div>
+
+    <div class="alert alert-err mb-16" *ngIf="error">
+      Une erreur est survenue lors de la création de la discussion. Veuillez réessayer.
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #postForm="ngForm" class="flex flex-col gap-24">
+      
+      <div class="card">
+        <div class="form-section">
+          <div class="form-section-title">Message</div>
+          
+          <div class="field mb-24">
+            <label class="field-label" for="author">Nom d'affichage *</label>
+            <input type="text" id="author" class="field-input" name="author" [(ngModel)]="post.author" required #authorField="ngModel" placeholder="Ex: Jean Dupont" />
+            <div *ngIf="authorField.invalid && authorField.touched" class="field-error">
+              Votre nom est requis pour identifier l'auteur.
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="content">Contenu du message *</label>
+            <textarea id="content" class="field-input" name="content" [(ngModel)]="post.content" required #contentField="ngModel" rows="8" placeholder="Que souhaitez-vous partager avec la communauté ?"></textarea>
+            <div *ngIf="contentField.invalid && contentField.touched" class="field-error">
+              Un message est requis pour lancer la discussion.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-16 justify-end">
+        <button type="button" class="btn btn-ghost btn-lg" routerLink="/social">Annuler</button>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="postForm.invalid || loading" style="min-width: 200px;">
+          {{ loading ? 'Publication...' : 'Lancer la discussion' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

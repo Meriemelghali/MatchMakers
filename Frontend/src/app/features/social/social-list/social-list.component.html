@@ -1,0 +1,141 @@
+<div class="page">
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Forum communautaire</div>
+        <h1 class="page-head-title">Forum Communautaire</h1>
+        <div class="page-head-sub">{{ postsCount }} discussion(s) active(s)</div>
+      </div>
+      <div class="page-head-actions">
+        <a routerLink="/social/create" class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Nouvelle Discussion
+        </a>
+      </div>
+    </div>
+
+  <div *ngIf="loading" style="text-align: center; padding: 40px; color: #888;">
+    Chargement des discussions...
+  </div>
+  <div *ngIf="error" style="text-align: center; padding: 40px; color: #d32f2f; background: #fee; border-radius: 8px;">
+    Erreur lors du chargement. Veuillez réessayer.
+  </div>
+  <div *ngIf="!loading && !error && posts.length === 0"
+    style="text-align: center; padding: 40px; color: #888; background: #fafafa; border-radius: 8px; border: 1px dashed #ccc;">
+    Aucune discussion pour le moment. Soyez le premier à lancer un sujet !
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <div class="post-card" *ngFor="let post of posts">
+
+      <!-- POST HEADER -->
+      <div class="post-header">
+        <div class="post-meta">
+          <div class="avatar">{{ post.idUser ? post.idUser.charAt(0).toUpperCase() : 'U' }}</div>
+          <div>
+            <div class="author-name">Utilisateur {{ post.idUser.substring(0,6) || 'Anonyme' }}</div>
+            <div class="post-date">{{ post.createdAt | date:'medium' }}</div>
+          </div>
+        </div>
+
+        <div class="post-actions">
+          <button class="btn-icon" title="Modifier le post" (click)="startEdit(post)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+          <button class="btn-icon delete" title="Supprimer le post" (click)="deletePost(post.id)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- POST BODY -->
+      <div class="post-body">
+        <div *ngIf="editingPostId !== post.id">
+          {{ post.content }}
+        </div>
+
+        <div *ngIf="editingPostId === post.id">
+          <textarea class="edit-textarea" [(ngModel)]="editContent" rows="4"
+            placeholder="Modifiez votre message..."></textarea>
+          <div class="edit-actions">
+            <button class="btn-outline" (click)="cancelEdit()">Annuler</button>
+            <button class="btn-save" (click)="saveEdit(post)">Enregistrer les modifications</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- REACTIONS BAR -->
+      <div class="post-footer">
+        <div class="reactions-bar">
+          <button *ngFor="let rt of reactionTypes" class="reaction-btn" [class.reacted]="hasReacted(post, rt.type)"
+            [title]="rt.label" (click)="toggleReaction(post, rt.type)">
+            <span class="reaction-emoji">{{ rt.emoji }}</span>
+            <span class="reaction-count" *ngIf="getReactionCount(post, rt.type) > 0">
+              {{ getReactionCount(post, rt.type) }}
+            </span>
+          </button>
+        </div>
+
+        <button class="action-btn" (click)="toggleComments(post.id)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          {{ post.comments?.length || 0 }} Commentaire{{ (post.comments?.length || 0) !== 1 ? 's' : '' }}
+        </button>
+      </div>
+
+      <!-- COMMENTS SECTION -->
+      <div class="comments-section" *ngIf="post.id && showCommentsFor[post.id]">
+        <div class="comments-list">
+          <div class="comment-item" *ngFor="let comment of post.comments">
+            <div class="comment-avatar">U</div>
+            <div class="comment-content">
+              <div class="comment-author">Utilisateur {{ comment.idUser.substring(0,6) || 'Anonyme' }}</div>
+              <div class="comment-text">{{ comment.content }}</div>
+              <div class="comment-time" *ngIf="comment.postCreated_at">{{ comment.postCreated_at | date:'short' }}</div>
+            </div>
+            <div class="comment-actions">
+              <button class="btn-icon delete" style="padding: 2px;" title="Supprimer ce commentaire"
+                (click)="deleteComment(post, comment.idComment)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div *ngIf="!post.comments || post.comments.length === 0"
+            style="padding: 12px; text-align: center; color: #888; font-size: 0.9rem;">
+            Il n'y a pas encore de commentaires. Soyez le premier à réagir !
+          </div>
+        </div>
+
+        <!-- ADD COMMENT -->
+        <div class="add-comment-box">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 1rem;">Moi</div>
+          <input type="text" class="comment-input" placeholder="Écrivez un commentaire public..."
+            [(ngModel)]="newCommentContents[post.id]" (keyup.enter)="addComment(post)">
+          <button class="btn-send" title="Envoyer le commentaire" (click)="addComment(post)"
+            [disabled]="!newCommentContents[post.id]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
