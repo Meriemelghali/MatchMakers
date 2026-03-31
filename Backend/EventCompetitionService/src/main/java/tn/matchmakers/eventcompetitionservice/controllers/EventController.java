@@ -34,14 +34,15 @@ public class EventController {
 
     //  GET ALL
     @GetMapping
-    public ResponseEntity<List<Event>> getAll() {
-        return ResponseEntity.ok(eventService.getAll());
+    public ResponseEntity<List<EventResponseDto>> getAll() {
+        List<EventResponseDto> dtoList = eventService.getAll().stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     //  GET BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getById(@PathVariable String id) {
-        return ResponseEntity.ok(eventService.getById(id));
+    public ResponseEntity<EventResponseDto> getById(@PathVariable String id) {
+        return ResponseEntity.ok(new EventResponseDto(eventService.getById(id)));
     }
 
     //  CREATE
@@ -73,30 +74,33 @@ public class EventController {
 
     //  CHANGE STATUT
     @PatchMapping("/{id}/statut")
-    public ResponseEntity<Event> changeStatut(
+    public ResponseEntity<EventResponseDto> changeStatut(
             @PathVariable String id,
             @RequestParam StatutEvent statut) {
-        return ResponseEntity.ok(eventService.changeStatut(id, statut));
+        return ResponseEntity.ok(new EventResponseDto(eventService.changeStatut(id, statut)));
     }
 
     //  GET BY STATUT
     @GetMapping("/statut/{statut}")
-    public ResponseEntity<List<Event>> getByStatut(@PathVariable StatutEvent statut) {
-        return ResponseEntity.ok(eventService.getByStatut(statut));
+    public ResponseEntity<List<EventResponseDto>> getByStatut(@PathVariable StatutEvent statut) {
+        List<EventResponseDto> dtoList = eventService.getByStatut(statut).stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     //  GET BY ORGANIZER
     @GetMapping("/organizer/{userId}")
-    public ResponseEntity<List<Event>> getByOrganizer(@PathVariable String userId) {
-        return ResponseEntity.ok(eventService.getByOrganizer(userId));
+    public ResponseEntity<List<EventResponseDto>> getByOrganizer(@PathVariable String userId) {
+        List<EventResponseDto> dtoList = eventService.getByOrganizer(userId).stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     //  GET BY DATE RANGE
     @GetMapping("/range")
-    public ResponseEntity<List<Event>> getByDateRange(
+    public ResponseEntity<List<EventResponseDto>> getByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(eventService.getByDateRange(from, to));
+        List<EventResponseDto> dtoList = eventService.getByDateRange(from, to).stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     //  TEAM JOIN
@@ -140,19 +144,19 @@ public class EventController {
     // GET BY LOCATION
     // GET /api/events/location?city=Tunis
     @GetMapping("/location")
-    public ResponseEntity<List<Event>> getByLocation(
+    public ResponseEntity<List<EventResponseDto>> getByLocation(
             @RequestParam String city) {
-        return ResponseEntity.ok(eventService.getByLocation(city));
+        List<EventResponseDto> dtoList = eventService.getByLocation(city).stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     // GET /api/events/location?city=Tunis&statut=PLANNED
     // Par défaut retourne seulement les events PLANNED dans la région
     @GetMapping("/location/planned")
-    public ResponseEntity<List<Event>> getByLocationPlanned(
+    public ResponseEntity<List<EventResponseDto>> getByLocationPlanned(
             @RequestParam String city) {
-        return ResponseEntity.ok(
-                eventService.getByLocationAndStatut(city, StatutEvent.PLANNED)
-        );
+        List<EventResponseDto> dtoList = eventService.getByLocationAndStatut(city, StatutEvent.PLANNED).stream().map(EventResponseDto::new).toList();
+        return ResponseEntity.ok(dtoList);
     }
 
     // ─── VÉRIFIER DISPONIBILITÉ TERRAIN ──────────────────────────────────────
