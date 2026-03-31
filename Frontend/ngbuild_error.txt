@@ -1,0 +1,1829 @@
+﻿node.exe : 
+Au caractère C:\Program 
+Files\nodejs\npx.ps1:29 : 
+3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (:  
+  String) [], RemoteExc   
+ eption
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+Warning: src/app/features/
+events/event-form/event-fo
+rm.component.html:88:47 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+88                     
+({{ s.sportCategories[0]?.
+nameSportC }})
+                          
+                       
+~~~~~~~~~~
+
+  src/app/features/events/
+event-form/event-form.comp
+onent.ts:16:16
+    16   templateUrl: './e
+vent-form.component.html',
+                      ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+EventFormComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:14:48 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+14         <h1 class="page
+-head-title">{{ 
+reward?.name }}</h1>
+                          
+                        
+~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:16:22 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+16           {{ 
+reward?.type }} ÔÇó 
+attribu├®e le {{ 
+reward?.dateAwarded | 
+date:'dd MMM yyyy' }}
+                        
+~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:16:56 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+16           {{ 
+reward?.type }} ÔÇó 
+attribu├®e le {{ 
+reward?.dateAwarded | 
+date:'dd MMM yyyy' }}
+                          
+                          
+      ~~~~~~~~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:17:54 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+17           <span 
+*ngIf="reward?.rarity"> 
+ÔÇó {{ reward?.rarity 
+}}</span>
+                          
+                          
+    ~~~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:18:54 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+18           <span 
+*ngIf="reward?.status"> 
+ÔÇó {{ reward?.status 
+}}</span>
+                          
+                          
+    ~~~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/rewards/r
+eward-details/reward-detai
+ls.component.html:19:95 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+19           <span 
+*ngIf="reward?.points !== 
+undefined && 
+reward?.points !== null"> 
+ÔÇó {{ reward?.points }} 
+pts</span>
+                          
+                          
+                          
+                   ~~~~~~
+
+  src/app/rewards/reward-d
+etails/reward-details.comp
+onent.ts:8:16
+    8   templateUrl: './re
+ward-details.component.htm
+l',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    Error occurs in the 
+template of component 
+RewardDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:14:46 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+14         <h1 class="page
+-head-title">{{ 
+team?.name }}</h1>
+                          
+                      ~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:16:20 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+16           {{ 
+team?.sport }} ÔÇó {{ 
+membersCount() }} 
+joueur(s)
+                      
+~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:54:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+54             <div 
+class="info-val">{{ 
+team?.sport }}</div>
+                          
+                    ~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:57:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+57             <div 
+class="info-val">{{ 
+team?.createdAt | 
+date:'dd MMM yyyy' 
+}}</div>
+                          
+                    
+~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:63:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+63             <div 
+class="info-val">{{ 
+team?.city || 'ÔÇö' 
+}}</div>
+                          
+                    ~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:66:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+66             <div 
+class="info-val">{{ 
+team?.country || 'ÔÇö' 
+}}</div>
+                          
+                    
+~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:69:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+69             <div 
+class="info-val">{{ 
+team?.foundedYear || 
+'ÔÇö' }}</div>
+                          
+                    
+~~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:72:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+72             <div 
+class="info-val">{{ 
+team?.coachName || 'ÔÇö' 
+}}</div>
+                          
+                    
+~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:75:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+75             <div 
+class="info-val">{{ 
+team?.homeStadium || 
+'ÔÇö' }}</div>
+                          
+                    
+~~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:78:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+78             <div 
+class="info-val">{{ 
+team?.websiteUrl || 'ÔÇö' 
+}}</div>
+                          
+                    
+~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:81:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+81             <div 
+class="info-val">{{ 
+team?.contactEmail || 
+'ÔÇö' }}</div>
+                          
+                    
+~~~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:84:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+84             <div 
+class="info-val">{{ 
+team?.contactPhone || 
+'ÔÇö' }}</div>
+                          
+                    
+~~~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:87:44 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+87             <div 
+class="info-val">{{ 
+team?.isPublic ? 'Oui' : 
+'Non' }}</div>
+                          
+                    
+~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: src/app/teams/tea
+m-details/team-details.com
+ponent.html:91:22 - 
+warning NG8107: The left 
+side of this optional 
+chain operation does not 
+include 'null' or 
+'undefined' in its type, 
+therefore the '?.' 
+operator can be replaced 
+with the '.' operator.
+
+91             {{ 
+team?.description || 
+'Aucune description pour 
+cette ├®quipe.' }}
+                        
+~~~~~~~~~~~
+
+  src/app/teams/team-detai
+ls/team-details.component.
+ts:9:16
+    9   templateUrl: './te
+am-details.component.html'
+,
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+TeamDetailsComponent.
+
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/app.compo
+nent.css exceeded maximum 
+budget. Budget 2.00 kB 
+was not met by 606 bytes 
+with a total of 2.59 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+Auth/login/login.component
+.css exceeded maximum 
+budget. Budget 2.00 kB 
+was not met by 395 bytes 
+with a total of 2.39 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+Auth/register/register.com
+ponent.css exceeded 
+maximum budget. Budget 
+2.00 kB was not met by 
+544 bytes with a total of 
+2.53 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+events/event-form/event-fo
+rm.component.css exceeded 
+maximum budget. Budget 
+2.00 kB was not met by 
+8.00 kB with a total of 
+10.00 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+events/event-list/event-li
+st.component.css exceeded 
+maximum budget. Budget 
+2.00 kB was not met by 
+1.27 kB with a total of 
+3.27 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+leaderboard/leaderboard/le
+aderboard.component.css 
+exceeded maximum budget. 
+Budget 2.00 kB was not 
+met by 168 bytes with a 
+total of 2.16 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/features/
+social/social-list/social-
+list.component.css 
+exceeded maximum budget. 
+Budget 2.00 kB was not 
+met by 1.78 kB with a 
+total of 3.78 kB.
+
+Warning: D:/school/3SDE1/P
+I3C-SDE2-2526/MatchMakers/
+Frontend/src/app/layouts/a
+uth-layout/auth-layout.com
+ponent.css exceeded 
+maximum budget. Budget 
+2.00 kB was not met by 
+3.12 kB with a total of 
+5.12 kB.
+
+
+
+./src/app/layouts/auth-lay
+out/auth-layout.component.
+ts - Error: Module build 
+failed (from ./node_module
+s/@angular-devkit/build-an
+gular/src/tools/babel/webp
+ack-loader.js):
+SyntaxError: D:\school\3SD
+E1\PI3C-SDE2-2526\MatchMak
+ers\Frontend\src\app\layou
+ts\auth-layout\auth-layout
+.component.ts: Unexpected 
+token (215:18)
+
+  213 | logout();
+  214 | void {
+> 215 |     localStorage, 
+: .clear(),
+      |                   
+^
+  216 |     this: 
+.profileOpen = false,
+  217 |     this: .router.
+navigate(['/login'])
+  218 | };
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.html:66:71 - error 
+TS2339: Property 
+'getDropdownBottom' does 
+not exist on type 
+'AuthLayoutComponent'.
+
+66     <div 
+class="profile-dropdown" 
+*ngIf="profileOpen" [style
+.bottom]="getDropdownBotto
+m()">
+                          
+                          
+                     
+~~~~~~~~~~~~~~~~~
+
+  src/app/layouts/auth-lay
+out/auth-layout.component.
+ts:7:16
+    7   templateUrl: './au
+th-layout.component.html',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+AuthLayoutComponent.
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.html:79:44 - error 
+TS2339: Property 'logout' 
+does not exist on type 
+'AuthLayoutComponent'.
+
+79       <div 
+class="dd-item danger" 
+(click)="logout()">
+                          
+                    ~~~~~~
+
+  src/app/layouts/auth-lay
+out/auth-layout.component.
+ts:7:16
+    7   templateUrl: './au
+th-layout.component.html',
+                     ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the 
+template of component 
+AuthLayoutComponent.
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:10:14 - error 
+TS2420: Class 
+'AuthLayoutComponent' 
+incorrectly implements 
+interface 'OnDestroy'.
+  Property 'ngOnDestroy' 
+is missing in type 
+'AuthLayoutComponent' but 
+required in type 
+'OnDestroy'.
+
+10 export class 
+AuthLayoutComponent 
+implements OnInit, 
+OnDestroy{
+                
+~~~~~~~~~~~~~~~~~~~
+
+  node_modules/@angular/co
+re/index.d.ts:6426:5
+    6426     
+ngOnDestroy(): void;
+             
+~~~~~~~~~~~~~~~~~~~~
+    'ngOnDestroy' is 
+declared here.
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:10:14 - error 
+TS2420: Class 
+'AuthLayoutComponent' 
+incorrectly implements 
+interface 'OnInit'.
+  Property 'ngOnInit' is 
+missing in type 
+'AuthLayoutComponent' but 
+required in type 'OnInit'.
+
+10 export class 
+AuthLayoutComponent 
+implements OnInit, 
+OnDestroy{
+                
+~~~~~~~~~~~~~~~~~~~
+
+  node_modules/@angular/co
+re/index.d.ts:6454:5
+    6454     ngOnInit(): 
+void;
+             
+~~~~~~~~~~~~~~~~~
+    'ngOnInit' is 
+declared here.
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:49:7 - error 
+TS2304: Cannot find name 
+'path'.
+
+49       path: '/teams',
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:49:11 - error 
+TS1005: ',' expected.
+
+49       path: '/teams',
+             ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:50:7 - error 
+TS2304: Cannot find name 
+'label'.
+
+50       label: 
+'├ëquipes',
+         ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:50:12 - error 
+TS1005: ',' expected.
+
+50       label: 
+'├ëquipes',
+              ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:51:7 - error 
+TS2304: Cannot find name 
+'icon'.
+
+51       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><path
+ d="M16 21v-2a4 4 0 0 
+0-4-4H6a4 4 0 0 0-4 
+4v2"/><circle cx="9" 
+cy="7" r="3"/><path 
+d="M22 21v-2a4 4 0 0 
+0-3-3.87"/><path d="M16 
+3.13a4 4 0 0 1 0 
+7.75"/></svg>'
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:51:11 - error 
+TS1005: ',' expected.
+
+51       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><path
+ d="M16 21v-2a4 4 0 0 
+0-4-4H6a4 4 0 0 0-4 
+4v2"/><circle cx="9" 
+cy="7" r="3"/><path 
+d="M22 21v-2a4 4 0 0 
+0-3-3.87"/><path d="M16 
+3.13a4 4 0 0 1 0 
+7.75"/></svg>'
+             ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:52:5 - error 
+TS1005: ',' expected.
+
+52     },
+       ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:52:6 - error 
+TS1128: Declaration or 
+statement expected.
+
+52     },
+        ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:54:13 - error 
+TS2695: Left side of 
+comma operator is unused 
+and has no side effects.
+
+54       path: '/rewards',
+               ~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:55:7 - error 
+TS2304: Cannot find name 
+'label'.
+
+55       label: 
+'R├®compenses',
+         ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:55:12 - error 
+TS1005: ';' expected.
+
+55       label: 
+'R├®compenses',
+              ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:55:14 - error 
+TS2695: Left side of 
+comma operator is unused 
+and has no side effects.
+
+55       label: 
+'R├®compenses',
+                
+~~~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:56:7 - error 
+TS2304: Cannot find name 
+'icon'.
+
+56       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><path
+ d="M8 21h8"/><path 
+d="M12 17v4"/><path d="M7 
+4v4a5 5 0 0 0 10 
+0V4"/><path d="M5 
+4h14"/><path d="M7 
+4V2"/><path d="M17 
+4V2"/></svg>'
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:56:11 - error 
+TS1005: ';' expected.
+
+56       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><path
+ d="M8 21h8"/><path 
+d="M12 17v4"/><path d="M7 
+4v4a5 5 0 0 0 10 
+0V4"/><path d="M5 
+4h14"/><path d="M7 
+4V2"/><path d="M17 
+4V2"/></svg>'
+             ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:57:6 - error 
+TS1128: Declaration or 
+statement expected.
+
+57     },
+        ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:59:13 - error 
+TS2695: Left side of 
+comma operator is unused 
+and has no side effects.
+
+59       path: 
+'/leaderboard',
+               
+~~~~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:60:7 - error 
+TS2304: Cannot find name 
+'label'.
+
+60       label: 
+'Classement',
+         ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:60:12 - error 
+TS1005: ';' expected.
+
+60       label: 
+'Classement',
+              ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:60:14 - error 
+TS2695: Left side of 
+comma operator is unused 
+and has no side effects.
+
+60       label: 
+'Classement',
+                
+~~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:61:7 - error 
+TS2304: Cannot find name 
+'icon'.
+
+61       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><rect
+ x="3" y="11" width="4" 
+height="10" rx="1"/><rect 
+x="10" y="7" width="4" 
+height="14" rx="1"/><rect 
+x="17" y="3" width="4" 
+height="18" 
+rx="1"/></svg>'
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:61:11 - error 
+TS1005: ';' expected.
+
+61       icon: '<svg 
+width="15" height="15" 
+viewBox="0 0 24 24" 
+fill="none" 
+stroke="currentColor" 
+stroke-width="2" 
+stroke-linecap="round" str
+oke-linejoin="round"><rect
+ x="3" y="11" width="4" 
+height="10" rx="1"/><rect 
+x="10" y="7" width="4" 
+height="14" rx="1"/><rect 
+x="17" y="3" width="4" 
+height="18" 
+rx="1"/></svg>'
+             ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:63:3 - error 
+TS1128: Declaration or 
+statement expected.
+
+63   ];
+     ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:65:3 - error 
+TS2304: Cannot find name 
+'ngOnInit'.
+
+65   ngOnInit() {
+     ~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:65:14 - error 
+TS1005: ';' expected.
+
+65   ngOnInit() {
+                ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:66:5 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+66     this.clockInterval 
+= setInterval(() => 
+this.now = new Date(), 
+30000);
+       ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:66:44 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+66     this.clockInterval 
+= setInterval(() => 
+this.now = new Date(), 
+30000);
+                          
+                    ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:67:5 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+67     
+this.loadUserInfo();
+       ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:69:5 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+69     this.profileOpen = 
+false;
+       ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:72:3 - error 
+TS2304: Cannot find name 
+'ngOnDestroy'.
+
+72   ngOnDestroy() { clear
+Interval(this.clockInterva
+l); }
+     ~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:72:17 - error 
+TS1005: ';' expected.
+
+72   ngOnDestroy() { clear
+Interval(this.clockInterva
+l); }
+                   ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:72:33 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+72   ngOnDestroy() { clear
+Interval(this.clockInterva
+l); }
+                          
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:73:5 - error 
+TS2304: Cannot find name 
+'loadUserInfo'.
+
+73     loadUserInfo(): 
+void {
+       ~~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:73:19 - error 
+TS1005: ';' expected.
+
+73     loadUserInfo(): 
+void {
+                     ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:74:11 - error 
+TS1005: ':' expected.
+
+74     const firstName = l
+ocalStorage.getItem('first
+Name') || '';
+             ~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:74:11 - error 
+TS2304: Cannot find name 
+'firstName'.
+
+74     const firstName = l
+ocalStorage.getItem('first
+Name') || '';
+             ~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:74:62 - error 
+TS1005: ',' expected.
+
+74     const firstName = l
+ocalStorage.getItem('first
+Name') || '';
+                          
+                          
+            ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:75:11 - error 
+TS1005: ':' expected.
+
+75     const lastName  = l
+ocalStorage.getItem('lastN
+ame')  || '';
+             ~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:75:11 - error 
+TS2304: Cannot find name 
+'lastName'.
+
+75     const lastName  = l
+ocalStorage.getItem('lastN
+ame')  || '';
+             ~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:75:62 - error 
+TS1005: ',' expected.
+
+75     const lastName  = l
+ocalStorage.getItem('lastN
+ame')  || '';
+                          
+                          
+            ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:76:11 - error 
+TS1005: ':' expected.
+
+76     const email     = l
+ocalStorage.getItem('userE
+mail') || '';
+             ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:76:11 - error 
+TS2304: Cannot find name 
+'email'.
+
+76     const email     = l
+ocalStorage.getItem('userE
+mail') || '';
+             ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:76:62 - error 
+TS1005: ',' expected.
+
+76     const email     = l
+ocalStorage.getItem('userE
+mail') || '';
+                          
+                          
+            ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:78:9 - error 
+TS7006: Parameter 
+'firstName' implicitly 
+has an 'any' type.
+
+78     if (firstName || 
+lastName) {
+           ~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:78:19 - error 
+TS1005: ',' expected.
+
+78     if (firstName || 
+lastName) {
+                     ~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:78:22 - error 
+TS2304: Cannot find name 
+'lastName'.
+
+78     if (firstName || 
+lastName) {
+                        
+~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:78:30 - error 
+TS1005: ';' expected.
+
+78     if (firstName || 
+lastName) {
+                          
+      ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:79:7 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+79       this.userName = 
+`${firstName} 
+${lastName}`.trim();
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:79:26 - error 
+TS2304: Cannot find name 
+'firstName'.
+
+79       this.userName = 
+`${firstName} 
+${lastName}`.trim();
+                          
+  ~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:79:39 - error 
+TS2304: Cannot find name 
+'lastName'.
+
+79       this.userName = 
+`${firstName} 
+${lastName}`.trim();
+                          
+               ~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:80:7 - error 
+TS1128: Declaration or 
+statement expected.
+
+80     } else {
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:81:19 - error 
+TS2304: Cannot find name 
+'email'.
+
+81       const raw = 
+email.split('@')[0];
+                     ~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:82:7 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+82       this.userName = 
+raw.split('.').map((p: 
+string) =>
+         ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:88:5 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+88     this.userInitials 
+= this.userName
+       ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:88:25 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+88     this.userInitials 
+= this.userName
+                          
+ ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:95:5 - error 
+TS2532: Object is 
+possibly 'undefined'.
+
+95     this.userRole = loc
+alStorage.getItem('userRol
+e') || 'Admin';
+       ~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:96:3 - error 
+TS1128: Declaration or 
+statement expected.
+
+96   }
+     ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:97:3 - error 
+TS2304: Cannot find name 
+'logout'.
+
+97   logout(): void {
+     ~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:97:11 - error 
+TS1005: ';' expected.
+
+97   logout(): void {
+             ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:98:17 - error 
+TS1005: ',' expected.
+
+98     
+localStorage.clear();
+                   ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:98:25 - error 
+TS1005: ',' expected.
+
+98     
+localStorage.clear();
+                          
+ ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:99:9 - error 
+TS1005: ':' expected.
+
+99     this.profileOpen = 
+false;
+           ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:99:29 - error 
+TS1005: ',' expected.
+
+99     this.profileOpen = 
+false;
+                          
+     ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:100:9 - error 
+TS1005: ':' expected.
+
+100     this.router.naviga
+te(['/login']);
+            ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:100:37 - error 
+TS1005: ',' expected.
+
+100     this.router.naviga
+te(['/login']);
+                          
+              ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:102:3 - error 
+TS2304: Cannot find name 
+'myprofile'.
+
+102   myprofile(): void {}
+      ~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:102:14 - error 
+TS1005: ';' expected.
+
+102   myprofile(): void {}
+                 ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:103:3 - error 
+TS2304: Cannot find name 
+'getDropdownBottom'.
+
+103   
+getDropdownBottom(): 
+string {
+      ~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:103:22 - error 
+TS1005: ';' expected.
+
+103   
+getDropdownBottom(): 
+string {
+                         ~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:103:24 - error 
+TS1434: Unexpected 
+keyword or identifier.
+
+103   
+getDropdownBottom(): 
+string {
+                          
+ ~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:103:24 - error 
+TS2693: 'string' only 
+refers to a type, but is 
+being used as a value 
+here.
+
+103   
+getDropdownBottom(): 
+string {
+                          
+ ~~~~~~
+
+
+Error: src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.ts:111:1 - error 
+TS1128: Declaration or 
+statement expected.
+
+111 }
+    ~
+
+
+Error: src/environments/en
+vironment.ts:12:3 - error 
+TS1005: ',' expected.
+
+12   terrainServiceUrl: 'h
+ttp://localhost:8088/terra
+in',
+     ~~~~~~~~~~~~~~~~~
+
+
+Error: D:/school/3SDE1/PI3
+C-SDE2-2526/MatchMakers/Fr
+ontend/src/app/features/ev
+ents/event-form/event-form
+.component.css exceeded 
+maximum budget. Budget 
+4.00 kB was not met by 
+6.00 kB with a total of 
+10.00 kB.
+
+Error: D:/school/3SDE1/PI3
+C-SDE2-2526/MatchMakers/Fr
+ontend/src/app/layouts/aut
+h-layout/auth-layout.compo
+nent.css exceeded maximum 
+budget. Budget 4.00 kB 
+was not met by 1.12 kB 
+with a total of 5.12 kB.
+
+
