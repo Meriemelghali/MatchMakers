@@ -66,14 +66,14 @@
       <div class="ev-card" *ngFor="let ev of filteredEvents">
 
         <!-- Stripe top -->
-        <div class="ev-card-stripe" [ngClass]="ev.competition ? 'stripe-competition' : 'stripe-simple'"></div>
+        <div class="ev-card-stripe" [ngClass]="ev.isCompetition ? 'stripe-competition' : 'stripe-simple'"></div>
 
         <div class="ev-card-body">
 
           <!-- Top row: type badge + actions -->
           <div class="ev-card-top">
-            <span class="ev-type-badge" [ngClass]="ev.competition ? 'badge-type-competition' : 'badge-type-simple'">
-              {{ ev.competition ? 'Compétition' : 'Événement simple' }}
+            <span class="ev-type-badge" [ngClass]="ev.isCompetition ? 'badge-type-competition' : 'badge-type-simple'">
+              {{ ev.isCompetition ? 'Compétition' : 'Événement simple' }}
             </span>
             <div class="ev-actions">
               <a [routerLink]="['/events', ev.id, 'edit']" class="btn btn-ghost btn-sq btn-sm" title="Modifier" (click)="$event.stopPropagation()">
@@ -97,13 +97,13 @@
             <span class="badge" [ngClass]="getStatutClass(ev.statutEvent)">{{ ev.statutEvent }}</span>
             <div class="ev-icon">
               <!-- Trophy icon for competition -->
-              <svg *ngIf="ev.competition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <svg *ngIf="ev.isCompetition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
                 <path d="M12 17v4"/><path d="M8 21h8"/>
                 <path d="M6 5h12v6a6 6 0 0 1-12 0V5z"/>
               </svg>
               <!-- Calendar icon for simple -->
-              <svg *ngIf="!ev.competition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <svg *ngIf="!ev.isCompetition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <rect x="3" y="4" width="18" height="18" rx="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
                 <line x1="3" y1="10" x2="21" y2="10"/>
@@ -112,7 +112,7 @@
           </div>
 
           <!-- Competition visual: Club A VS Club B -->
-          <div class="ev-visual" *ngIf="ev.competition">
+          <div class="ev-visual" *ngIf="ev.isCompetition">
             <svg class="ev-visual-bg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1">
               <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
               <path d="M12 17v4"/><path d="M8 21h8"/><path d="M6 5h12v6a6 6 0 0 1-12 0V5z"/>
@@ -132,10 +132,10 @@
               </div>
               <div class="sf-teams">
                 <div class="sf-team-row">
-                  <span class="sf-team-name">{{ m.equipe1 }}</span>
+                  <span class="sf-team-name">{{ getTeamName(m.equipe1) }}</span>
                 </div>
                 <div class="sf-team-row">
-                  <span class="sf-team-name">{{ m.equipe2 }}</span>
+                  <span class="sf-team-name">{{ getTeamName(m.equipe2) }}</span>
                 </div>
               </div>
               <div class="sf-time-col">
@@ -157,7 +157,7 @@
               </div>
               <div class="sf-teams">
                 <div class="sf-team-row" *ngFor="let teamId of ev.teamIds">
-                  <span class="sf-team-name">{{ teamId }}</span>
+                  <span class="sf-team-name">{{ getTeamName(teamId) }}</span>
                 </div>
               </div>
               <div class="sf-time-col">
@@ -201,7 +201,7 @@
         <!-- Footer CTA -->
         <div class="ev-footer">
           <button class="btn btn-ghost btn-cta">
-            {{ ev.competition ? 'Gérer les Éliminations' : 'Voir le Programme du Jour' }}
+            {{ ev.isCompetition ? 'Gérer les Éliminations' : 'Voir le Programme du Jour' }}
           </button>
         </div>
 
