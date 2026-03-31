@@ -2,6 +2,9 @@ package tn.matchmakers.userservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,7 +18,11 @@ import tn.matchmakers.userservice.mapper.UserMapper;
 import tn.matchmakers.userservice.repositories.RoleRepository;
 import tn.matchmakers.userservice.repositories.UserRepository;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
+import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +35,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final EmailService emailService;
+
+
 
     @Override
     public UserResponseDto createUser(UserCreateDto userCreateDto) {
@@ -61,12 +71,32 @@ public class UserServiceImpl implements UserService {
         variables.put("nom", user.getLastName());
         variables.put("prenom", user.getFirstName());
         variables.put("email", user.getEmail());
-        /*emailService.sendHtmlEmail(
-                user.getEmail(),
-                "Esprit-PI :  information sur le compte crée.",
-                "account-created", variables
-        );*/
         userRepository.save(savedUser);
+
+        // Lire le template HTML
+        // Envoi mail HTML avec template
+        try {
+            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/welcome-template.html"));
+            htmlTemplate = htmlTemplate
+                    .replace("{{prenom}}", savedUser.getFirstName())
+                    .replace("{{email}}", savedUser.getEmail());
+
+            emailService.sendHtmlEmail(
+                    savedUser.getEmail(),
+                    "Bienvenue chez MatchMakers !",
+                    htmlTemplate
+            );
+        } catch (IOException | jakarta.mail.MessagingException e) {
+            e.printStackTrace();
+            log.error("Erreur lors de l'envoi du mail à {}", savedUser.getEmail(), e);
+        }
+
+        // Mail à l'utilisateur
+        emailService.sendSimpleEmail(
+                savedUser.getEmail(),
+                "Bienvenue chez MatchMakers !",
+                "Salut " + savedUser.getFirstName() + ", ton compte a été créé avec succès 🔥"
+        );
         return UserMapper.mapToUserResponseDto(savedUser);
     }
 
