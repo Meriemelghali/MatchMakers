@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  userServiceUrl:    'http://localhost:8081',
+  userServiceUrl:    'http://localhost:8081/users',
   sportServiceUrl:   'http://localhost:8084/sports',
   eventServiceUrl:   'http://localhost:8083/eventsCompetitions',
   matchServiceUrl: 'http://localhost:8087/matchs',

@@ -5,6 +5,7 @@ import { EventService } from '../../../core/services/EventService/event.service'
 import { MatchService } from '../../../matches/services/match.service';
 import { Event, StatutEvent } from '../event.model';
 import { Match } from '../../../matches/models/match.model';
+import { TeamService } from '../../../teams/services/team.service';
 
 @Component({
   selector: 'app-event-list',
@@ -24,6 +25,7 @@ export class EventListComponent implements OnInit, OnDestroy {
   selectedType = '';
 
   matchesByEvent: Record<string, Match[]> = {};
+  teamNames: Record<string, string> = {}; // id -> name map
 
   statutOptions = [
   { label: 'Planifié', value: StatutEvent.PLANNED },
@@ -34,13 +36,30 @@ export class EventListComponent implements OnInit, OnDestroy {
 
   constructor(
     private eventService: EventService,
-    private matchService: MatchService
+    private matchService: MatchService,
+    private teamService: TeamService
   ) {}
 
   ngOnInit(): void {
     this.updateTime();
     this.timer = setInterval(() => this.updateTime(), 1000);
+    this.loadTeams();
     this.loadEvents();
+  }
+
+  loadTeams(): void {
+    this.teamService.getTeams().subscribe({
+      next: (teams) => {
+        teams.forEach(t => {
+          if (t.id) this.teamNames[t.id] = t.name;
+        });
+      },
+      error: () => console.warn('Erreur lors du chargement des équipes')
+    });
+  }
+
+  getTeamName(id: string): string {
+    return this.teamNames[id] || id; // return name if found, else original ID
   }
 
   ngOnDestroy(): void {
@@ -132,7 +151,7 @@ export class EventListComponent implements OnInit, OnDestroy {
 filterByType(data: Event[]): Event[] {
   if (!this.selectedType) return data;
   return data.filter(e =>
-    this.selectedType === 'COMPETITION' ? !!e.competition : !e.competition
+    this.selectedType === 'COMPETITION' ? !!e.isCompetition : !e.isCompetition
   );
 }
 
