@@ -4,13 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
-import { EventService } from '../../../core/services/EventService/event.service';
+import { EventService } from '../../events/service/event.service';
 import { CreateEventRequest, EventType, CompetitionFormat, StatutEvent } from '../event.model';
 import { SportService } from '../../sports/services/sport.service';
 import { TerrainService } from '../../../terrains/services/terrain.service'; 
 import { Sport } from '../../../features/sports/sport.model'; 
 import { Terrain } from '../../../terrains/models/terrain.model';
-import { TeamService, Team } from '../../../teams/services/team.service';
+import { TeamService, Team } from '../../teams/services/team.service';
 @Component({
   selector: 'app-event-form',
   templateUrl: './event-form.component.html',
