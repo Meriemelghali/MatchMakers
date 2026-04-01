@@ -31,6 +31,21 @@ export interface SocialPost {
   reactions?: SocialReaction[];
 }
 
+export interface SocialConversation {
+  idConversation?: string;
+  conversationT: 'PRIVATE' | 'TEAM' | 'EVENT' | 'COMPETITION';
+  userIds: number[];
+  messages?: SocialMessage[];
+}
+
+export interface SocialMessage {
+  idMessage?: string;
+  content: string;
+  send_at?: string;
+  idUser: string;
+  idConversation: string;
+}
+
 /** Shape of a single page-item returned by GET /api/posts?expand=true */
 interface PostApiResponse {
   idPost: string;
@@ -50,6 +65,8 @@ export class SocialService {
   private postsUrl = this.baseApiUrl + '/posts';
   private commentsUrl = this.baseApiUrl + '/commentaires';
   private reactionsUrl = this.baseApiUrl + '/reactions';
+  private conversationsUrl = this.baseApiUrl + '/conversations';
+  private messagesUrl = this.baseApiUrl + '/messages';
 
   constructor(private http: HttpClient) { }
 
@@ -110,5 +127,31 @@ export class SocialService {
       comments: (p.commentaires || []).filter(c => !c.isDeleted),
       reactions: p.reactions || []
     };
+  }
+
+  // --- CONVERSATIONS ---
+
+  getConversations(): Observable<SocialConversation[]> {
+    return this.http.get<{ content: SocialConversation[] }>(`${this.conversationsUrl}?size=500`).pipe(
+      map(response => response.content || [])
+    );
+  }
+
+  getConversation(id: string): Observable<SocialConversation> {
+    return this.http.get<SocialConversation>(`${this.conversationsUrl}/${id}`);
+  }
+
+  createConversation(conv: { conversationT: string, userIds: number[] }): Observable<SocialConversation> {
+    return this.http.post<SocialConversation>(this.conversationsUrl, conv);
+  }
+
+  deleteConversation(id: string): Observable<any> {
+    return this.http.delete(`${this.conversationsUrl}/${id}`);
+  }
+
+  // --- MESSAGES ---
+
+  createMessage(msg: { content: string, idConversation: string, idUser: string }): Observable<SocialMessage> {
+    return this.http.post<SocialMessage>(this.messagesUrl, msg);
   }
 }

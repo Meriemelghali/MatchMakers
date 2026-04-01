@@ -60,4 +60,18 @@ export class ReservationsListComponent implements OnInit {
       });
     }
   }
+
+  deleteReservation(id: string | undefined): void {
+    if (!id) return;
+    if (confirm('Voulez-vous vraiment supprimer définitivement cette réservation ?')) {
+      this.reservationService.deleteReservation(id).subscribe({
+        next: () => {
+          this.fetchReservations();
+        },
+        error: (err) => {
+          console.error('Erreur lors de la suppression:', err);
+        }
+      });
+    }
+  }
 }

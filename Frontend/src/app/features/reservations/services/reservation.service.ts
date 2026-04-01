@@ -88,4 +88,8 @@ export class ReservationService {
       statutR: 'CANCELLED'
     });
   }
+
+  deleteReservation(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
