@@ -1,10 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
-import { LoginComponent } from './features/Auth/login/login.component';
+import { LoginComponent } from './core/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { authGuard } from './core/guards/auth.guard';  
-import { RegisterComponent } from './features/Auth/register/register.component';
+import { RegisterComponent } from './core/Auth/register/register.component';
 
 
 const routes: Routes = [
@@ -48,11 +48,11 @@ const routes: Routes = [
       },
       {
         path: 'teams',
-        loadChildren: () => import('./teams/teams.module').then(m => m.TeamsModule)
+        loadChildren: () => import('./features/teams/teams.module').then(m => m.TeamsModule)
       },
       {
         path: 'rewards',
-        loadChildren: () => import('./rewards/rewards.module').then(m => m.RewardsModule)
+        loadChildren: () => import('./features/rewards/rewards.module').then(m => m.RewardsModule)
       },
       {
         path: 'leaderboard',
