@@ -5,12 +5,12 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './features/Auth/login/login.component';
+import { LoginComponent } from './core/Auth/login/login.component';
 import { FormsModule } from '@angular/forms';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { RouterModule } from '@angular/router';
-import { RegisterComponent } from './features/Auth/register/register.component';
+import { RegisterComponent } from './core/Auth/register/register.component';
 
 
 @NgModule({

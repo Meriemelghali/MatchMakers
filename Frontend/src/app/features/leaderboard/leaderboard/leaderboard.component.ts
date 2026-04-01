@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { MatchService } from '../../../matches/services/match.service';
 import { Match } from '../../../matches/models/match.model';
-import { RewardService, Reward } from '../../../rewards/services/reward.service';
-import { TeamService, Team } from '../../../teams/services/team.service';
+import { RewardService, Reward } from '../../rewards/services/reward.service';
+import { TeamService, Team } from '../../teams/services/team.service';
 import { environment } from '../../../../environments/environment';
 
 type Period = 'WEEK' | 'MONTH' | 'ALL';
