@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TeamService } from '../services/team.service';
-import { SportService } from '../../features/sports/services/sport.service';
+import { SportService } from '../../sports/services/sport.service';
 interface Sport {
   id: string;
   nameSport: string;
