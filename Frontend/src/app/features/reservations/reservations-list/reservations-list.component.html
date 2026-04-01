@@ -81,9 +81,16 @@
         </button>
         <button class="btn btn-danger" style="padding: 6px 16px; font-size: 0.85rem;"
           *ngIf="res.statutR !== 'CANCELLED'" (click)="cancel(res)">
-          Annuler la réservation
+          Annuler
         </button>
-        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted" style="font-size: 0.85rem; font-style: italic;">
+        <button class="btn btn-icon btn-outline-danger btn-sm"
+          (click)="deleteReservation(res.idReservation)" title="Supprimer définitivement">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted" style="font-size: 0.85rem; font-style: italic; align-self: center; margin-right: auto;">
           Réservation annulée
         </div>
       </div>
