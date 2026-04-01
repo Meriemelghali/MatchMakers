@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { EventService } from '../../../core/services/EventService/event.service';
+import { EventService } from '../../events/service/event.service';
 import { MatchService } from '../../../matches/services/match.service';
 import { Event, StatutEvent } from '../event.model';
 import { Match } from '../../../matches/models/match.model';
-import { TeamService } from '../../../teams/services/team.service';
+import { TeamService } from '../../teams/services/team.service';
 
 @Component({
   selector: 'app-event-list',
