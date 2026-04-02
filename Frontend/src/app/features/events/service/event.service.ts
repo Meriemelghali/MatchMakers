@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Event, StatutEvent, CreateEventRequest, EventType } from '../../../features/events/event.model';
+import { Event, StatutEvent, CreateEventRequest, UpdateEventRequest, EventType } from '../../../features/events/event.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class EventService {
   create(dto: CreateEventRequest): Observable<Event> {
     return this.http.post<Event>(this.API, dto);
   }
-  update(id: string, dto: Partial<CreateEventRequest>): Observable<Event> {
+  update(id: string, dto: UpdateEventRequest): Observable<Event> {
     return this.http.put<Event>(`${this.API}/${id}`, dto);
   }
   delete(id: string): Observable<void> {

@@ -94,7 +94,31 @@
           <!-- Title + statut badge + icon -->
           <div class="ev-title-row">
             <span class="ev-title">{{ ev.name | uppercase }}</span>
-            <span class="badge" [ngClass]="getStatutClass(ev.statutEvent)">{{ ev.statutEvent }}</span>
+            
+            <!-- Contextual Status Badge -->
+            <div class="status-wrapper">
+              <span class="badge" 
+                    [ngClass]="getStatutClass(ev.statutEvent)"
+                    (click)="toggleStatusMenu(ev, $event)"
+                    title="Click to change status">
+                {{ ev.statutEvent }}
+              </span>
+              
+              <!-- Popover Menu -->
+              <div class="status-popover" *ngIf="editingStatusId === ev.id" (click)="$event.stopPropagation()">
+                <div class="popover-header">Change Status</div>
+                <div class="popover-options">
+                  <button *ngFor="let opt of statutOptions" 
+                          class="popover-opt" 
+                          [class.active]="ev.statutEvent === opt.value"
+                          (click)="changeStatus(ev, opt.value)">
+                    <span class="opt-dot" [ngClass]="getStatutClass(opt.value)"></span>
+                    {{ opt.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="ev-icon">
               <!-- Trophy icon for competition -->
               <svg *ngIf="ev.isCompetition" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
