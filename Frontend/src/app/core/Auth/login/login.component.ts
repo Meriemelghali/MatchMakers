@@ -28,7 +28,14 @@ export class LoginComponent {
     this.authService.login(request).subscribe({
       next: (res) => {
         this.authService.saveTokens(res);
-        this.router.navigate(['/events']); 
+        const role = localStorage.getItem('userRole');
+        
+        // Redirection conditionnelle basée sur le rôle
+        if (role === 'Admin' || role === 'ADMIN' || role === 'ROLE_ADMIN') {
+          this.router.navigate(['/admin-choice']);
+        } else {
+          this.router.navigate(['/events']); 
+        }
       },
       error: (err) => {
         this.loading = false;
