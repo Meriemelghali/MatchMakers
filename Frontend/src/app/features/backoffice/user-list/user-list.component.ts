@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { UserManagementService, User } from '../../../core/services/UserService/user-management.service';
+import { AuthService } from '../../../core/services/AuthService/auth.service';
 
 @Component({
   selector: 'app-user-list',
@@ -12,7 +13,10 @@ export class UserListComponent implements OnInit {
   isLoading = false;
   searchText = '';
 
-  constructor(private userService: UserManagementService) {}
+  constructor(
+    private userService: UserManagementService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -62,8 +66,12 @@ export class UserListComponent implements OnInit {
   }
 
   sendCredentials(user: User): void {
-    // Note: Simulation d'envoi. 
-    alert(`Un email de réinitialisation sécurisé a été envoyé à : ${user.email}\n(Note: Le mot de passe haché ne peut pas être affiché)`);
+    if (confirm(`Voulez-vous envoyer un email de réinitialisation de mot de passe à ${user.email} ?`)) {
+      this.authService.forgotPassword(user.email).subscribe({
+        next: () => alert(`Un email de réinitialisation sécurisé a été envoyé à : ${user.email}`),
+        error: (err) => alert('Erreur lors de l\'envoi de l\'email : ' + (err.error?.message || err.message || 'Unknown error'))
+      });
+    }
   }
 
   assignRole(userId: string, role: string): void {

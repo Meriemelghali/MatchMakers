@@ -2,9 +2,7 @@ package tn.matchmakers.userservice.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +16,7 @@ import tn.matchmakers.userservice.mapper.UserMapper;
 import tn.matchmakers.userservice.repositories.RoleRepository;
 import tn.matchmakers.userservice.repositories.UserRepository;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
-import org.springframework.stereotype.Service;
+
 
 import java.io.IOException;
 import java.nio.file.Files;

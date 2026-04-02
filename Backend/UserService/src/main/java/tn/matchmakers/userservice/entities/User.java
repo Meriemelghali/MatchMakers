@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
 import tn.matchmakers.userservice.entities.enums.Sex;
 import tn.matchmakers.userservice.entities.enums.ThemePreference;
-import tn.matchmakers.userservice.entities.Role;
+
 
 import java.time.LocalDateTime;
 import java.util.*;
