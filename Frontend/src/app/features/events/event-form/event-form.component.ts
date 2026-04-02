@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
 import { EventService } from '../../events/service/event.service';
-import { CreateEventRequest, EventType, CompetitionFormat, StatutEvent } from '../event.model';
+import { CreateEventRequest, UpdateEventRequest, Event, EventType, CompetitionFormat, StatutEvent } from '../event.model';
 import { SportService } from '../../sports/services/sport.service';
 import { TerrainService } from '../../../terrains/services/terrain.service'; 
 import { Sport } from '../../../features/sports/sport.model'; 
@@ -22,6 +22,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
   isLoading = false;
   isEditMode = false;
   eventId: string | null = null;
+  originalEvent: Event | null = null;
   errorMsg = '';
   successMsg = '';
 
@@ -135,6 +136,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.eventService.getById(id).subscribe({
       next: (event) => {
+        this.originalEvent = event;
         this.form.patchValue({
           name:            event.name,
           description:     event.description,
@@ -188,8 +190,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
       name:        v.name,
       description: v.description,
       location:    v.location,
-      startDate:   v.startDate,
-      endDate:     v.endDate,
+      startDate:   this.formatDate(v.startDate),
+      endDate:     this.formatDate(v.endDate),
       sportId:     v.sportId,
       terrainId:   v.terrainId || undefined,
       eventTypeId: v.eventTypeId,
@@ -216,6 +218,49 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
     return req;
   }
+
+  buildUpdateRequest(): UpdateEventRequest {
+    const v = this.form.value;
+    const req: UpdateEventRequest = {
+      name:        v.name,
+      description: v.description,
+      location:    v.location,
+      startDate:   this.formatDate(v.startDate),
+      endDate:     this.formatDate(v.endDate),
+      terrainId:   v.terrainId || undefined,
+      statutEvent: this.originalEvent?.statutEvent,
+    };
+
+    if (this.selectedEventType?.isCompetition) {
+      req.competitionName = v.competitionName;
+      req.maxTeam = v.maxTeam;
+      
+      // Auto-assign format based on event type
+      const typeName = (this.selectedEventType.typeName || '').toUpperCase();
+      if (typeName.includes('LEAGUE') || typeName.includes('CHAMPIONNAT')) {
+        req.format = CompetitionFormat.LEAGUE;
+      } else if (typeName.includes('KNOCKOUT') || typeName.includes('COUPE') || typeName.includes('ELIMINATION')) {
+        req.format = CompetitionFormat.KNOCKOUT;
+      } else {
+        req.format = CompetitionFormat.TOURNAMENT;
+      }
+    }
+
+    if (this.selectedEventType?.requiresTeams && !this.selectedEventType?.isCompetition) {
+      req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+    }
+
+    return req;
+  }
+
+  private formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    // if it's full ISO, extract YYYY-MM-DD
+    if (dateStr.includes('T')) {
+      return dateStr.split('T')[0];
+    }
+    return dateStr;
+  }
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -226,11 +271,11 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.errorMsg = '';
     this.successMsg = '';
 
-    const req = this.buildRequest();
+    const req = this.isEditMode ? this.buildUpdateRequest() : this.buildRequest();
 
     const call = this.isEditMode && this.eventId
-      ? this.eventService.update(this.eventId, req)
-      : this.eventService.create(req);
+      ? this.eventService.update(this.eventId, req as UpdateEventRequest)
+      : this.eventService.create(req as CreateEventRequest);
 
     call.subscribe({
       next: () => {
@@ -364,7 +409,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   get availableTeams(): Team[] {
     const selected = this.selectedTeamIds;
-    let filtered = this.teams.filter(t => t.id && !selected.includes(t.id));
+    let filtered = this.teams.filter(t => {
+      const id = t.id || (t as any)._id;
+      return id && !selected.includes(id);
+    });
 
     const sportId = this.form.get('sportId')?.value;
     if (sportId) {
@@ -384,7 +432,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   get selectedTeamsObjects(): Team[] {
     const selected = this.selectedTeamIds;
-    return this.teams.filter(t => t.id && selected.includes(t.id));
+    return this.teams.filter(t => {
+      const id = t.id || (t as any)._id;
+      return id && selected.includes(id);
+    });
   }
 
   addTeamToSelection(event: any): void {
