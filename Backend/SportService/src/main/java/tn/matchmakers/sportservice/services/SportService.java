@@ -3,7 +3,6 @@ package tn.matchmakers.sportservice.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.matchmakers.sportservice.entities.Sport;
-import tn.matchmakers.sportservice.repositories.SportCategoryRepository;
 import tn.matchmakers.sportservice.repositories.SportRepository;
 
 import java.util.List;
@@ -12,7 +11,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SportService {
     private final SportRepository sportRepository;
-    private final SportCategoryRepository sportCategoryRepository;
 
     public Sport create(Sport sport) {
         return sportRepository.save(sport);

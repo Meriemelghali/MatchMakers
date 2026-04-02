@@ -11,6 +11,7 @@ import { NgForm } from '@angular/forms';
 export class LoginComponent {
   loading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -44,6 +45,10 @@ export class LoginComponent {
       complete: () => this.loading = false
     });
   
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
   }
 
 
