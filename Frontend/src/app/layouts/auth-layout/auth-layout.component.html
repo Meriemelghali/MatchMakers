@@ -1,11 +1,7 @@
 <!-- Mobile Header (Hidden on Desktop) -->
 <div class="mob-header">
   <a routerLink="/" class="mob-brand">
-    <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
-      <rect width="36" height="36" rx="8" fill="#E8500A" />
-      <path d="M9 25 L14 11 L18 20 L22 11 L27 25" stroke="white" stroke-width="2.8" stroke-linecap="round"
-        stroke-linejoin="round" fill="none" />
-    </svg>
+    <img src="assets/logo.png" alt="Logo" width="32" height="32" style="border-radius: 8px;">
     <div class="mob-brand-text"><span>Match</span><span style="color:var(--brand)">Makers</span></div>
   </a>
   <button class="mob-burger" (click)="navOpen = !navOpen" aria-label="Menu">
@@ -17,17 +13,15 @@
 <nav class="sidebar" [class.sidebar-open]="navOpen">
   <div class="sidebar-inner">
 
-    <!-- Brand -->
-    <a routerLink="/" class="sidebar-brand">
-      <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#E8500A" />
-        <path d="M9 25 L14 11 L18 20 L22 11 L27 25" stroke="white" stroke-width="2.8" stroke-linecap="round"
-          stroke-linejoin="round" fill="none" />
-      </svg>
-      <div class="sidebar-brand-text">
-        <span class="sidebar-brand-name">Match</span><span class="sidebar-brand-accent">Makers</span>
+    <!-- Brand (Non-clickable) -->
+    <div class="sidebar-brand">
+      <div class="sidebar-logo-container">
+        <img src="assets/logo.png" alt="Logo" width="30" height="30" style="border-radius: 6px;">
       </div>
-    </a>
+      <div class="sidebar-brand-text">
+        <span class="brand-name">MATCH<b>MAKERS</b></span>
+      </div>
+    </div>
 
     <!-- Links -->
     <div class="sidebar-links">

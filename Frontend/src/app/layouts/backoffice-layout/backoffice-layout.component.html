@@ -1,17 +1,28 @@
 <div class="backoffice-container">
   <!-- Sidebar simplifiée (Placeholder) -->
+
+  <!-- Links -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <img #logo src="../../../assets/logo.png" alt="MatchMakers" width="40" (error)="logo.style.display='none'">
-      <h2>MatchMakers <span class="badge">Admin</span></h2>
+      <div class="logo-box">
+        <img #logo src="../../../assets/logo.png" alt="MatchMakers" width="32" (error)="logo.style.display='none'">
+      </div>
+      <div class="header-text">
+        <span class="brand-name">MATCH<b>MAKERS</b></span>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
     </div>
-    <ul class="nav-menu">
-      <li class="active"><i class="fas fa-home"></i> Tableau de bord</li>
-      <li><i class="fas fa-users"></i> Utilisateurs</li>
-      <li><i class="fas fa-calendar-alt"></i> Événements</li>
-      <li><i class="fas fa-map-marker-alt"></i> Terrains</li>
-    </ul>
-    
+
+    <nav class="nav-container">
+      <a *ngFor="let link of navLinksBackoffice" 
+         [routerLink]="link.path" 
+         routerLinkActive="active"
+         class="nav-item">
+        <span [innerHTML]="link.icon" class="nav-icon"></span>
+        <span class="nav-label">{{ link.label }}</span>
+      </a>
+    </nav>
+
     <div class="sidebar-footer">
       <button class="switch-btn" (click)="goToApp()">
         <i class="fas fa-exchange-alt"></i> Portail Sportif
@@ -21,24 +32,20 @@
       </button>
     </div>
   </aside>
+  
 
   <!-- Main Content Area -->
   <main class="main-content">
     <header class="topbar">
-      <h1>Dashboard Principal</h1>
+      <h1>Dashboard Admin</h1>
       <div class="user-profile">
-        <span>Admin</span>
+        <span>{{ userName }}</span>
         <div class="avatar"><i class="fas fa-user-shield"></i></div>
       </div>
     </header>
     
     <div class="content-area">
-      <!-- C'est ici que router-outlet sera placé une fois le module complété, pour l'instant un message de bienvenue -->
-      <div class="welcome-card">
-        <h2>Bienvenue sur le Backoffice ! 🛠️</h2>
-        <p>Le développement du mode gestion est en cours... Mais votre redirection fonctionne parfaitement !</p>
-        <router-outlet></router-outlet>
-      </div>
+      <router-outlet></router-outlet>
     </div>
   </main>
 </div>

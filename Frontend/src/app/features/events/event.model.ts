@@ -51,6 +51,19 @@ export interface CreateEventRequest {
   format?: CompetitionFormat;
   teamIds?: string[];
 }
+export interface UpdateEventRequest {
+  name?: string;
+  description?: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  terrainId?: string;
+  statutEvent?: StatutEvent;
+  teamIds?: string[];
+  competitionName?: string;
+  maxTeam?: number;
+  format?: CompetitionFormat;
+}
 export enum StatutEvent {
   PLANNED = 'PLANNED',
   ONGOING = 'ONGOING',
