@@ -79,7 +79,10 @@ const routes: Routes = [
     component: BackofficeLayoutComponent,
     canActivate: [authGuard],
     children: [
-      // Les futurs modules backoffice viendront ici !
+      {
+        path: '',
+        loadChildren: () => import('./features/backoffice/backoffice.module').then(m => m.BackofficeModule)
+      }
     ]
   }
 ];
