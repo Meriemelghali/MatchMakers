@@ -18,7 +18,7 @@
     flex-direction: column;
     height: 100%;
     padding: 24px 20px;
-    overflow: visible;
+    overflow: hidden; /* Empêcher le débordement global */
 }
 
 /* Brand */
@@ -41,6 +41,19 @@
 /* Links */
 .sidebar-links {
     display: flex; flex-direction: column; gap: 4px; flex: 1;
+    overflow-y: auto;
+    padding-right: 5px; /* Pour l'espace de la scrollbar */
+}
+/* Style discret pour la scrollbar */
+.sidebar-links::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-links::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 10px;
+}
+.sidebar-links::-webkit-scrollbar-track {
+    background: transparent;
 }
 .sidebar-label {
     font-size: 10px; font-weight: 700; color: var(--text-3);

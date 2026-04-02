@@ -5,6 +5,10 @@ import { LoginComponent } from './core/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { authGuard } from './core/guards/auth.guard';  
 import { RegisterComponent } from './core/Auth/register/register.component';
+import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
+import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
+import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 
 
 const routes: Routes = [
@@ -16,6 +20,8 @@ const routes: Routes = [
     children: [
       { path: 'login', component: LoginComponent },
       { path: 'register', component: RegisterComponent },
+      { path: 'forgot-password', component: ForgotPasswordComponent },
+      { path: 'reset-password', component: ResetPasswordComponent },
       // autres pages publiques
     ]
   },
@@ -61,6 +67,21 @@ const routes: Routes = [
       // autres routes privées ici
     ]
   },
+  // Route "pure" pour le choix d'administration (gardée par authGuard)
+  {
+    path: 'admin-choice',
+    component: AdminChoiceComponent,
+    canActivate: [authGuard]
+  },
+  // Layout Backoffice
+  {
+    path: 'backoffice',
+    component: BackofficeLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      // Les futurs modules backoffice viendront ici !
+    ]
+  }
 ];
 
 @NgModule({
