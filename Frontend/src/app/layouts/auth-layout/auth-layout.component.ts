@@ -100,6 +100,16 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     this.profileOpen = false;
     this.router.navigate(['/login']);
   }
+
+  get isAdmin(): boolean {
+    const role = this.userRole?.toUpperCase() || '';
+    return role === 'ADMIN' || role === 'ROLE_ADMIN';
+  }
+
+  goToBackoffice(): void {
+    this.router.navigate(['/admin-choice']);
+  }
+
   myprofile(): void {}
   getDropdownBottom(): string {
     const el = document.querySelector('.profile-card');
