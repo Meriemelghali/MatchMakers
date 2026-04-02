@@ -23,6 +23,9 @@ import tn.matchmakers.userservice.services.serviceInterfaces.AuthService;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -146,14 +149,18 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         String resetLink = "http://localhost:4200/reset-password?token=" + token;
-        String emailContent = "<h3>Réinitialisation du mot de passe</h3>"
-                + "<p>Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :</p>"
-                + "<p><a href=\"" + resetLink + "\">Réinitialiser mon mot de passe</a></p>"
-                + "<p>Ce lien expirera dans une heure.</p>";
 
         try {
+            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/reset-password-template.html"));
+            String emailContent = htmlTemplate
+                    .replace("{{email}}", user.getEmail())
+                    .replace("{{resetLink}}", resetLink);
+
             emailService.sendHtmlEmail(user.getEmail(), "Réinitialisation de votre mot de passe MatchMakers", emailContent);
             log.info("Email envoyé avec succès à {}", user.getEmail());
+        } catch (IOException e) {
+            log.error("Erreur de lecture du template d'email de réinitialisation: {}", e.getMessage());
+            log.error(">>>> LIEN DE RECUPERATION GENERÉ POUR TESTS : {}", resetLink);
         } catch (Exception e) {
             log.error("ATTENTION : L'envoi d'email SMTP a échoué (Credentials invalides) : {}", e.getMessage());
             log.error(">>>> LIEN DE RECUPERATION GENERÉ POUR TESTS : {}", resetLink);
