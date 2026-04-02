@@ -56,6 +56,9 @@ public class User extends BaseEntity implements UserDetails {
     private List<DeviceInfo> trustedDevices = new ArrayList<>();
     private Integer tokenVersion = 0;
 
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @Indexed
     private String classId;
 

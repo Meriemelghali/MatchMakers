@@ -11,6 +11,10 @@ import { PublicLayoutComponent } from './layouts/public-layout/public-layout.com
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { RouterModule } from '@angular/router';
 import { RegisterComponent } from './core/Auth/register/register.component';
+import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
+import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
+import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 
 
 @NgModule({
@@ -19,7 +23,11 @@ import { RegisterComponent } from './core/Auth/register/register.component';
     LoginComponent,
     PublicLayoutComponent,
     AuthLayoutComponent,
-    RegisterComponent
+    RegisterComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
+    AdminChoiceComponent,
+    BackofficeLayoutComponent
   ],
   
   imports: [
