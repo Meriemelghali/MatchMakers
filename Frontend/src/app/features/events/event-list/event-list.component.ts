@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { EventService } from '../../../core/services/EventService/event.service';
+import { EventService } from '../../events/service/event.service';
 import { MatchService } from '../../../matches/services/match.service';
 import { Event, StatutEvent } from '../event.model';
 import { Match } from '../../../matches/models/match.model';
-import { TeamService } from '../../../teams/services/team.service';
+import { TeamService } from '../../teams/services/team.service';
+import { AuthService } from '../../../core/services/AuthService/auth.service';
 
 @Component({
   selector: 'app-event-list',
@@ -23,21 +24,23 @@ export class EventListComponent implements OnInit, OnDestroy {
 
   selectedStatut = '';
   selectedType = '';
+  editingStatusId: string | null = null; // Used for identifying which event's menu is open
 
   matchesByEvent: Record<string, Match[]> = {};
   teamNames: Record<string, string> = {}; // id -> name map
 
   statutOptions = [
-  { label: 'Planifié', value: StatutEvent.PLANNED },
-  { label: 'En cours', value: StatutEvent.ONGOING },
-  { label: 'Terminé',  value: StatutEvent.FINISHED },
-  { label: 'Annulé',   value: StatutEvent.CANCELLED },
-];
+    { label: 'Planned', value: StatutEvent.PLANNED },
+    { label: 'Ongoing', value: StatutEvent.ONGOING },
+    { label: 'Finished',  value: StatutEvent.FINISHED },
+    { label: 'Cancelled',   value: StatutEvent.CANCELLED },
+  ];
 
   constructor(
     private eventService: EventService,
     private matchService: MatchService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -45,21 +48,58 @@ export class EventListComponent implements OnInit, OnDestroy {
     this.timer = setInterval(() => this.updateTime(), 1000);
     this.loadTeams();
     this.loadEvents();
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', () => {
+      this.editingStatusId = null;
+    });
   }
 
   loadTeams(): void {
     this.teamService.getTeams().subscribe({
       next: (teams) => {
+        console.log('Teams loaded:', teams);
         teams.forEach(t => {
-          if (t.id) this.teamNames[t.id] = t.name;
+          // Check for both id and _id just in case
+          const id = t.id || (t as any)._id;
+          if (id) {
+            this.teamNames[id] = t.name;
+          }
         });
+        console.log('Team Names Mapping:', this.teamNames);
       },
       error: () => console.warn('Erreur lors du chargement des équipes')
     });
   }
 
   getTeamName(id: string): string {
-    return this.teamNames[id] || id; // return name if found, else original ID
+    if (!id) return 'Unknown';
+    if (this.teamNames[id]) return this.teamNames[id];
+    
+    // If name is not in cache, fetch it individually
+    this.fetchMissingTeamName(id);
+    return id; // temporary fallback to ID
+  }
+
+  private fetchMissingTeamName(id: string): void {
+    // Basic check to avoid redundant calls for same ID
+    if ((this as any).loadingTeams?.[id]) return;
+    if (!(this as any).loadingTeams) (this as any).loadingTeams = {};
+    (this as any).loadingTeams[id] = true;
+
+    this.teamService.getTeamById(id).subscribe({
+      next: (team) => {
+        if (team && team.name) {
+          this.teamNames[id] = team.name;
+        }
+        delete (this as any).loadingTeams[id];
+      },
+      error: () => {
+        // Mark as error to prevent further attempts?
+        this.teamNames[id] = id; 
+        delete (this as any).loadingTeams[id];
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -95,27 +135,25 @@ export class EventListComponent implements OnInit, OnDestroy {
 
   // ── Charger les matches pour chaque event qui en a 
   loadMatchesForEvents(events: Event[]): void {
-    // on ne charge que les events avec teamIds (Friendly Match)
     const friendlyEvents = events.filter(
       e => !e.isCompetition && e.teamIds && e.teamIds.length > 0
     );
 
     if (friendlyEvents.length === 0) return;
 
-    // Pour chaque event, chercher les matches par terrainId
     friendlyEvents.forEach(ev => {
       if (!ev.terrainId) return;
 
       this.matchService.filterByTerrain(ev.terrainId).pipe(
         catchError(() => of([]))
       ).subscribe(matches => {
-        // filtrer les matches qui correspondent à la date de l'event
         this.matchesByEvent[ev.id] = matches.filter(m =>
           m.dateDebut.startsWith(ev.startDate)
         );
       });
     });
   }
+  
   getMatchesForEvent(eventId: string): Match[] {
     return this.matchesByEvent[eventId] || [];
   }
@@ -126,6 +164,7 @@ export class EventListComponent implements OnInit, OnDestroy {
       hour: '2-digit', minute: '2-digit'
     });
   }
+  
   isMatchLive(match: Match): boolean {
     return match.statut === 'EN_COURS';
   }
@@ -148,12 +187,12 @@ export class EventListComponent implements OnInit, OnDestroy {
     }
   }
   
-filterByType(data: Event[]): Event[] {
-  if (!this.selectedType) return data;
-  return data.filter(e =>
-    this.selectedType === 'COMPETITION' ? !!e.isCompetition : !e.isCompetition
-  );
-}
+  filterByType(data: Event[]): Event[] {
+    if (!this.selectedType) return data;
+    return data.filter(e =>
+      this.selectedType === 'COMPETITION' ? !!e.isCompetition : !e.isCompetition
+    );
+  }
 
   resetFilters(): void {
     this.selectedStatut = '';
@@ -177,5 +216,38 @@ filterByType(data: Event[]): Event[] {
       CANCELLED: 'badge-annule',
     };
     return map[statut] ?? '';
+  }
+
+  canEditStatus(event: Event): boolean {
+    const role = this.authService.getUserRole();
+    const userId = this.authService.getUserId();
+    if (role === 'ADMIN' || role === 'Admin') return true;
+    return event.createdBy?.id === userId;
+  }
+
+  toggleStatusMenu(event: Event, eventObj: MouseEvent): void {
+    eventObj.stopPropagation();
+    if (this.canEditStatus(event)) {
+      this.editingStatusId = this.editingStatusId === event.id ? null : event.id;
+    } else {
+      alert("You don't have permission to change this event status.");
+    }
+  }
+
+  changeStatus(event: Event, newStatut: StatutEvent): void {
+    this.isLoading = true;
+    this.eventService.changeStatut(event.id, newStatut).subscribe({
+      next: (updated) => {
+        event.statutEvent = updated.statutEvent;
+        this.editingStatusId = null;
+        this.isLoading = false;
+        this.applyFilters();
+      },
+      error: () => {
+        alert('Error updating status.');
+        this.isLoading = false;
+        this.editingStatusId = null;
+      }
+    });
   }
 }

@@ -23,6 +23,9 @@ import tn.matchmakers.userservice.services.serviceInterfaces.AuthService;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final SessionRepository sessionRepository;
+    private final EmailService emailService;
 
     // MAIN METHOD
     @Override
@@ -131,5 +135,54 @@ public class AuthServiceImpl implements AuthService {
     // UTILS
     private String hashRefreshToken(String token) {
         return Hashing.sha256().hashString(token, StandardCharsets.UTF_8).toString();
+    }
+
+    // FORGOT PASSWORD
+    @Override
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("Aucun utilisateur trouvé avec cet email"));
+        
+        String token = java.util.UUID.randomUUID().toString();
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        String resetLink = "http://localhost:4200/reset-password?token=" + token;
+
+        try {
+            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/reset-password-template.html"));
+            String emailContent = htmlTemplate
+                    .replace("{{email}}", user.getEmail())
+                    .replace("{{resetLink}}", resetLink);
+
+            emailService.sendHtmlEmail(user.getEmail(), "Réinitialisation de votre mot de passe MatchMakers", emailContent);
+            log.info("Email envoyé avec succès à {}", user.getEmail());
+        } catch (IOException e) {
+            log.error("Erreur de lecture du template d'email de réinitialisation: {}", e.getMessage());
+            log.error(">>>> LIEN DE RECUPERATION GENERÉ POUR TESTS : {}", resetLink);
+        } catch (Exception e) {
+            log.error("ATTENTION : L'envoi d'email SMTP a échoué (Credentials invalides) : {}", e.getMessage());
+            log.error(">>>> LIEN DE RECUPERATION GENERÉ POUR TESTS : {}", resetLink);
+        }
+    }
+
+    // RESET PASSWORD
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetPasswordToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token invalide ou expiré"));
+
+        if (user.getResetPasswordTokenExpiry() == null || user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Le token a expiré");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenExpiry(null);
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.setFailedLoginAttempts(0);
+        user.setLockUntil(null);
+        userRepository.save(user);
     }
 }

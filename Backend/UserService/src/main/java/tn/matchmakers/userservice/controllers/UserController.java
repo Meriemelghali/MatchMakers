@@ -2,11 +2,8 @@ package tn.matchmakers.userservice.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.userservice.dto.UserResponseDto;
-import tn.matchmakers.userservice.mapper.UserMapper;
-import tn.matchmakers.userservice.services.UserServiceImpl;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 import java.util.List;
@@ -15,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:8080"})
 public class UserController {
     private final UserService userService;
     @GetMapping

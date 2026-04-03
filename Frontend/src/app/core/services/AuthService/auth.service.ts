@@ -40,12 +40,21 @@ export class AuthService {
     const role = response.roles?.length > 0 ? response.roles[0] : 'Admin';
     localStorage.setItem('userRole', role);
 
-    // Décode le JWT pour récupérer firstName + lastName
+    // Décode le JWT pour récupérer firstName + lastName + ID
     try {
       const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
+      localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
     } catch(e) {}
+  }
+
+  getUserId(): string | null {
+    return localStorage.getItem('userId');
+  }
+
+  getUserRole(): string | null {
+    return localStorage.getItem('userRole');
   }
 
   logout() {
@@ -58,5 +67,13 @@ export class AuthService {
 
   register(payload: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/create`, payload);
+  }
+
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword });
   }
 }

@@ -11,6 +11,7 @@ import { NgForm } from '@angular/forms';
 export class LoginComponent {
   loading = false;
   errorMessage = '';
+  showPassword = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -28,7 +29,14 @@ export class LoginComponent {
     this.authService.login(request).subscribe({
       next: (res) => {
         this.authService.saveTokens(res);
-        this.router.navigate(['/events']); 
+        const role = localStorage.getItem('userRole');
+        
+        // Redirection conditionnelle basée sur le rôle
+        if (role === 'Admin' || role === 'ADMIN' || role === 'ROLE_ADMIN') {
+          this.router.navigate(['/admin-choice']);
+        } else {
+          this.router.navigate(['/events']); 
+        }
       },
       error: (err) => {
         this.loading = false;
@@ -37,6 +45,10 @@ export class LoginComponent {
       complete: () => this.loading = false
     });
   
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
   }
 
 

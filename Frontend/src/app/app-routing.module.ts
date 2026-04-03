@@ -1,10 +1,14 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
-import { LoginComponent } from './features/Auth/login/login.component';
+import { LoginComponent } from './core/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { authGuard } from './core/guards/auth.guard';  
-import { RegisterComponent } from './features/Auth/register/register.component';
+import { RegisterComponent } from './core/Auth/register/register.component';
+import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
+import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
+import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 
 
 const routes: Routes = [
@@ -16,6 +20,8 @@ const routes: Routes = [
     children: [
       { path: 'login', component: LoginComponent },
       { path: 'register', component: RegisterComponent },
+      { path: 'forgot-password', component: ForgotPasswordComponent },
+      { path: 'reset-password', component: ResetPasswordComponent },
       // autres pages publiques
     ]
   },
@@ -48,11 +54,11 @@ const routes: Routes = [
       },
       {
         path: 'teams',
-        loadChildren: () => import('./teams/teams.module').then(m => m.TeamsModule)
+        loadChildren: () => import('./features/teams/teams.module').then(m => m.TeamsModule)
       },
       {
         path: 'rewards',
-        loadChildren: () => import('./rewards/rewards.module').then(m => m.RewardsModule)
+        loadChildren: () => import('./features/rewards/rewards.module').then(m => m.RewardsModule)
       },
       {
         path: 'leaderboard',
@@ -61,6 +67,24 @@ const routes: Routes = [
       // autres routes privées ici
     ]
   },
+  // Route "pure" pour le choix d'administration (gardée par authGuard)
+  {
+    path: 'admin-choice',
+    component: AdminChoiceComponent,
+    canActivate: [authGuard]
+  },
+  // Layout Backoffice
+  {
+    path: 'backoffice',
+    component: BackofficeLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadChildren: () => import('./features/backoffice/backoffice.module').then(m => m.BackofficeModule)
+      }
+    ]
+  }
 ];
 
 @NgModule({
