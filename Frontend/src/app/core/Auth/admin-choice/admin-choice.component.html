@@ -1,0 +1,36 @@
+<div class="split-layout">
+  <!-- Section gauche (Application) -->
+  <div class="split-side app-side" (click)="goToApp()">
+    <div class="content-wrapper">
+      <div class="icon-circle">
+        <i class="fas fa-running"></i>
+      </div>
+      <h2>Portail Sportif</h2>
+      <p>Accédez à l'application principale MatchMakers en tant qu'utilisateur pour voir les événements, terrains et matchs.</p>
+      <button class="choice-btn">Entrer dans l'Application <i class="fas fa-arrow-right"></i></button>
+    </div>
+    <div class="overlay"></div>
+  </div>
+
+  <!-- Section droite (Backoffice) -->
+  <div class="split-side admin-side" (click)="goToBackoffice()">
+    <div class="content-wrapper">
+      <div class="icon-circle admin-icon">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <h2>Mode Gestion</h2>
+      <p>Accédez au tableau de bord administrateur (Backoffice) pour gérer les utilisateurs, annonces et tournois.</p>
+      <button class="choice-btn admin-btn">Entrer dans le Dashboard <i class="fas fa-arrow-right"></i></button>
+    </div>
+    <div class="overlay"></div>
+  </div>
+
+  <!-- Logo central -->
+  <div class="center-brand">
+    <div class="logo-wrapper">
+      <img #logo src="../../../../assets/logo.png" alt="MatchMakers" (error)="logo.style.display='none'">
+      <span class="brand-text">MatchMakers</span>
+    </div>
+    <div class="badge">Session Admin</div>
+  </div>
+</div>

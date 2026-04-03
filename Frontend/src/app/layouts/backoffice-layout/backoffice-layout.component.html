@@ -1,0 +1,51 @@
+<div class="backoffice-container">
+  <!-- Sidebar simplifiée (Placeholder) -->
+
+  <!-- Links -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-box">
+        <img #logo src="../../../assets/logo.png" alt="MatchMakers" width="32" (error)="logo.style.display='none'">
+      </div>
+      <div class="header-text">
+        <span class="brand-name">MATCH<b>MAKERS</b></span>
+        <span class="badge">ADMIN PANEL</span>
+      </div>
+    </div>
+
+    <nav class="nav-container">
+      <a *ngFor="let link of navLinksBackoffice" 
+         [routerLink]="link.path" 
+         routerLinkActive="active"
+         class="nav-item">
+        <span [innerHTML]="link.icon" class="nav-icon"></span>
+        <span class="nav-label">{{ link.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="switch-btn" (click)="goToApp()">
+        <i class="fas fa-exchange-alt"></i> Portail Sportif
+      </button>
+      <button class="logout-btn" (click)="logout()">
+        <i class="fas fa-sign-out-alt"></i> Déconnexion
+      </button>
+    </div>
+  </aside>
+  
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <header class="topbar">
+      <h1>Dashboard Admin</h1>
+      <div class="user-profile">
+        <span>{{ userName }}</span>
+        <div class="avatar"><i class="fas fa-user-shield"></i></div>
+      </div>
+    </header>
+    
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

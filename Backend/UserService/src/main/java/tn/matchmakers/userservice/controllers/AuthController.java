@@ -5,12 +5,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.userservice.dto.AuthResponse;
 import tn.matchmakers.userservice.dto.LoginRequest;
 import tn.matchmakers.userservice.dto.UserCreateDto;
 import tn.matchmakers.userservice.dto.UserResponseDto;
+import tn.matchmakers.userservice.dto.ForgotPasswordRequest;
+import tn.matchmakers.userservice.dto.ResetPasswordRequest;
 import tn.matchmakers.userservice.entities.DeviceInfo;
 import tn.matchmakers.userservice.security.JwtService;
 import tn.matchmakers.userservice.services.UserServiceImpl;
@@ -46,6 +47,18 @@ public class AuthController {
         // extract device information
         DeviceInfo device = deviceMetadataService.extractDeviceInfo(httpRequest);
         return ResponseEntity.ok(authService.authenticate(request, device));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "E-mail de réinitialisation envoyé si l'adresse existe."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Mot de passe réinitialisé avec succès."));
     }
 
     @GetMapping("/validate-token")

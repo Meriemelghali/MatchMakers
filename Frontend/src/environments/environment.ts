@@ -7,9 +7,6 @@ export const environment = {
   socialServiceUrl: 'http://localhost:8090/social/api/posts',
   reservationServiceUrl: 'http://localhost:8089/reservations/api/reservations',
   apiUrl: 'http://localhost:8088/api/v1/auth',
-  socialServiceUrl: 'http://localhost:8090/social/api/posts',
-  reservationServiceUrl: 'http://localhost:8089/reservations/api/reservations',
-  apiUrl: 'http://localhost:8088/api/v1/auth'
   terrainServiceUrl: 'http://localhost:8088/terrain',
   teamServiceUrl: 'http://localhost:8085/teams/api/teams',
   rewardServiceUrl: 'http://localhost:8086/rewards/api/rewards',

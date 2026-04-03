@@ -58,13 +58,7 @@ public class EventServiceImpl implements EventService {
         checkOrganizerOrAdminRole(userInfo);
 
         // 2. Construire createdBy
-        String userId    = String.valueOf(userInfo.get("id"));
-        String firstName = String.valueOf(userInfo.get("firstName"));
-        String lastName  = String.valueOf(userInfo.get("lastName"));
-        Map<String, String> createdByMap = Map.of(
-                "id",   userId,
-                "name", (firstName + " " + lastName).trim()
-        );
+        Map<String, String> createdByMap = buildCreatedByMap(userInfo);
 
         // 3. Vérifier unicité du nom
         if (eventRepository.existsByName(dto.getName())) {
@@ -129,7 +123,7 @@ public class EventServiceImpl implements EventService {
                 matchRequest.setEquipe2(dto.getTeamIds().get(1));              // ← equipe2
                 matchRequest.setDateDebut(dto.getStartDate().atTime(15, 0));   // ← dateDebut
                 matchRequest.setDateFin(dto.getStartDate().atTime(17, 0));     // ← dateFin
-                matchRequest.setType("AMICAL");
+                matchRequest.setType(toMatchType(dto.getFormat()));
                 matchRequest.setTerrainId(dto.getTerrainId());
                 matchRequest.setDescription(dto.getDescription());
                 MatchDto createdMatch = matchServiceClient.creerMatch(matchRequest);
@@ -414,8 +408,9 @@ public class EventServiceImpl implements EventService {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    userServiceUrl, HttpMethod.GET, entity, Map.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    userServiceUrl, HttpMethod.GET, entity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {});
             Map<String, Object> userInfo = response.getBody();
             if (userInfo == null) throw new UnauthorizedException("Token invalide");
             return userInfo;

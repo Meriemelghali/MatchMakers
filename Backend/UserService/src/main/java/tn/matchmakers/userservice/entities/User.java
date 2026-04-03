@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
 import tn.matchmakers.userservice.entities.enums.Sex;
 import tn.matchmakers.userservice.entities.enums.ThemePreference;
-import tn.matchmakers.userservice.entities.Role;
+
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -55,6 +55,9 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime lastLoginAt;
     private List<DeviceInfo> trustedDevices = new ArrayList<>();
     private Integer tokenVersion = 0;
+
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordTokenExpiry;
 
     @Indexed
     private String classId;
