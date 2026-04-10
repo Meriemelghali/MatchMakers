@@ -178,7 +178,8 @@
           </div>
         </div>
         <div class="card-inset">
-          <canvas #performanceChart></canvas>
+          <div class="t-muted mb-8" style="font-size:12px;" *ngIf="performanceNote">{{ performanceNote }}</div>
+          <canvas #performanceChart height="160"></canvas>
         </div>
       </div>
     </div>
@@ -194,15 +195,7 @@
         <span class="t-label">Gestion</span>
         <div class="filter-sep"></div>
 
-        <div class="field" style="max-width:180px;">
-          <label class="field-label">Player ID</label>
-          <input class="field-input field-input-sm" [(ngModel)]="joinPlayerId" placeholder="mockPlayer" />
-        </div>
-
-        <div class="field" style="max-width:200px;">
-          <label class="field-label">Username</label>
-          <input class="field-input field-input-sm" [(ngModel)]="joinUsername" placeholder="Mock User" />
-        </div>
+        <span class="t-muted" style="font-size:12px;">Utilisateur connectÃ©</span>
 
         <div class="field" style="max-width:150px;">
           <label class="field-label">Role</label>
@@ -227,7 +220,7 @@
         <table class="tbl">
           <thead>
             <tr>
-              <th>Joueur</th>
+              <th>Utilisateur</th>
               <th>Rôle</th>
               <th>Depuis</th>
             </tr>
