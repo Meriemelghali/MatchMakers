@@ -37,8 +37,8 @@ public class Reward {
     private String awardedBy;
     private String revokedReason;
 
-    private String playerId;
-    private String playerName;
+    private String userId;
+    private String username;
 
     private String teamId;
     private String teamName;

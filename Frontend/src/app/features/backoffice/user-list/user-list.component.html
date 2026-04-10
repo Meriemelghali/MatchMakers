@@ -78,10 +78,18 @@
             </td>
             <td>
               <div class="action-buttons">
-                <!-- Promouvoir Admin -->
-                <button class="btn-action edit" (click)="assignRole(user.idUser, 'ADMIN')" title="Promouvoir ADMIN">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                </button>
+                <!-- Groupe Assigner Rôle -->
+                <div class="assign-group">
+                  <select #roleSelect class="role-select">
+                    <option value="" disabled selected>Rôle...</option>
+                    <option *ngFor="let role of availableRoles" [value]="role.name">
+                      {{ role.name }}
+                    </option>
+                  </select>
+                  <button class="btn-mini-action promote" (click)="assignRole(user.idUser, roleSelect.value)" title="Assigner">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                </div>
                 
                 <!-- Envoyer credentials par email -->
                 <button class="btn-action email" (click)="sendCredentials(user)" title="Envoyer identifiants">
