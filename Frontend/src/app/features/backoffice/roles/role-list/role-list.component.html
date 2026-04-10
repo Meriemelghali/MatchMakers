@@ -1,0 +1,86 @@
+<div class="user-list-container">
+  <div class="list-header">
+    <div class="header-main">
+      <h1>Gestion des Rôles</h1>
+      <p class="subtitle">Créez et gérez les rôles et permissions du système</p>
+    </div>
+    <div class="stats-mini">
+      <span class="count">{{ filteredRoles.length }}</span>
+      <span class="label">Rôles</span>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-actions">
+      <div class="left-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" 
+                 [(ngModel)]="searchText" 
+                 (input)="onSearch()" 
+                 placeholder="Rechercher par nom ou description...">
+        </div>
+      </div>
+      <div class="right-actions">
+        <button class="btn-refresh" (click)="loadRoles()" [disabled]="isLoading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i> Actualiser
+        </button>
+        <button class="btn-primary" (click)="addRole()">
+          <i class="fas fa-plus"></i> Nouveau Rôle
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>NOM DU RÔLE</th>
+            <th>DESCRIPTION</th>
+            <th>PERMISSIONS</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading">
+            <td colspan="4" class="loading-state">
+              Chargement des rôles...
+            </td>
+          </tr>
+          <tr *ngIf="!isLoading && filteredRoles.length === 0">
+            <td colspan="4" class="empty-state">
+              Aucun rôle trouvé.
+            </td>
+          </tr>
+          <tr *ngFor="let role of filteredRoles">
+            <td>
+              <div class="role-name-cell">
+                <span class="role-badge" [ngClass]="'role-' + role.name.toLowerCase()">
+                  {{ role.name }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="description-text">{{ role.description }}</span>
+            </td>
+            <td>
+              <div class="permissions-count">
+                <span class="badge-count">{{ role.permissions?.length || 0 }} permissions</span>
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action edit" (click)="editRole(role.id!)" title="Modifier">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn-action delete" (click)="deleteRole(role.id!)" title="Supprimer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

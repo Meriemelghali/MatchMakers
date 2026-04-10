@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TeamMember {
 
-    private String playerId;
+    private String userId;
     private String username;
     private String role;
     private LocalDateTime joinDate;

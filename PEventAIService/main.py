@@ -83,7 +83,7 @@ async def suggest_type_config(request: SuggestionRequest):
         return get_fallback_suggestion(request.typeName)
         
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         A user wants to create a new event type called: "{request.typeName}".
@@ -123,7 +123,7 @@ async def innovate_type_config(request: InnovationRequest):
         }
     
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         Innovate an existing event type to make it more 'Elite', modern, and engaging.
@@ -161,7 +161,7 @@ async def suggest_names(request: NamesRequest):
         return [f"{request.sport} Classic", f"The {request.sport} {request.type}", f"Elite {request.sport} Masters"]
         
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         Give me 3 creative, catchy and professional names for a sports event.
         Sport: {request.sport}
@@ -182,7 +182,7 @@ async def suggest_description(request: DescriptionRequest):
         return f"Plongez dans l'intensité du {request.sport} avec cet événement de type {request.type}. Ouvert à tous les passionnés !"
         
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         Write a professional and compelling description for a sports event.
         Sport: {request.sport}
@@ -208,7 +208,7 @@ async def analyze_context(request: ContextAnalysisRequest):
         }
         
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         The user is creating an event for Sport: "{request.sport}" and Event Type: "{request.eventType}".

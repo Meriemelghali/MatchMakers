@@ -21,8 +21,8 @@ public class RewardUpdateRequest {
     private String imageUrl;
     private String awardedBy;
     private String revokedReason;
-    private String playerId;
-    private String playerName;
+    private String userId;
+    private String username;
     private String teamId;
     private String teamName;
     private String eventId;
