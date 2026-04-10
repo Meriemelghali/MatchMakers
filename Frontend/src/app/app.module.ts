@@ -15,6 +15,7 @@ import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-pass
 import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
+import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffic
     ForgotPasswordComponent,
     ResetPasswordComponent,
     AdminChoiceComponent,
-    BackofficeLayoutComponent
+    BackofficeLayoutComponent,
+    RoleSelectionComponent
   ],
   
   imports: [

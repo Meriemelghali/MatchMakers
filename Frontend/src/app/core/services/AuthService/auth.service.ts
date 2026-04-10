@@ -23,7 +23,7 @@ export interface AuthResponse {
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8081/users/auth'; 
+  private apiUrl = 'http://localhost:8081/users/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -36,17 +36,18 @@ export class AuthService {
     localStorage.setItem('accessToken', response.accessToken);
     localStorage.setItem('refreshToken', response.refreshToken);
     localStorage.setItem('userEmail', response.email);
-    // Rôle depuis le tableau roles
-    const role = response.roles?.length > 0 ? response.roles[0] : 'Admin';
-    localStorage.setItem('userRole', role);
+    // Stocker tous les rôles pour le choix ultérieur
+    const roles = response.roles || [];
+    localStorage.setItem('availableRoles', JSON.stringify(roles));
 
     // Décode le JWT pour récupérer firstName + lastName + ID
     try {
       const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
+      localStorage.setItem('userEmail', payload.email || response.email || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
-    } catch(e) {}
+    } catch (e) { }
   }
 
   getUserId(): string | null {

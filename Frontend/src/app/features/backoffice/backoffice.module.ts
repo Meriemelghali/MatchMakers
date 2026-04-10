@@ -4,11 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { BackofficeRoutingModule } from './backoffice-routing.module';
 import { UserListComponent } from './user-list/user-list.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { RoleListComponent } from './roles/role-list/role-list.component';
+import { RoleFormComponent } from './roles/role-form/role-form.component';
 
 @NgModule({
   declarations: [
     UserListComponent,
-    DashboardComponent
+    DashboardComponent,
+    RoleListComponent,
+    RoleFormComponent
   ],
   imports: [
     CommonModule,
