@@ -1,0 +1,256 @@
+.user-list-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+}
+
+.header-main h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #000000;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.04em;
+}
+
+.subtitle {
+  color: #666666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.stats-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: #000000;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  color: #ffffff;
+}
+
+.stats-mini .count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #E8500A;
+}
+
+.stats-mini .label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.table-card {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+  overflow: hidden;
+}
+
+.table-actions {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f8f8f8;
+  background: #fafafa;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-box i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.search-box input:focus {
+  border-color: #000000;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.03);
+}
+
+.right-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-refresh, .btn-primary {
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-refresh {
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.btn-refresh:hover {
+  background: #f0f0f0;
+}
+
+.btn-primary {
+  background: #000000;
+  border: none;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #E8500A;
+  transform: translateY(-2px);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.user-table th {
+  padding: 1.25rem 1.5rem;
+  background: #ffffff;
+  color: #999999;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #f8f8f8;
+}
+
+.user-table td {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f8f8f8;
+  vertical-align: middle;
+}
+
+.user-table tr:hover td {
+  background: #fcfcfc;
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  display: inline-block;
+  background: #f0f0f0;
+  color: #444;
+}
+
+.role-admin { 
+  background: #000000; 
+  color: #E8500A; 
+  border: 1px solid #333;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.role-sportif { 
+  background: #E8500A; 
+  color: #ffffff; 
+  box-shadow: 0 4px 10px rgba(232, 80, 10, 0.15);
+}
+
+.role-organizer { 
+  background: #333333; 
+  color: #ffffff; 
+}
+
+.role-sponsor { 
+  background: #ffffff; 
+  color: #E8500A; 
+  border: 1px solid #E8500A;
+}
+
+.description-text {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.badge-count {
+  background: #f8f8f8;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+}
+
+.btn-action.edit:hover {
+  background: #000000;
+  color: #E8500A;
+  border-color: #000000;
+}
+
+.btn-action.delete:hover {
+  background: #E8500A;
+  color: #ffffff;
+  border-color: #E8500A;
+}
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 4rem !important;
+  color: #999;
+  font-weight: 600;
+}

@@ -1,0 +1,33 @@
+<div class="selection-container">
+  <div class="selection-card">
+    <div class="header">
+      <img src="../../../../assets/logo.png" alt="MatchMakers" class="logo">
+      <h1>Bienvenue sur MatchMakers</h1>
+      <p>Veuillez choisir votre profil pour cette session</p>
+    </div>
+
+    <div class="roles-grid">
+      <div *ngFor="let role of availableRoles" 
+           class="role-item" 
+           (click)="selectRole(role)"
+           [attr.data-role]="role.toLowerCase()">
+        <div class="icon-box">
+          <i class="fas" [ngClass]="getRoleIcon(role)"></i>
+        </div>
+        <div class="info">
+          <h3>{{ getRoleTitle(role) }}</h3>
+          <p>{{ role }}</p>
+        </div>
+        <div class="arrow">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="logout-link" (click)="router.navigate(['/login'])">
+        <i class="fas fa-sign-out-alt"></i> Se déconnecter
+      </button>
+    </div>
+  </div>
+</div>
