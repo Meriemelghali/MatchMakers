@@ -141,6 +141,24 @@ public class EventController {
                 eventService.getMatchesForCompetition(event.getCompetition().getId())
         );
     }
+
+    //  INDIVIDUAL PARTICIPATION
+    @PostMapping("/{id}/join")
+    public ResponseEntity<EventResponseDto> joinEvent(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        return ResponseEntity.ok(eventService.joinEvent(id, token));
+    }
+
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<EventResponseDto> leaveEvent(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        return ResponseEntity.ok(eventService.leaveEvent(id, token));
+    }
+
     // GET BY LOCATION
     // GET /api/events/location?city=Tunis
     @GetMapping("/location")

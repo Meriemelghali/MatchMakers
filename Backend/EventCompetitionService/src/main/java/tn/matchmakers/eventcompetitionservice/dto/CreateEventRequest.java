@@ -50,4 +50,10 @@ public class CreateEventRequest {
 
     // ── requis si requiresTeams = true ──────────────────────────
     private List<String> teamIds;
+
+    // ── requis si requiresSpecialRoute = true ───────────────────
+    private String startPoint;
+    private String endPoint;
+    private List<Double> distances;
+    private List<Map<String, Double>> routePath;
 }

@@ -7,6 +7,8 @@ import tn.matchmakers.eventcompetitionservice.entities.enums.StatutEvent;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 
 @Data
 public class UpdateEventRequest {
@@ -29,4 +31,10 @@ public class UpdateEventRequest {
     private String competitionName;
     private Long maxTeam;
     private CompetitionFormat format;
+    
+    // ── route fields ──
+    private String startPoint;
+    private String endPoint;
+    private List<Double> distances;
+    private List<Map<String, Double>> routePath;
 }
