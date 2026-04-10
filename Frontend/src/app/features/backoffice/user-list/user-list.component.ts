@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { UserManagementService, User } from '../../../core/services/UserService/user-management.service';
 import { AuthService } from '../../../core/services/AuthService/auth.service';
+import { RoleService } from '../../../core/services/role.service';
+import { Role } from '../../../core/models/role.model';
 
 @Component({
   selector: 'app-user-list',
@@ -10,16 +12,26 @@ import { AuthService } from '../../../core/services/AuthService/auth.service';
 export class UserListComponent implements OnInit {
   users: User[] = [];
   filteredUsers: User[] = [];
+  availableRoles: Role[] = [];
   isLoading = false;
   searchText = '';
 
   constructor(
     private userService: UserManagementService,
-    private authService: AuthService
+    private authService: AuthService,
+    private roleService: RoleService
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadRoles();
+  }
+
+  loadRoles(): void {
+    this.roleService.getAllRoles().subscribe({
+      next: (data) => this.availableRoles = data,
+      error: (err) => console.error('Error loading roles', err)
+    });
   }
 
   loadUsers(): void {
@@ -74,14 +86,21 @@ export class UserListComponent implements OnInit {
     }
   }
 
-  assignRole(userId: string, role: string): void {
-    if (confirm(`Voulez-vous promouvoir cet utilisateur au rôle ${role} ?`)) {
-      this.userService.assignRole(userId, role).subscribe({
+  assignRole(userId: string, roleName: string): void {
+    if (!roleName) {
+      alert('Veuillez sélectionner un rôle.');
+      return;
+    }
+    if (confirm(`Voulez-vous attribuer le rôle ${roleName} à cet utilisateur ?`)) {
+      this.userService.assignRole(userId, roleName).subscribe({
         next: () => {
-          alert(`Rôle ${role} assigné avec succès !`);
+          alert(`Rôle ${roleName} attribué avec succès !`);
           this.loadUsers();
         },
-        error: (err) => alert('Erreur lors de l\'assignation du rôle')
+        error: (err: any) => {
+          console.error('Error assigning role', err);
+          alert('Erreur lors de l\'attribution du rôle: ' + (err.error?.message || err.message));
+        }
       });
     }
   }

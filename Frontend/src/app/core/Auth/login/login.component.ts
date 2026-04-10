@@ -29,13 +29,19 @@ export class LoginComponent {
     this.authService.login(request).subscribe({
       next: (res) => {
         this.authService.saveTokens(res);
-        const role = localStorage.getItem('userRole');
+        const roles = res.roles || [];
         
-        // Redirection conditionnelle basée sur le rôle
-        if (role === 'Admin' || role === 'ADMIN' || role === 'ROLE_ADMIN') {
-          this.router.navigate(['/admin-choice']);
+        if (roles.length > 1) {
+          this.router.navigate(['/role-selection']);
         } else {
-          this.router.navigate(['/events']); 
+          const role = roles.length === 1 ? roles[0] : 'SPORTIF';
+          localStorage.setItem('userRole', role);
+          
+          if (role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'ROLE_ADMIN') {
+            this.router.navigate(['/admin-choice']);
+          } else {
+            this.router.navigate(['/events']);
+          }
         }
       },
       error: (err) => {
