@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 export interface TeamMember {
-  playerId: string;
+  userId: string;
   username: string;
   role: string;
   joinDate: string;
@@ -78,11 +78,11 @@ export class TeamService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  joinTeam(teamId: string, payload?: { playerId?: string; username?: string; role?: string }): Observable<Team> {
+  joinTeam(teamId: string, payload?: { userId?: string; username?: string; role?: string }): Observable<Team> {
     return this.http.post<Team>(`${this.base}/${teamId}/join`, payload ?? {});
   }
 
-  leaveTeam(teamId: string, payload?: { playerId?: string }): Observable<Team> {
+  leaveTeam(teamId: string, payload?: { userId?: string }): Observable<Team> {
     return this.http.post<Team>(`${this.base}/${teamId}/leave`, payload ?? {});
   }
 }

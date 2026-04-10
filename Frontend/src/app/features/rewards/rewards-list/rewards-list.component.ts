@@ -16,7 +16,6 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = false;
   error = '';
 
-  playerId = '';
   teamId = '';
   q = '';
   typeFilter: '' | Reward['type'] = '';
@@ -33,6 +32,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private typeChart?: Chart;
   private teamChart?: Chart;
+  private chartsTimer: any = null;
 
   constructor(private rewardService: RewardService) { }
 
@@ -41,12 +41,14 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    if (this.filtered.length > 0) {
-      this.buildCharts();
-    }
+    this.scheduleCharts();
   }
 
   ngOnDestroy(): void {
+    if (this.chartsTimer) {
+      clearTimeout(this.chartsTimer);
+      this.chartsTimer = null;
+    }
     this.typeChart?.destroy();
     this.teamChart?.destroy();
   }
@@ -59,8 +61,8 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
         this.rewards = data;
         this.base = data;
         this.page = 1;
-        this.applyLocalFilters();
         this.loading = false;
+        this.applyLocalFilters();
       },
       error: err => {
         console.error(err);
@@ -71,32 +73,14 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applyFilters(): void {
-    if (this.playerId) {
-      this.loading = true;
-      this.rewardService.getRewardsByPlayer(this.playerId).subscribe({
-        next: data => {
-          this.base = data;
-          this.page = 1;
-          this.applyLocalFilters();
-          this.loading = false;
-        },
-        error: err => {
-          console.error(err);
-          this.error = 'Erreur lors du filtrage par joueur.';
-          this.loading = false;
-        }
-      });
-      return;
-    }
-
     if (this.teamId) {
       this.loading = true;
       this.rewardService.getRewardsByTeam(this.teamId).subscribe({
         next: data => {
           this.base = data;
           this.page = 1;
-          this.applyLocalFilters();
           this.loading = false;
+          this.applyLocalFilters();
         },
         error: err => {
           console.error(err);
@@ -112,7 +96,6 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.playerId = '';
     this.teamId = '';
     this.q = '';
     this.typeFilter = '';
@@ -131,7 +114,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     if (q) {
       list = list.filter(r =>
         (r.name ?? '').toLowerCase().includes(q) ||
-        (r.playerName ?? '').toLowerCase().includes(q) ||
+        (r.username ?? '').toLowerCase().includes(q) ||
         (r.teamName ?? '').toLowerCase().includes(q)
       );
     }
@@ -163,7 +146,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     const start = (this.page - 1) * this.pageSize;
     this.visible = this.filtered.slice(start, start + this.pageSize);
 
-    this.buildCharts();
+    this.scheduleCharts();
   }
 
   setPage(p: number): void {
@@ -256,6 +239,14 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     }
+  }
+
+  private scheduleCharts(): void {
+    if (this.chartsTimer) return;
+    this.chartsTimer = setTimeout(() => {
+      this.chartsTimer = null;
+      this.buildCharts();
+    }, 0);
   }
 }
 

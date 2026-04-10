@@ -16,8 +16,8 @@ public interface TeamService {
 
     List<TeamDto> getTeams(String sport);
 
-    TeamDto joinTeam(String id, String playerId, String username, String role);
+    TeamDto joinTeam(String id, String userId, String username, String role);
 
-    TeamDto leaveTeam(String id, String playerId);
+    TeamDto leaveTeam(String id, String userId);
 }
 
