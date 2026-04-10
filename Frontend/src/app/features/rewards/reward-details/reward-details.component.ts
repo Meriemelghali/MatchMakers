@@ -40,8 +40,7 @@ export class RewardDetailsComponent implements OnInit {
     imageUrl: [''],
     awardedBy: [''],
     revokedReason: [''],
-    playerId: [''],
-    playerName: [''],
+    username: [''],
     teamId: [''],
     teamName: [''],
     eventId: ['']
@@ -74,8 +73,7 @@ export class RewardDetailsComponent implements OnInit {
       imageUrl: (raw.imageUrl ?? '').trim() || undefined,
       awardedBy: (raw.awardedBy ?? '').trim() || undefined,
       description: (raw.description ?? '').trim() || undefined,
-      playerId: (raw.playerId ?? '').trim() || undefined,
-      playerName: (raw.playerName ?? '').trim() || undefined,
+      username: (raw.username ?? '').trim() || undefined,
       teamId: (raw.teamId ?? '').trim() || undefined,
       teamName: (raw.teamName ?? '').trim() || undefined,
       eventId: (raw.eventId ?? '').trim() || undefined
@@ -109,8 +107,7 @@ export class RewardDetailsComponent implements OnInit {
           imageUrl: r.imageUrl ?? '',
           awardedBy: r.awardedBy ?? '',
           revokedReason: r.revokedReason ?? '',
-          playerId: r.playerId ?? '',
-          playerName: r.playerName ?? '',
+          username: r.username ?? '',
           teamId: r.teamId ?? '',
           teamName: r.teamName ?? '',
           eventId: r.eventId ?? ''
@@ -134,7 +131,7 @@ export class RewardDetailsComponent implements OnInit {
     this.error = '';
     this.success = '';
 
-    const body = this.normalizePayload(this.form.getRawValue());
+    const body = { ...this.normalizePayload(this.form.getRawValue()), userId: this.reward.userId };
     this.rewardService.updateReward(this.reward.id!, body).subscribe({
       next: r => {
         this.saving = false;

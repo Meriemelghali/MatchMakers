@@ -3,6 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { TeamService, Team } from '../services/team.service';
 import Chart from 'chart.js/auto';
+import { AuthService } from '../../../core/services/AuthService/auth.service';
+import { MatchService } from '../../../matches/services/match.service';
+import { Match } from '../../../matches/models/match.model';
 
 @Component({
   selector: 'app-team-details',
@@ -21,19 +24,31 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   success = '';
   editing = false;
 
-  joinPlayerId = '';
-  joinUsername = '';
   joinRole = 'MEMBER';
 
   @ViewChild('performanceChart') performanceChartRef?: ElementRef<HTMLCanvasElement>;
   private performanceChart?: Chart;
+  performanceNote = '';
+  private perfLabels: string[] = [];
+  private perfPoints: number[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private teamService: TeamService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private auth: AuthService,
+    private matchService: MatchService
   ) { }
+
+  private displayName(): string {
+    const firstName = (localStorage.getItem('firstName') ?? '').trim();
+    const lastName = (localStorage.getItem('lastName') ?? '').trim();
+    const full = `${firstName} ${lastName}`.trim();
+    if (full) return full;
+    const email = (localStorage.getItem('userEmail') ?? '').trim();
+    return email || 'User';
+  }
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(80)]],
@@ -118,6 +133,8 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
           contactPhone: t.contactPhone ?? '',
           isPublic: t.isPublic ?? true
         });
+        this.loadRecentPerformance(t.name);
+
         // Si le canvas est déjà présent, on initialise / met à jour le graphique
         if (this.performanceChartRef) {
           this.initChart();
@@ -127,6 +144,55 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
         console.error(err);
         this.error = 'Impossible de charger cette équipe.';
         this.loading = false;
+      }
+    });
+  }
+
+  private loadRecentPerformance(teamName: string): void {
+    const key = (teamName ?? '').trim().toLowerCase();
+    this.performanceNote = '';
+
+    this.matchService.getAll().subscribe({
+      next: (matches) => {
+        const list = (matches ?? [])
+          .filter(m => (m?.statut ?? '') === 'TERMINE')
+          .filter(m => (m?.equipe1 ?? '').trim().toLowerCase() === key || (m?.equipe2 ?? '').trim().toLowerCase() === key);
+
+        const byDate = (m: Match) => {
+          const d = m.dateFin || m.dateDebut;
+          const ts = d ? new Date(d).getTime() : 0;
+          return Number.isFinite(ts) ? ts : 0;
+        };
+
+        const recent = list.sort((a, b) => byDate(b) - byDate(a)).slice(0, 6).reverse();
+
+        const labels: string[] = [];
+        const points: number[] = [];
+        for (const m of recent) {
+          const isHome = (m.equipe1 ?? '').trim().toLowerCase() === key;
+          const opp = isHome ? (m.equipe2 ?? '?') : (m.equipe1 ?? '?');
+          const gf = isHome ? Number(m.scoreEquipe1 ?? 0) : Number(m.scoreEquipe2 ?? 0);
+          const ga = isHome ? Number(m.scoreEquipe2 ?? 0) : Number(m.scoreEquipe1 ?? 0);
+          const p = gf > ga ? 3 : (gf === ga ? 1 : 0);
+          labels.push(`vs ${opp} (${gf}-${ga})`);
+          points.push(p);
+        }
+
+        this.perfLabels = labels;
+        this.perfPoints = points;
+
+        if (!recent.length) {
+          this.performanceNote = 'Aucun match terminé : ajoute des matchs TERMINE pour voir la performance.';
+        } else {
+          this.performanceNote = `Derniers ${recent.length} match(s) terminés (points: 3=V, 1=N, 0=D).`;
+        }
+
+        if (this.performanceChartRef) {
+          this.initChart();
+        }
+      },
+      error: () => {
+        this.performanceNote = 'Impossible de charger les matchs pour la performance.';
       }
     });
   }
@@ -142,9 +208,8 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Données mockées : performance de l'équipe sur les 6 derniers matchs
-    const labels = ['M-5', 'M-4', 'M-3', 'M-2', 'M-1', 'M'];
-    const points = [1, 3, 0, 3, 2, 3]; // 3 = victoire, 1 = nul, 0 = défaite
+    const labels = this.perfLabels.length ? this.perfLabels : ['M-5', 'M-4', 'M-3', 'M-2', 'M-1', 'M'];
+    const points = this.perfPoints.length ? this.perfPoints : [0, 0, 0, 0, 0, 0]; // 3 = victoire, 1 = nul, 0 = défaite
 
     this.performanceChart = new Chart(ctx, {
       type: 'line',
@@ -257,13 +322,19 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   join(): void {
     if (!this.team || this.joining) return;
 
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.error = 'Connecte-toi pour rejoindre une equipe.';
+      return;
+    }
+
     this.joining = true;
     this.error = '';
     this.success = '';
 
     this.teamService.joinTeam(this.team.id!, {
-      playerId: this.joinPlayerId || undefined,
-      username: this.joinUsername || undefined,
+      userId,
+      username: this.displayName(),
       role: this.joinRole || undefined
     }).subscribe({
       next: t => {
@@ -282,11 +353,17 @@ export class TeamDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   leave(): void {
     if (!this.team || this.leaving) return;
 
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.error = 'Connecte-toi pour quitter une equipe.';
+      return;
+    }
+
     this.leaving = true;
     this.error = '';
     this.success = '';
 
-    this.teamService.leaveTeam(this.team.id!, { playerId: this.joinPlayerId || undefined }).subscribe({
+    this.teamService.leaveTeam(this.team.id!, { userId }).subscribe({
       next: t => {
         this.team = t;
         this.leaving = false;

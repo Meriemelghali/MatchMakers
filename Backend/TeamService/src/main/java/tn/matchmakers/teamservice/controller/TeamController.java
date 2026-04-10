@@ -49,17 +49,17 @@ public class TeamController {
     @PostMapping("/{id}/join")
     public ResponseEntity<TeamDto> join(@PathVariable String id,
                                         @RequestBody Map<String, String> payload) {
-        String playerId = payload.getOrDefault("playerId", "mockPlayer");
+        String userId = payload.getOrDefault("userId", "mockUser");
         String username = payload.getOrDefault("username", "Mock User");
         String role = payload.getOrDefault("role", "MEMBER");
-        return ResponseEntity.ok(service.joinTeam(id, playerId, username, role));
+        return ResponseEntity.ok(service.joinTeam(id, userId, username, role));
     }
 
     @PostMapping("/{id}/leave")
     public ResponseEntity<TeamDto> leave(@PathVariable String id,
                                          @RequestBody Map<String, String> payload) {
-        String playerId = payload.getOrDefault("playerId", "mockPlayer");
-        return ResponseEntity.ok(service.leaveTeam(id, playerId));
+        String userId = payload.getOrDefault("userId", "mockUser");
+        return ResponseEntity.ok(service.leaveTeam(id, userId));
     }
 }
 
