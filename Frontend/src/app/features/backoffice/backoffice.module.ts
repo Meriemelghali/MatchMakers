@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { BackofficeRoutingModule } from './backoffice-routing.module';
 import { UserListComponent } from './user-list/user-list.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { EventTypeManagementComponent } from './event-type-management/event-type-management.component';
 
 @NgModule({
   declarations: [
     UserListComponent,
-    DashboardComponent
+    DashboardComponent,
+    EventTypeManagementComponent
   ],
   imports: [
     CommonModule,

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, tap } from 'rxjs/operators';
@@ -11,6 +11,9 @@ import { TerrainService } from '../../../terrains/services/terrain.service';
 import { Sport } from '../../../features/sports/sport.model'; 
 import { Terrain } from '../../../terrains/models/terrain.model';
 import { TeamService, Team } from '../../teams/services/team.service';
+import { AIService, AISuggestion } from '../../../core/services/AIService/ai.service';
+import * as L from 'leaflet';
+import 'leaflet-routing-machine';
 @Component({
   selector: 'app-event-form',
   templateUrl: './event-form.component.html',
@@ -26,7 +29,15 @@ export class EventFormComponent implements OnInit, OnDestroy {
   errorMsg = '';
   successMsg = '';
 
+  // AI State
+  aiLoading = false;
+  aiSuggestion: AISuggestion | null = null;
+  contextAnalysis: any = null;
+  nameSuggestions: string[] = [];
+  showAITypeProposal = false;
+
   eventTypes: EventType[] = [];
+  filteredEventTypes: EventType[] = [];
   sports: Sport[] = [];
   terrains: Terrain[] = [];
   filteredTerrains: Terrain[] = [];
@@ -35,8 +46,29 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   // Autocomplete
   locationSuggestions: any[] = [];
+  startPointSuggestions: any[] = [];
+  endPointSuggestions: any[] = [];
   isSearchingLocation = false;
+  isSearchingStartPoint = false;
+  isSearchingEndPoint = false;
+  
+  // Map state
+  map: L.Map | null = null;
+  routingControl: any = null;
+  mapMode: 'start' | 'end' | 'stop' | null = null;
+  totalRouteDistance: number = 0;
+  
+  startMarker: L.Marker | null = null;
+  endMarker: L.Marker | null = null;
+  stopMarkers: L.Marker[] = [];
+  
+  startLatLng: L.LatLng | null = null;
+  endLatLng: L.LatLng | null = null;
+  routeLine: L.LatLng[] = []; // current drawn polyline
+  
   private locationSub?: Subscription;
+  private startPointSub?: Subscription;
+  private endPointSub?: Subscription;
 
   private sportNameToType: Record<string, string> = {
     'Football':   'FOOTBALL',
@@ -63,12 +95,15 @@ export class EventFormComponent implements OnInit, OnDestroy {
     private teamService: TeamService,
     private router: Router,
     private route: ActivatedRoute,
-    private http: HttpClient
+    private http: HttpClient,
+    private aiService: AIService
   ) {}
 
   ngOnInit(): void {
     this.buildForm();
     this.setupLocationAutocomplete();
+    this.setupStartPointAutocomplete();
+    this.setupEndPointAutocomplete();
     this.loadEventTypes();
     this.loadSports();    // ← NOUVEAU
     this.loadTerrains();  // ← NOUVEAU
@@ -80,6 +115,11 @@ export class EventFormComponent implements OnInit, OnDestroy {
       this.isEditMode = true;
       this.loadEvent(this.eventId);
     }
+    
+    // Subscribe to distance changes to redraw stop markers
+    this.distancesControl.valueChanges.subscribe(() => {
+       this.drawStopMarkers();
+    });
   }
 
   buildForm(): void {
@@ -100,11 +140,19 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
       // ── équipes (Friendly Match) ───────────────────────────────
       teamIds: [[]],
+
+      // ── parcours ───────────────────────────────────────────
+      startPoint:  [''],
+      endPoint:    [''],
+      distances:   this.fb.array([this.fb.control('', Validators.min(0))]), 
     });
   }
   loadEventTypes(): void {
     this.eventService.getEventTypes().subscribe({
-      next: (types) => this.eventTypes = types,
+      next: (types) => {
+        this.eventTypes = types;
+        this.filterEventTypes();
+      },
       error: () => this.errorMsg = 'Erreur lors du chargement des types.'
     });
   }
@@ -150,7 +198,17 @@ export class EventFormComponent implements OnInit, OnDestroy {
           maxTeam:         event.competition?.maxTeam,
           format:          event.competition?.format,
           teamIds:         event.teamIds || [],
+          startPoint:      event.startPoint || '',
+          endPoint:        event.endPoint || '',
         });
+
+        // Patch distances
+        if (event.distances && event.distances.length > 0) {
+          const distancesArray = this.form.get('distances') as FormArray;
+          distancesArray.clear();
+          event.distances.forEach(d => distancesArray.push(this.fb.control(d, Validators.min(0))));
+        }
+
         this.onEventTypeChange(event.eventType?.id);
         this.isLoading = false;
       },
@@ -216,6 +274,21 @@ export class EventFormComponent implements OnInit, OnDestroy {
       req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
     }
 
+    // Add route fields
+    if (this.contextAnalysis?.requiresSpecialRoute) {
+      req.startPoint = v.startPoint;
+      req.endPoint = v.endPoint;
+      req.distances = v.distances ? v.distances.filter((d: any) => d !== null && d !== '') : [];
+      if (this.routeLine && this.routeLine.length > 0) {
+        (req as any).routePath = this.routeLine.map(point => ({ lat: point.lat, lng: point.lng }));
+      } else if (this.startLatLng || this.endLatLng) {
+        const path: any[] = [];
+        if (this.startLatLng) path.push({ lat: this.startLatLng.lat, lng: this.startLatLng.lng });
+        if (this.endLatLng) path.push({ lat: this.endLatLng.lat, lng: this.endLatLng.lng });
+        (req as any).routePath = path;
+      }
+    }
+
     return req;
   }
 
@@ -248,6 +321,21 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
     if (this.selectedEventType?.requiresTeams && !this.selectedEventType?.isCompetition) {
       req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+    }
+
+    // Add route fields
+    if (this.contextAnalysis?.requiresSpecialRoute) {
+      req.startPoint = v.startPoint;
+      req.endPoint = v.endPoint;
+      req.distances = v.distances ? v.distances.filter((d: any) => d !== null && d !== '') : [];
+      if (this.routeLine && this.routeLine.length > 0) {
+        (req as any).routePath = this.routeLine.map(point => ({ lat: point.lat, lng: point.lng }));
+      } else if (this.startLatLng || this.endLatLng) {
+        const path: any[] = [];
+        if (this.startLatLng) path.push({ lat: this.startLatLng.lat, lng: this.startLatLng.lng });
+        if (this.endLatLng) path.push({ lat: this.endLatLng.lat, lng: this.endLatLng.lng });
+        (req as any).routePath = path;
+      }
     }
 
     return req;
@@ -304,7 +392,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   get requiresTeams(): boolean {
-    return !!this.selectedEventType?.requiresTeams && !this.selectedEventType?.isCompetition;
+    if (!this.selectedEventType) return false;
+    // Si le type indique explicitement qu'il n'a pas besoin d'équipes (ex: Sport Individuel)
+    if (this.selectedEventType.requiresTeams === false) return false;
+    return !this.isCompetition;
   }
   get todayDate(): string {
     const d = new Date();
@@ -334,7 +425,54 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.form.get('teamIds')?.setValue([]);
     this.form.get('teamIds')?.updateValueAndValidity();
 
+    // Reset event type selection since we are changing sport
+    this.form.get('eventTypeId')?.setValue('');
+    this.selectedEventType = null;
+
+    this.filterEventTypes();
     this.filterTerrains();
+    this.runContextAnalysis();
+    this.runAISuggestion();
+  }
+
+  filterEventTypes(): void {
+    const sportName = this.getSelectedSportName().toLowerCase();
+    
+    if (!sportName) {
+      this.filteredEventTypes = [...this.eventTypes];
+      return;
+    }
+
+    this.filteredEventTypes = this.eventTypes.filter(type => {
+      const typeName = type.typeName.toLowerCase();
+      
+      if (typeName.includes(sportName)) {
+        return true;
+      }
+      
+      // If the event type explicitly contains the name of ANY OTHER sport in our DB, hide it.
+      // E.g. "Football Tournament" hides when selecting "Cycling".
+      const belongsToOtherSport = this.sports.some(s => 
+         s.nameSport.toLowerCase() !== sportName && 
+         typeName.includes(s.nameSport.toLowerCase())
+      );
+      
+      if (belongsToOtherSport) {
+        return false;
+      }
+
+      // Dynamic Filtering via AI Assistance: 
+      // If the AI determined this is a Special Route sport (like Cycling/Running),
+      // we hide generic team competitions like Tournament, League, Friendly Match.
+      if (this.contextAnalysis?.requiresSpecialRoute) {
+         if (!typeName.includes('session') && !typeName.includes('course') && !typeName.includes('camp')) {
+             return false;
+         }
+      }
+
+      // Default: show generic event types for all sports
+      return true;
+    });
   }
 
   filterTerrains(): void {
@@ -400,7 +538,194 @@ export class EventFormComponent implements OnInit, OnDestroy {
   selectEventType(type: any) {
     this.form.get('eventTypeId')?.setValue(type.id);
     this.onEventTypeChange(type.id);
+    this.runAISuggestion();
+    this.runContextAnalysis();
   }
+
+  // ==== AI FEATURES ====
+
+  /**
+   * Generates a description using AI.
+   */
+  generateAIDescription(): void {
+    const sport = this.getSelectedSportName();
+    const type = this.selectedEventType?.typeName || '';
+    
+    if (!sport || !this.selectedEventType) {
+      this.errorMsg = 'Veuillez sélectionner un sport et un type d\'événement avant de générer une description.';
+      return;
+    }
+
+    this.aiLoading = true;
+    this.aiService.generateDescription(sport, type).subscribe({
+      next: (desc) => {
+        this.form.get('description')?.setValue(desc);
+        this.aiLoading = false;
+      },
+      error: () => this.aiLoading = false
+    });
+  }
+
+  /**
+   * Generates a list of 3 name suggestions.
+   */
+  generateAINameSuggestions(): void {
+    const sport = this.getSelectedSportName();
+    const type = this.selectedEventType?.typeName || 'Event';
+
+    if (!sport) {
+      this.errorMsg = 'Veuillez sélectionner un sport avant de générer des idées de noms.';
+      return;
+    }
+
+    this.aiLoading = true;
+    this.nameSuggestions = [];
+    this.aiService.generateNameSuggestions(sport, type).subscribe({
+      next: (suggestions) => {
+        this.nameSuggestions = suggestions;
+        this.aiLoading = false;
+      },
+      error: () => this.aiLoading = false
+    });
+  }
+
+  /**
+   * Selects a name suggestion.
+   */
+  selectNameSuggestion(name: string): void {
+    this.form.get('name')?.setValue(name);
+    this.nameSuggestions = [];
+  }
+
+  /**
+   * Runs AI analytics to suggest the best configuration.
+   */
+  runAISuggestion(): void {
+    const sportId = this.form.get('sportId')?.value;
+    const isComp = !!this.selectedEventType?.isCompetition;
+
+    if (!sportId) return;
+
+    this.aiLoading = true;
+    this.aiService.suggestConfiguration(this.getSelectedSportName(), isComp).subscribe({
+      next: (sugg) => {
+        this.aiSuggestion = sugg;
+        this.aiLoading = false;
+        
+        // Si l'IA propose un nouveau type, on l'affiche
+        if (sugg.newTypeProposal) {
+          const alreadyExists = this.eventTypes.find(t => t.typeName === sugg.newTypeProposal?.typeName);
+          this.showAITypeProposal = !alreadyExists;
+        }
+      },
+      error: () => this.aiLoading = false
+    });
+  }
+
+  runContextAnalysis(): void {
+    const sportName = this.getSelectedSportName();
+    if (!sportName) {
+      this.contextAnalysis = null;
+      return;
+    }
+
+    const eventType = this.selectedEventType?.typeName || 'General';
+
+    // Call AI Service dynamically for real context (No static hardcoded lists!)
+    this.aiService.analyzeContext(sportName, eventType).subscribe({
+      next: (res) => {
+         this.contextAnalysis = res;
+         
+         if (res.requiresSpecialRoute) {
+            this.form.get('terrainId')?.setValue('');
+            this.form.get('terrainId')?.clearValidators();
+            setTimeout(() => this.initMap(), 100);
+         } else {
+            this.clearRoute();
+            if (this.map) {
+              this.map.remove();
+              this.map = null;
+            }
+         }
+         this.form.get('terrainId')?.updateValueAndValidity();
+         
+         // Refilter Event Types now that AI has provided context
+         this.filterEventTypes();
+      },
+      error: () => {
+         // Fallback if AI fails: assume it's a standard terrain sport to not block form submission
+         this.contextAnalysis = null;
+         this.filterEventTypes();
+      }
+    });
+
+
+  }
+
+  /**
+   * Confirms and creates the AI proposed Event Type.
+   */
+  confirmAITypeCreation(): void {
+    if (!this.aiSuggestion?.newTypeProposal) return;
+
+    this.aiLoading = true;
+    this.eventService.createEventType(this.aiSuggestion.newTypeProposal).subscribe({
+      next: (newType) => {
+        this.aiLoading = false;
+        this.showAITypeProposal = false;
+        this.successMsg = `Nouveau type "${newType.typeName}" créé avec succès !`;
+        
+        // Refresh types list and select the new one
+        this.loadEventTypes();
+        setTimeout(() => {
+          const typeInList = this.eventTypes.find(t => t.typeName === newType.typeName);
+          if (typeInList) this.selectEventType(typeInList);
+          this.successMsg = '';
+        }, 800);
+      },
+      error: (err) => {
+        this.aiLoading = false;
+        this.errorMsg = "Erreur lors de la création du type d'événement.";
+      }
+    });
+  }
+
+  /**
+   * Applies the AI suggested configuration to the form.
+   */
+  applyAIRommendedType(): void {
+    if (!this.aiSuggestion?.recommendedType) return;
+    
+    const targetType = this.aiSuggestion.recommendedType;
+    const typeObj = this.eventTypes.find(t => 
+      (targetType === 'COMPETITION' && t.isCompetition) || 
+      (targetType === 'SIMPLE' && !t.isCompetition)
+    );
+
+    if (typeObj) {
+      this.selectEventType(typeObj);
+      this.successMsg = `Type d'événement "${typeObj.typeName}" recommandé par l'IA appliqué !`;
+      setTimeout(() => this.successMsg = '', 3000);
+    }
+  }
+
+
+  /**
+   * Applies the AI suggested configuration to the form.
+   */
+  applyAISuggestion(): void {
+    if (!this.aiSuggestion) return;
+
+    const patches: any = {};
+    if (this.aiSuggestion.maxTeams) patches.maxTeam = this.aiSuggestion.maxTeams;
+    // We could apply duration but our form doesn't have an explicit 'duration' number, just start/end dates.
+    
+    this.form.patchValue(patches);
+    this.successMsg = "Configuration suggérée par l'IA appliquée !";
+    setTimeout(() => this.successMsg = '', 3000);
+  }
+
+
 
   // ==== EXTRA LOGIC FOR CUSTOM TEAM MULTI-SELECT ====
   get selectedTeamIds(): string[] {
@@ -495,6 +820,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.form.get('location')?.setValue(shortName, { emitEvent: false });
     this.locationSuggestions = [];
     this.filterTerrains(); // MAJ des terrains basés sur la sélection finalisée
+    
+    if (this.map && suggestion.lat && suggestion.lon) {
+      this.map.flyTo([suggestion.lat, suggestion.lon], 12);
+    }
   }
 
   onLocationBlur(): void {
@@ -503,9 +832,335 @@ export class EventFormComponent implements OnInit, OnDestroy {
     }, 250); // Timeout pour laisser le clic se faire sur la suggestion
   }
 
+  // ==== START POINT GEOLOCATION ====
+  setupStartPointAutocomplete(): void {
+    const ctrl = this.form.get('startPoint');
+    if (!ctrl) return;
+
+    this.startPointSub = ctrl.valueChanges.pipe(
+      debounceTime(450),
+      distinctUntilChanged(),
+      switchMap((value: string) => {
+        if (!value || value.trim().length < 3) {
+          this.startPointSuggestions = [];
+          return of([]);
+        }
+        this.isSearchingStartPoint = true;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1`;
+        return this.http.get<any[]>(url).pipe(catchError(() => of([])));
+      })
+    ).subscribe((results: any[]) => {
+      this.isSearchingStartPoint = false;
+      this.startPointSuggestions = results;
+    });
+  }
+
+  selectStartPoint(suggestion: any): void {
+    const shortName = suggestion.display_name.split(',').length >= 2 
+      ? suggestion.display_name.split(',').slice(0, 2).join(',').trim() 
+      : suggestion.display_name;
+    this.form.get('startPoint')?.setValue(shortName, { emitEvent: false });
+    this.startPointSuggestions = [];
+  }
+
+  onStartPointBlur(): void {
+    setTimeout(() => this.startPointSuggestions = [], 250);
+  }
+
+  // ==== END POINT GEOLOCATION ====
+  setupEndPointAutocomplete(): void {
+    const ctrl = this.form.get('endPoint');
+    if (!ctrl) return;
+
+    this.endPointSub = ctrl.valueChanges.pipe(
+      debounceTime(450),
+      distinctUntilChanged(),
+      switchMap((value: string) => {
+        if (!value || value.trim().length < 3) {
+          this.endPointSuggestions = [];
+          return of([]);
+        }
+        this.isSearchingEndPoint = true;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1`;
+        return this.http.get<any[]>(url).pipe(catchError(() => of([])));
+      })
+    ).subscribe((results: any[]) => {
+      this.isSearchingEndPoint = false;
+      this.endPointSuggestions = results;
+    });
+  }
+
+  selectEndPoint(suggestion: any): void {
+    const shortName = suggestion.display_name.split(',').length >= 2 
+      ? suggestion.display_name.split(',').slice(0, 2).join(',').trim() 
+      : suggestion.display_name;
+    this.form.get('endPoint')?.setValue(shortName, { emitEvent: false });
+    this.endPointSuggestions = [];
+  }
+
+  onEndPointBlur(): void {
+    setTimeout(() => this.endPointSuggestions = [], 250);
+  }
+
   ngOnDestroy(): void {
-    if (this.locationSub) {
-      this.locationSub.unsubscribe();
+    if (this.locationSub) this.locationSub.unsubscribe();
+    if (this.startPointSub) this.startPointSub.unsubscribe();
+    if (this.endPointSub) this.endPointSub.unsubscribe();
+  }
+
+  // ==== DISTANCES FORMARRAY ====
+  get distancesControl(): FormArray {
+    return this.form.get('distances') as FormArray;
+  }
+
+  addDistance(): void {
+    this.distancesControl.push(this.fb.control('', Validators.min(0)));
+  }
+
+  removeDistance(index: number): void {
+    if (this.distancesControl.length > 1) {
+      this.distancesControl.removeAt(index);
     }
   }
-}
+
+  // ==== MAP LOGIC ====
+  initMap(): void {
+    if (this.map) return;
+    
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
+    // Fix leaflet default marker icons path in Angular
+    L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
+
+    this.map = L.map('map').setView([33.8869, 9.5375], 6); // Default Tunisia center
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(this.map);
+
+    this.map.on('click', (e: L.LeafletMouseEvent) => this.onMapClick(e));
+  }
+
+  onMapClick(e: L.LeafletMouseEvent): void {
+    if (!this.mapMode || !this.map) return;
+
+    if (this.mapMode === 'start') {
+      this.startLatLng = e.latlng;
+      this.mapMode = null; 
+      this.updateRoute();
+    } else if (this.mapMode === 'end') {
+      this.endLatLng = e.latlng;
+      this.mapMode = null; 
+      this.updateRoute();
+    } else if (this.mapMode === 'stop') {
+      this.addStopByMapClick(e.latlng);
+      this.mapMode = null; 
+    }
+  }
+
+  addStopByMapClick(latlng: L.LatLng): void {
+    if (this.routeLine.length < 2) return;
+    
+    let minDist = Infinity;
+    let bestDistKm = 0;
+    
+    let currentKm = 0;
+    for(let i=0; i<this.routeLine.length - 1; i++) {
+       const p1 = this.routeLine[i];
+       const p2 = this.routeLine[i+1];
+       const segDist = p1.distanceTo(p2) / 1000;
+       
+       const distToP1 = latlng.distanceTo(p1);
+       if (distToP1 < minDist) {
+          minDist = distToP1;
+          bestDistKm = currentKm;
+       }
+       currentKm += segDist;
+    }
+    
+    // Add distance to the form
+    const currentDistances = this.distancesControl.value
+        .map((d: any) => parseFloat(d))
+        .filter((d: any) => !isNaN(d));
+    
+    currentDistances.push(Number(bestDistKm.toFixed(2)));
+    currentDistances.sort((a: number, b: number) => a - b);
+    
+    this.distancesControl.clear({ emitEvent: false });
+    if (currentDistances.length > 0) {
+        currentDistances.forEach((d: number) => this.distancesControl.push(this.fb.control(d, Validators.min(0)), { emitEvent: false }));
+    } else {
+        this.distancesControl.push(this.fb.control('', Validators.min(0)), { emitEvent: false });
+    }
+    this.drawStopMarkers();
+  }
+
+  updateRoute(): void {
+    if (!this.map) return;
+    
+    if (this.routingControl) {
+      this.map.removeControl(this.routingControl);
+      this.routingControl = null;
+    }
+    
+    if (this.startMarker) { this.map.removeLayer(this.startMarker); this.startMarker = null; }
+    if (this.endMarker) { this.map.removeLayer(this.endMarker); this.endMarker = null; }
+    
+    if (!this.startLatLng && !this.endLatLng) {
+      this.totalRouteDistance = 0;
+      this.routeLine = [];
+      this.drawStopMarkers();
+      return;
+    }
+
+    if (this.startLatLng && !this.endLatLng) {
+       this.startMarker = L.marker([this.startLatLng.lat, this.startLatLng.lng], { title: 'Départ' }).addTo(this.map);
+       this.reverseGeocode(this.startLatLng.lat, this.startLatLng.lng, 'startPoint');
+       this.totalRouteDistance = 0;
+       this.routeLine = [];
+       this.drawStopMarkers();
+       return;
+    }
+    
+    if (!this.startLatLng && this.endLatLng) {
+       this.endMarker = L.marker([this.endLatLng.lat, this.endLatLng.lng], { title: 'Arrivée' }).addTo(this.map);
+       this.reverseGeocode(this.endLatLng.lat, this.endLatLng.lng, 'endPoint');
+       this.totalRouteDistance = 0;
+       this.routeLine = [];
+       this.drawStopMarkers();
+       return;
+    }
+
+    // Both Start and End exist, draw route!
+    this.reverseGeocode(this.startLatLng!.lat, this.startLatLng!.lng, 'startPoint');
+    this.reverseGeocode(this.endLatLng!.lat, this.endLatLng!.lng, 'endPoint');
+
+    // Prevent TypeScript error for Routing
+    const routing: any = (L as any).Routing;
+    
+    this.routingControl = routing.control({
+      waypoints: [this.startLatLng, this.endLatLng],
+      routeWhileDragging: false,
+      show: false, // hide instructions panel
+      addWaypoints: false, // don't add waypoints by dragging lines
+    }).addTo(this.map);
+
+    this.routingControl.on('routesfound', (e: any) => {
+      const routes = e.routes;
+      const summary = routes[0].summary;
+      this.totalRouteDistance = summary.totalDistance / 1000; // to km
+      this.routeLine = routes[0].coordinates.map((c: any) => L.latLng(c.lat, c.lng));
+      
+      this.drawStopMarkers();
+    });
+  }
+
+  drawStopMarkers(): void {
+     if (!this.map) return;
+     this.stopMarkers.forEach(m => this.map!.removeLayer(m));
+     this.stopMarkers = [];
+     
+     if (this.routeLine.length < 2) return;
+     
+     const distances: number[] = this.distancesControl.value
+        .map((d: any) => parseFloat(d))
+        .filter((d: any) => !isNaN(d) && d > 0);
+     
+     distances.forEach(targetKm => {
+         let currentKm = 0;
+         let targetPoint = this.routeLine[0];
+         for(let i=0; i<this.routeLine.length - 1; i++) {
+             const p1 = this.routeLine[i];
+             const p2 = this.routeLine[i+1];
+             const segDis = p1.distanceTo(p2) / 1000;
+             if (currentKm + segDis >= targetKm) {
+                // Interpolate exact position
+                const ratio = (targetKm - currentKm) / segDis;
+                const lat = p1.lat + (p2.lat - p1.lat) * ratio;
+                const lng = p1.lng + (p2.lng - p1.lng) * ratio;
+                targetPoint = L.latLng(lat, lng);
+                break;
+             }
+             currentKm += segDis;
+         }
+         
+         // Custom icon for distance stop
+         const iconHtml = `<div style="background:var(--accent); color:white; border-radius:50%; width:26px; height:26px; text-align:center; font-size:10px; font-weight:bold; line-height:22px; border:2px solid white; box-shadow:0 2px 4px rgba(0,0,0,0.3); margin-top:-13px; margin-left:-13px;">${targetKm}</div>`;
+         const icon = L.divIcon({ className: 'stop-marker-icon', html: iconHtml });
+         const m = L.marker(targetPoint, { icon }).addTo(this.map!);
+         this.stopMarkers.push(m);
+     });
+  }
+
+  reverseGeocode(lat: number, lng: number, controlName: string): void {
+     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+     this.http.get<any>(url).subscribe(res => {
+         let name = `${lat.toFixed(4)}, ${lng.toFixed(4)}`; 
+         if (res && res.display_name) {
+             const parts = res.display_name.split(',');
+             name = parts.length >= 2 ? parts.slice(0, 2).join(',').trim() : res.display_name;
+         }
+         this.form.get(controlName)?.setValue(name, { emitEvent: false });
+     }, err => {
+         this.form.get(controlName)?.setValue(`${lat.toFixed(4)}, ${lng.toFixed(4)}`, { emitEvent: false });
+     });
+  }
+
+  undoLastPoint(): void {
+    // If there are distances, remove the last one
+    const distValues = this.distancesControl.value.filter((d: any) => d !== '' && d !== null);
+    if (distValues.length > 0) {
+        this.distancesControl.removeAt(distValues.length - 1);
+        if (this.distancesControl.length === 0) {
+            this.distancesControl.push(this.fb.control('', Validators.min(0)));
+        }
+        return;
+    }
+    // Otherwise fallback to removing End then Start
+    if (this.endLatLng) {
+        this.endLatLng = null;
+        this.updateRoute();
+        return;
+    }
+    if (this.startLatLng) {
+        this.startLatLng = null;
+        this.updateRoute();
+        return;
+    }
+  }
+
+  setMapMode(mode: 'start' | 'end' | 'stop'): void {
+    if (this.mapMode === mode) {
+      this.mapMode = null;
+    } else {
+      this.mapMode = mode;
+    }
+  }
+
+  clearRoute(): void {
+    if (this.routingControl && this.map) {
+      this.map.removeControl(this.routingControl);
+      this.routingControl = null;
+    }
+    if (this.startMarker && this.map) this.map.removeLayer(this.startMarker);
+    if (this.endMarker && this.map) this.map.removeLayer(this.endMarker);
+    this.stopMarkers.forEach(m => {
+      if (this.map) this.map.removeLayer(m);
+    });
+    
+    this.startMarker = null;
+    this.endMarker = null;
+    this.stopMarkers = [];
+    this.startLatLng = null;
+    this.endLatLng = null;
+    this.routeLine = [];
+    this.totalRouteDistance = 0;
+    this.mapMode = null;
+    
+    this.distancesControl.clear();
+    this.distancesControl.push(this.fb.control('', Validators.min(0)));
+    this.form.patchValue({ startPoint: '', endPoint: '' });
+  }
+}
