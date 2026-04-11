@@ -10,6 +10,7 @@ import { ResetPasswordComponent } from './core/Auth/reset-password/reset-passwor
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
+import { ProfileComponent } from './features/profile/profile.component';
 
 
 const routes: Routes = [
@@ -65,6 +66,10 @@ const routes: Routes = [
       {
         path: 'leaderboard',
         loadChildren: () => import('./features/leaderboard/leaderboard.module').then(m => m.LeaderboardModule)
+      },
+      {
+        path: 'profile',
+        component: ProfileComponent
       },
       // autres routes privées ici
     ]

@@ -23,14 +23,14 @@
           <div class="input-group">
             <label>Prénom</label>
             <div class="input-wrapper">
-              <span class="icon">👤</span>
+
               <input type="text" name="firstName" ngModel required placeholder="Jean" />
             </div>
           </div>
           <div class="input-group">
             <label>Nom</label>
             <div class="input-wrapper">
-              <span class="icon">👤</span>
+              
               <input type="text" name="lastName" ngModel required placeholder="Dupont" />
             </div>
           </div>
@@ -48,7 +48,7 @@
           <div class="input-group">
             <label>Téléphone</label>
             <div class="input-wrapper">
-              <span class="icon">📞</span>
+              
               <input type="tel" name="phoneNumber" ngModel required placeholder="+216XXXXXXXX" />
             </div>
           </div>
@@ -59,7 +59,7 @@
           <label>Email</label>
           <div class="input-wrapper">
             <span class="icon">✉</span>
-            <input type="email" name="email" ngModel required placeholder="votre@email.com" />
+            <input type="email" name="email" ngModel required pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$" placeholder="votre@email.com" />
           </div>
         </div>
 

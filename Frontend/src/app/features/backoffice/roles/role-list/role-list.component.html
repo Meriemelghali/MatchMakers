@@ -44,7 +44,10 @@
         <tbody>
           <tr *ngIf="isLoading">
             <td colspan="4" class="loading-state">
-              Chargement des rôles...
+              <div class="loader-container">
+                <div class="modern-spinner"></div>
+                <span class="loader-text">Récupération des rôles...</span>
+              </div>
             </td>
           </tr>
           <tr *ngIf="!isLoading && filteredRoles.length === 0">
