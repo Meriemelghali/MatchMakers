@@ -6,7 +6,7 @@ import tn.matchmakers.productservice.dto.ProductRequestDTO;
 import tn.matchmakers.productservice.dto.ProductResponseDTO;
 import tn.matchmakers.productservice.entity.Product;
 import tn.matchmakers.productservice.repository.ProductRepository;
-
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class ProductServiceImpl implements ProductService {
         p.setName(dto.getName());
         p.setDescription(dto.getDescription());
         p.setPrice(dto.getPrice());
-        p.setRentalPricePerDay(dto.getRentalPricePerDay());
+        p.setRentalPricePerHour(dto.getRentalPricePerHour());
         p.setStock(dto.getStock());
         p.setImageUrl(dto.getImageUrl());
         p.setSport(dto.getSport());
@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
                 .name(p.getName())
                 .description(p.getDescription())
                 .price(p.getPrice())
-                .rentalPricePerDay(p.getRentalPricePerDay())
+                .rentalPricePerHour(p.getRentalPricePerHour())
                 .stock(p.getStock())
                 .imageUrl(p.getImageUrl())
                 .sport(p.getSport())
@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
         existing.setName(dto.getName());
         existing.setDescription(dto.getDescription());
         existing.setPrice(dto.getPrice());
-        existing.setRentalPricePerDay(dto.getRentalPricePerDay());
+        existing.setRentalPricePerHour(dto.getRentalPricePerHour());
         existing.setStock(dto.getStock());
         existing.setImageUrl(dto.getImageUrl());
         existing.setSport(dto.getSport());

@@ -16,7 +16,7 @@ public class Product {
     private String name;
     private String description;
     private double price;
-    private double rentalPricePerDay;
+    private double rentalPricePerHour;
     private int stock;
     private String imageUrl;
     private String sport;

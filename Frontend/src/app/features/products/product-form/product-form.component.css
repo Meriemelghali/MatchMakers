@@ -1,0 +1,18 @@
+.upload-zone {
+  display: block;
+  border: 1.5px dashed var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  background: var(--color-background-secondary);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  min-height: 100px;
+}
+
+.upload-zone:hover {
+  border-color: var(--color-border-primary);
+  background: var(--color-background-tertiary);
+}
+
+.upload-zone-active {
+  border-color: #185FA5;
+}
