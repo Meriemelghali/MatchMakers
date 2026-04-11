@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProfileService, UserProfile } from '../../core/services/UserService/profile.service';
@@ -90,31 +91,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (!userId) return;
 
     this.isLoading = true;
-    // Charge le profil et les sports en parallèle pour éviter les problèmes de sélection
-    import('rxjs').then(({ forkJoin }) => {
-      forkJoin({
-        profile: this.profileService.getProfile(userId),
-        sports: this.sportService.getAll()
-      }).subscribe({
-        next: (res) => {
-          console.log('Profile Data Received:', res.profile);
-          console.log('Sports List Received:', res.sports);
-          this.availableSports = res.sports;
-          this.userProfile = res.profile;
-          this.profileForm.patchValue(res.profile);
-          
-          if (res.profile.theme) {
-            this.themeService.setTheme(res.profile.theme as ThemeType, true);
-          }
-          
-          this.loadActivities(userId);
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('Error loading data', err);
-          this.isLoading = false;
+    // Charge le profil et les sports en parallèle
+    forkJoin({
+      profile: this.profileService.getProfile(userId),
+      sports: this.sportService.getAll()
+    }).subscribe({
+      next: (res) => {
+        console.log('Profile Data Received:', res.profile);
+        this.availableSports = res.sports;
+        this.userProfile = res.profile;
+        this.profileForm.patchValue(res.profile);
+        
+        if (res.profile.theme) {
+          this.themeService.setTheme(res.profile.theme as ThemeType, true);
         }
-      });
+        
+        this.loadActivities(userId);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading data', err);
+        this.isLoading = false;
+        this.toastService.error('Erreur lors du chargement du profil');
+      }
     });
   }
 
