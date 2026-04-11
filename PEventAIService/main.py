@@ -48,6 +48,23 @@ class ContextAnalysisRequest(BaseModel):
     sport: str
     eventType: str
 
+class MatchHistoryItem(BaseModel):
+    team1: str
+    team2: str
+    score1: int
+    score2: int
+    date: Optional[str] = None
+
+class PredictionRequest(BaseModel):
+    team1: str
+    team2: str
+    history: List[MatchHistoryItem]
+
+class EventPredictionRequest(BaseModel):
+    sport: str
+    eventType: str
+    participants: List[str]
+
 # Fallback values if API key is not present or fails
 def get_fallback_suggestion(type_name: str) -> dict:
     name = type_name.lower()
@@ -83,7 +100,7 @@ async def suggest_type_config(request: SuggestionRequest):
         return get_fallback_suggestion(request.typeName)
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         A user wants to create a new event type called: "{request.typeName}".
@@ -99,12 +116,18 @@ async def suggest_type_config(request: SuggestionRequest):
         }}
         """
         response = model.generate_content(prompt)
-        # Parse the JSON
-        response_text = response.text.strip().removeprefix('```json').removesuffix('```').strip()
-        data = json.loads(response_text)
+        text = response.text.strip()
+        
+        # Robustly extract JSON from potential markdown code blocks
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        data = json.loads(text)
         return data
     except Exception as e:
-        print(f"Error calling Gemini: {e}")
+        print(f"Error suggesting type config for '{request.typeName}': {str(e)}")
         return get_fallback_suggestion(request.typeName)
 
 @app.post("/api/ai/innovate-type-config")
@@ -123,7 +146,7 @@ async def innovate_type_config(request: InnovationRequest):
         }
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         Innovate an existing event type to make it more 'Elite', modern, and engaging.
@@ -142,11 +165,17 @@ async def innovate_type_config(request: InnovationRequest):
         }}
         """
         response = model.generate_content(prompt)
-        response_text = response.text.strip().removeprefix('```json').removesuffix('```').strip()
-        data = json.loads(response_text)
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        data = json.loads(text)
         return data
     except Exception as e:
-        print(f"Error calling Gemini for innovation: {e}")
+        print(f"Error calling Gemini for innovation on '{request.currentType.typeName}': {str(e)}")
         desc = request.currentType.description or ""
         return {
             "id": request.currentType.id,
@@ -157,11 +186,18 @@ async def innovate_type_config(request: InnovationRequest):
 
 @app.post("/api/ai/suggest-names")
 async def suggest_names(request: NamesRequest):
+    # Base suggestions from sport and type names
+    base_names = [
+        f"{request.sport} {request.type}",
+        f"Challenge {request.sport}",
+        f"Masters {request.sport} {request.type}"
+    ]
+    
     if not GEMINI_API_KEY:
-        return [f"{request.sport} Classic", f"The {request.sport} {request.type}", f"Elite {request.sport} Masters"]
+        return base_names
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
         Give me 3 creative, catchy and professional names for a sports event.
         Sport: {request.sport}
@@ -170,11 +206,22 @@ async def suggest_names(request: NamesRequest):
         Structure: Respond ONLY with a JSON array of 3 strings.
         """
         response = model.generate_content(prompt)
-        text = response.text.strip().removeprefix('```json').removesuffix('```').strip()
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
         return json.loads(text)
     except Exception as e:
-        print(f"Error suggesting names: {e}")
-        return [f"{request.sport} Open", f"Challenge {request.sport}", f"{request.sport} Cup"]
+        print(f"Error suggesting names for {request.sport}/{request.type}: {str(e)}")
+        # Improve fallback for names too
+        return [
+            f"{request.sport} {request.type} Elite",
+            f"MatchMakers {request.sport} Trophy",
+            f"The {request.sport} Classic"
+        ]
 
 @app.post("/api/ai/suggest-description")
 async def suggest_description(request: DescriptionRequest):
@@ -182,7 +229,7 @@ async def suggest_description(request: DescriptionRequest):
         return f"Plongez dans l'intensité du {request.sport} avec cet événement de type {request.type}. Ouvert à tous les passionnés !"
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
         Write a professional and compelling description for a sports event.
         Sport: {request.sport}
@@ -195,7 +242,7 @@ async def suggest_description(request: DescriptionRequest):
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
-        print(f"Error suggesting description: {e}")
+        print(f"Error suggesting description for {request.sport}/{request.type}: {str(e)}")
         return f"Rejoignez-nous pour un événement exceptionnel de {request.sport} ({request.type}). Esprit sportif et convivialité au rendez-vous !"
 
 @app.post("/api/ai/analyze-context")
@@ -208,7 +255,7 @@ async def analyze_context(request: ContextAnalysisRequest):
         }
         
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.0-flash')
         prompt = f"""
         You are an AI assistant for a sports matchmaking platform called MatchMakers.
         The user is creating an event for Sport: "{request.sport}" and Event Type: "{request.eventType}".
@@ -225,11 +272,17 @@ async def analyze_context(request: ContextAnalysisRequest):
         }}
         """
         response = model.generate_content(prompt)
-        response_text = response.text.strip().removeprefix('```json').removesuffix('```').strip()
-        data = json.loads(response_text)
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        data = json.loads(text)
         return data
     except Exception as e:
-        print(f"Error analyzing context: {e}")
+        print(f"Error analyzing context for {request.sport}/{request.eventType}: {str(e)}")
         route_sports = {"cycling", "running", "athletics", "swimming", "triathlon"}
         is_route = request.sport.lower() in route_sports
         return {
@@ -240,6 +293,115 @@ async def analyze_context(request: ContextAnalysisRequest):
             ),
             "requiresTerrain": not is_route,
             "requiresSpecialRoute": is_route
+        }
+
+@app.post("/api/ai/predict-match")
+async def predict_match(request: PredictionRequest):
+    if not GEMINI_API_KEY:
+        return {
+            "predictedScore": "1-1",
+            "winProbability": 50,
+            "analysis": "IA indisponible. Simulation de base basée sur l'équilibre."
+        }
+        
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        
+        # Format history for the prompt
+        history_text = "\n".join([
+            f"- {m.date or ''}: {m.team1} {m.score1} - {m.score2} {m.team2}" 
+            for m in request.history
+        ])
+        
+        prompt = f"""
+        You are an expert sports analyst for MatchMakers.
+        Predict the outcome of a match between {request.team1} and {request.team2}.
+        
+        RECENT HISTORY (last matches of both teams):
+        {history_text}
+        
+        Provide a detailed analysis in French, considering the recent form.
+        Respond ONLY with a valid JSON.
+        Structure:
+        {{
+            "predictedScore": "e.g., 2-1",
+            "winProbability": 65 (percentage chance for {request.team1} to win or draw favorably),
+            "analysis": "A professional analysis in French (3-4 sentences) explaining the prediction based on history."
+        }}
+        """
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        return json.loads(text)
+    except Exception as e:
+        print(f"Error predicting match {request.team1} vs {request.team2}: {str(e)}")
+        return {
+            "predictedScore": "?-?",
+            "winProbability": 50,
+            "analysis": "Erreur lors de l'analyse IA. Les statistiques n'ont pas pu être traitées."
+        }
+
+@app.post("/api/ai/predict-event-outcome")
+async def predict_event_outcome(request: EventPredictionRequest):
+    if not GEMINI_API_KEY:
+        return {
+            "winner": request.participants[0] if request.participants else "Inconnu",
+            "confidence": 70,
+            "analysis": "IA indisponible. Simulation basée sur l'ordre de sélection."
+        }
+        
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        participants_text = ", ".join(request.participants)
+        
+        prompt = f"""
+        You are an expert sports analyst for MatchMakers.
+        Task: Predict the outcome of a {request.eventType} for the sport: {request.sport}.
+        Participants: {participants_text}
+        
+        Is this sport a "Match" (1v1, team vs team) or a "Race/Ranking" (multi-competitors individual/timed)?
+        
+        If it is a RACE (like Cycling, Running, Swimming):
+        Analyze and provide the predicted PODIUM (1st and 2nd minimum).
+        Respond with:
+        {{
+            "isRace": true,
+            "ranking": ["1. Name", "2. Name"],
+            "confidence": 80,
+            "analysis": "Analysis in French explaining the ranking logic."
+        }}
+        
+        If it is a MATCH (like Football, Basketball, Tennis):
+        Respond with:
+        {{
+            "isRace": false,
+            "winner": "Favorite team name",
+            "confidence": 75,
+            "analysis": "Analysis in French explaining the favorite's advantage."
+        }}
+        
+        Respond ONLY with a valid JSON.
+        """
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        return json.loads(text)
+    except Exception as e:
+        print(f"Error predicting event outcome: {str(e)}")
+        return {
+            "winner": "Analyse en cours",
+            "confidence": 50,
+            "analysis": "L'analyse prédictive pour cet ensemble de participants est temporairement indisponible."
         }
 
 if __name__ == "__main__":

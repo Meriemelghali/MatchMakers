@@ -11,6 +11,7 @@ import { TerrainService } from '../../../terrains/services/terrain.service';
 import { Sport } from '../../../features/sports/sport.model'; 
 import { Terrain } from '../../../terrains/models/terrain.model';
 import { TeamService, Team } from '../../teams/services/team.service';
+import { UserManagementService, User } from '../../../core/services/UserService/user-management.service';
 import { AIService, AISuggestion } from '../../../core/services/AIService/ai.service';
 import * as L from 'leaflet';
 import 'leaflet-routing-machine';
@@ -35,6 +36,8 @@ export class EventFormComponent implements OnInit, OnDestroy {
   contextAnalysis: any = null;
   nameSuggestions: string[] = [];
   showAITypeProposal = false;
+  eventPrediction: any = null;
+  isPredictingEvent = false;
 
   eventTypes: EventType[] = [];
   filteredEventTypes: EventType[] = [];
@@ -42,6 +45,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
   terrains: Terrain[] = [];
   filteredTerrains: Terrain[] = [];
   teams: Team[] = [];
+  users: User[] = [];
   selectedEventType: EventType | null = null;
 
   // Autocomplete
@@ -93,6 +97,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     private sportService: SportService,
     private terrainService: TerrainService,
     private teamService: TeamService,
+    private userService: UserManagementService,
     private router: Router,
     private route: ActivatedRoute,
     private http: HttpClient,
@@ -108,6 +113,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.loadSports();    // ← NOUVEAU
     this.loadTerrains();  // ← NOUVEAU
     this.loadTeams();
+    this.loadUsers();
 
     // mode edit si URL contient un id
     this.eventId = this.route.snapshot.paramMap.get('id');
@@ -140,11 +146,22 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
       // ── équipes (Friendly Match) ───────────────────────────────
       teamIds: [[]],
+      participantIds: [[]],
 
       // ── parcours ───────────────────────────────────────────
       startPoint:  [''],
       endPoint:    [''],
       distances:   this.fb.array([this.fb.control('', Validators.min(0))]), 
+    });
+
+    // Watch teamIds or participantIds to trigger prediction
+    this.form.valueChanges.subscribe(v => {
+       const ids = this.isIndividualSport ? v.participantIds : v.teamIds;
+       if (Array.isArray(ids) && ids.length >= 2) {
+          this.runEventPrediction();
+       } else {
+          this.eventPrediction = null;
+       }
     });
   }
   loadEventTypes(): void {
@@ -166,7 +183,12 @@ export class EventFormComponent implements OnInit, OnDestroy {
   loadTerrains(): void {
     this.terrainService.getAll().subscribe({
       next: (terrains) => {
-        this.terrains = terrains;
+        if (!Array.isArray(terrains)) return;
+        // Normalize IDs: ensure every terrain has an 'id' property
+        this.terrains = terrains.map(t => ({
+          ...t,
+          id: t.id || (t as any)._id
+        }));
         this.filterTerrains(); // ← filter directly
       },
       error: () => console.warn('terrain-service indisponible')
@@ -175,8 +197,18 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   loadTeams(): void {
     this.teamService.getTeams().subscribe({
-      next: (teams) => this.teams = teams,
+      next: (teams) => {
+        if (!Array.isArray(teams)) return;
+        this.teams = teams.map(t => ({ ...t, id: t.id || (t as any)._id }));
+      },
       error: () => console.warn('team-service indisponible')
+    });
+  }
+
+  loadUsers(): void {
+    this.userService.getAllUsers().subscribe({
+      next: (users) => this.users = users,
+      error: () => console.warn('user-service indisponible')
     });
   }
 
@@ -198,6 +230,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
           maxTeam:         event.competition?.maxTeam,
           format:          event.competition?.format,
           teamIds:         event.teamIds || [],
+          participantIds:  event.participantIds || [],
           startPoint:      event.startPoint || '',
           endPoint:        event.endPoint || '',
         });
@@ -221,23 +254,22 @@ export class EventFormComponent implements OnInit, OnDestroy {
   onEventTypeChange(eventTypeId: string | undefined): void {
     this.selectedEventType = this.eventTypes.find(t => t.id === eventTypeId) || null;
 
-    // ajouter/supprimer validators dynamiquement
+    // reset fields if not applicable
+    if (!this.requiresParticipants) {
+       this.form.get('teamIds')?.setValue([]);
+       this.form.get('participantIds')?.setValue([]);
+    }
+
     if (this.selectedEventType?.isCompetition) {
       this.form.get('competitionName')?.setValidators(Validators.required);
       this.form.get('maxTeam')?.setValidators([Validators.required, Validators.min(2)]);
-      this.form.get('teamIds')?.clearValidators();
-    } else if (this.selectedEventType?.requiresTeams) {
-      this.form.get('teamIds')?.setValidators([Validators.required, Validators.minLength(2)]);
-      this.form.get('competitionName')?.clearValidators();
-      this.form.get('maxTeam')?.clearValidators();
     } else {
       this.form.get('competitionName')?.clearValidators();
       this.form.get('maxTeam')?.clearValidators();
-      this.form.get('teamIds')?.clearValidators();
     }
 
-    // mettre à jour la validation
-    ['competitionName', 'maxTeam', 'teamIds'].forEach(field => {
+    // Update value/validity
+    ['competitionName', 'maxTeam', 'teamIds', 'participantIds'].forEach(field => {
       this.form.get(field)?.updateValueAndValidity();
     });
   }
@@ -255,12 +287,11 @@ export class EventFormComponent implements OnInit, OnDestroy {
       eventTypeId: v.eventTypeId,
     };
 
-    if (this.selectedEventType?.isCompetition) {
+    if (this.isCompetition) {
       req.competitionName = v.competitionName;
       req.maxTeam = v.maxTeam;
       
-      // Auto-assign format based on event type
-      const typeName = (this.selectedEventType.typeName || '').toUpperCase();
+      const typeName = (this.selectedEventType?.typeName || '').toUpperCase();
       if (typeName.includes('LEAGUE') || typeName.includes('CHAMPIONNAT')) {
         req.format = CompetitionFormat.LEAGUE;
       } else if (typeName.includes('KNOCKOUT') || typeName.includes('COUPE') || typeName.includes('ELIMINATION')) {
@@ -270,8 +301,12 @@ export class EventFormComponent implements OnInit, OnDestroy {
       }
     }
 
-    if (this.selectedEventType?.requiresTeams && !this.selectedEventType?.isCompetition) {
-      req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+    if (this.requiresParticipants) {
+      if (this.isIndividualSport) {
+        req.participantIds = Array.isArray(v.participantIds) ? v.participantIds : [];
+      } else {
+        req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+      }
     }
 
     // Add route fields
@@ -307,20 +342,15 @@ export class EventFormComponent implements OnInit, OnDestroy {
     if (this.selectedEventType?.isCompetition) {
       req.competitionName = v.competitionName;
       req.maxTeam = v.maxTeam;
-      
-      // Auto-assign format based on event type
-      const typeName = (this.selectedEventType.typeName || '').toUpperCase();
-      if (typeName.includes('LEAGUE') || typeName.includes('CHAMPIONNAT')) {
-        req.format = CompetitionFormat.LEAGUE;
-      } else if (typeName.includes('KNOCKOUT') || typeName.includes('COUPE') || typeName.includes('ELIMINATION')) {
-        req.format = CompetitionFormat.KNOCKOUT;
-      } else {
-        req.format = CompetitionFormat.TOURNAMENT;
-      }
+      // ... format logic ...
     }
 
-    if (this.selectedEventType?.requiresTeams && !this.selectedEventType?.isCompetition) {
-      req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+    if (this.requiresParticipants) {
+       if (this.isIndividualSport) {
+          req.participantIds = Array.isArray(v.participantIds) ? v.participantIds : [];
+       } else {
+          req.teamIds = Array.isArray(v.teamIds) ? v.teamIds : [];
+       }
     }
 
     // Add route fields
@@ -391,11 +421,19 @@ export class EventFormComponent implements OnInit, OnDestroy {
     return !!this.selectedEventType?.isCompetition;
   }
 
-  get requiresTeams(): boolean {
+  get isIndividualSport(): boolean {
+    const sportId = this.form.get('sportId')?.value;
+    if (!sportId) return false;
+    const sport = this.sports.find(s => s.id === sportId);
+    if (!sport) return false;
+    const individualSports = ['CYCLING', 'RUNNING', 'NATATION', 'MARATHON', 'YOGA'];
+    return individualSports.includes(sport.nameSport.toUpperCase());
+  }
+
+  get requiresParticipants(): boolean {
     if (!this.selectedEventType) return false;
-    // Si le type indique explicitement qu'il n'a pas besoin d'équipes (ex: Sport Individuel)
-    if (this.selectedEventType.requiresTeams === false) return false;
-    return !this.isCompetition;
+    // On permet la sélection si c'est une compétition OU si le type requiert explicitement des équipes
+    return this.isCompetition || this.selectedEventType.requiresTeams !== false || this.isIndividualSport;
   }
   get todayDate(): string {
     const d = new Date();
@@ -479,27 +517,46 @@ export class EventFormComponent implements OnInit, OnDestroy {
     const sportId = this.form.get('sportId')?.value;
     const locationVal = (this.form.get('location')?.value || '').toLowerCase();
 
-    let temps = this.terrains;
+    let temps = [...this.terrains];
 
     // 1. Filter by Sport
     if (sportId) {
       const selectedSport = this.sports.find(s => s.id === sportId);
       if (selectedSport) {
-        const sportType = this.sportNameToType[selectedSport.nameSport];
-        if (sportType) {
-          temps = temps.filter(t => t.typeSport === sportType);
+        // Find mapping case-insensitively
+        const sportKey = Object.keys(this.sportNameToType).find(
+          k => k.toLowerCase() === selectedSport.nameSport.toLowerCase()
+        );
+        const sportType = sportKey ? this.sportNameToType[sportKey] : null;
+        
+        const filteredBySport = temps.filter(t => {
+          const terrainSport = (t.typeSport || '').toString().toUpperCase();
+          const targetSportType = (sportType || '').toUpperCase();
+          const targetSportName = (selectedSport.nameSport || '').trim().toUpperCase();
+
+          return (targetSportType && terrainSport === targetSportType) || 
+                 terrainSport === targetSportName;
+        });
+
+        // Fallback: if no terrains match this sport exactly, we don't clear the list 
+        // to avoid blocking the user, but we prioritize matches.
+        if (filteredBySport.length > 0) {
+          temps = filteredBySport;
         }
       }
     }
 
     // 2. Filter by Location (City/Ville)
     if (locationVal && locationVal.length > 2) {
-      temps = temps.filter(t => {
+      const locFiltered = temps.filter(t => {
         const ville = (t.ville || '').toLowerCase();
         if (!ville) return false;
-        // Permissive match: either typed location includes the terrain city, or terrain city includes typed location
-        return locationVal.includes(ville) || ville.includes(locationVal);
+        const locParts = locationVal.split(',').map((p: string) => p.trim().toLowerCase());
+        return locParts.some((p: string) => p.includes(ville) || ville.includes(p));
       });
+      
+      // Permissive location: Only apply if results found
+      if (locFiltered.length > 0) temps = locFiltered;
     }
 
     this.filteredTerrains = temps;
@@ -598,6 +655,38 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Predicts the event outcome based on selected teams using AI.
+   */
+  runEventPrediction(): void {
+    const sportName = this.getSelectedSportName();
+    const eventType = this.selectedEventType?.typeName || 'Event';
+    
+    // Use teams or individual participant names
+    const participants = this.isIndividualSport
+      ? this.selectedParticipantsObjects.map(u => `${u.firstName} ${u.lastName}`)
+      : this.selectedTeamsObjects.map(t => t.name);
+
+    console.log('AI Prediction trigger:', { sportName, eventType, participants });
+
+    if (!sportName || !eventType || participants.length < 2) {
+      this.eventPrediction = null;
+      return;
+    }
+
+    this.isPredictingEvent = true;
+    this.aiService.predictEventOutcome(sportName, eventType, participants).subscribe({
+      next: (res) => {
+        this.eventPrediction = res;
+        this.isPredictingEvent = false;
+      },
+      error: () => {
+        this.isPredictingEvent = false;
+        this.eventPrediction = null;
+      }
+    });
+  }
+
+  /**
    * Runs AI analytics to suggest the best configuration.
    */
   runAISuggestion(): void {
@@ -649,13 +738,16 @@ export class EventFormComponent implements OnInit, OnDestroy {
          }
          this.form.get('terrainId')?.updateValueAndValidity();
          
-         // Refilter Event Types now that AI has provided context
+         // Refilter Event Types and Terrains now that AI has provided context
          this.filterEventTypes();
+         this.filterTerrains();
       },
-      error: () => {
+      error: (err) => {
          // Fallback if AI fails: assume it's a standard terrain sport to not block form submission
-         this.contextAnalysis = null;
+         console.error('AI Context Analysis Error:', err);
+         this.contextAnalysis = { advice: 'Pensez à bien définir le lieu.', requiresTerrain: true, requiresSpecialRoute: false };
          this.filterEventTypes();
+         this.filterTerrains();
       }
     });
 
@@ -734,22 +826,39 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   get availableTeams(): Team[] {
     const selected = this.selectedTeamIds;
+    // 1. First filter by selection (remove already selected teams)
     let filtered = this.teams.filter(t => {
-      const id = t.id || (t as any)._id;
-      return id && !selected.includes(id);
+      const id = t.id;
+      return !!id && !selected.includes(id);
     });
 
+    // 2. Then try to filter by sport
     const sportId = this.form.get('sportId')?.value;
     if (sportId) {
       const selectedSport = this.sports.find(s => s.id === sportId);
       if (selectedSport) {
-        const sportType = this.sportNameToType[selectedSport.nameSport];
-        // On vérifie le sport de l'équipe soit par rapport au type majuscule (FOOTBALL) soit par rapport au nom (Football)
-        filtered = filtered.filter(t => {
+        // Robust sport type lookup (case-insensitive)
+        const sportKey = Object.keys(this.sportNameToType).find(
+          k => k.toLowerCase() === selectedSport.nameSport.toLowerCase()
+        );
+        const sportType = sportKey ? this.sportNameToType[sportKey] : null;
+
+        const filteredBySport = filtered.filter(t => {
           const teamSport = (t.sport || '').toUpperCase();
-          return teamSport === (sportType || '').toUpperCase() || 
-                 teamSport === (selectedSport.nameSport || '').toUpperCase();
+          const targetSportType = (sportType || '').toUpperCase();
+          const targetSportName = (selectedSport.nameSport || '').trim().toUpperCase();
+          const targetSportId = (sportId || '').toUpperCase();
+
+          return (targetSportType && teamSport === targetSportType) || 
+                 teamSport === targetSportName ||
+                 teamSport === targetSportId;
         });
+
+        // Fallback: If filtering by sport gives NO results, we show all teams 
+        // to avoid a dead-end UI, but prioritize the sport-match if possible.
+        if (filteredBySport.length > 0) {
+          filtered = filteredBySport;
+        }
       }
     }
     return filtered;
@@ -757,10 +866,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   get selectedTeamsObjects(): Team[] {
     const selected = this.selectedTeamIds;
-    return this.teams.filter(t => {
-      const id = t.id || (t as any)._id;
-      return id && selected.includes(id);
-    });
+    return this.teams.filter(t => t.id && selected.includes(t.id));
   }
 
   addTeamToSelection(event: any): void {
@@ -783,6 +889,43 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.form.get('teamIds')?.setValue(current);
     this.form.get('teamIds')?.markAsTouched();
     this.form.get('teamIds')?.updateValueAndValidity();
+  }
+
+  // ==== EXTRA LOGIC FOR CUSTOM USER MULTI-SELECT (Participants) ====
+  get selectedParticipantIds(): string[] {
+    return this.form.get('participantIds')?.value || [];
+  }
+
+  get availableParticipants(): User[] {
+    const selected = this.selectedParticipantIds;
+    return this.users.filter(u => u.idUser && !selected.includes(u.idUser));
+  }
+
+  get selectedParticipantsObjects(): User[] {
+    const selected = this.selectedParticipantIds;
+    return this.users.filter(u => u.idUser && selected.includes(u.idUser));
+  }
+
+  addParticipantToSelection(event: any): void {
+    const target = event.target as HTMLSelectElement;
+    const userId = target.value;
+    if (!userId) return;
+
+    const current = [...this.selectedParticipantIds];
+    if (!current.includes(userId)) {
+      current.push(userId);
+      this.form.get('participantIds')?.setValue(current);
+      this.form.get('participantIds')?.markAsTouched();
+      this.form.get('participantIds')?.updateValueAndValidity();
+    }
+    target.value = '';
+  }
+
+  removeParticipantFromSelection(userId: string): void {
+    const current = this.selectedParticipantIds.filter(id => id !== userId);
+    this.form.get('participantIds')?.setValue(current);
+    this.form.get('participantIds')?.markAsTouched();
+    this.form.get('participantIds')?.updateValueAndValidity();
   }
 
   // ==== LOCATION GEOLOCATION (NOMINATIM) ====

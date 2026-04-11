@@ -35,401 +35,434 @@
 
         <!-- Form -->
         <form id="eventForm" [formGroup]="form" (ngSubmit)="submit()" *ngIf="!isLoading || isEditMode" style="display: flex; flex-direction: column; gap: 24px;">
-      <!-- Bloc SPORT -->
-        <div class="ef-card">
-          <div class="ef-card-head">
-            <span class="ef-card-title">1. CHOISIR LE SPORT</span>
-          </div>
-          <div class="ef-row">
-            <div class="ef-field ef-field--grow">
-              <label class="ef-label">SÉLECTIONNER LE SPORT</label>
-              <select class="ef-input ef-select" formControlName="sportId"
-                      (change)="onSportChange(form.get('sportId')?.value)"
-                      [class.ef-input--err]="isFieldInvalid('sportId')">
-                <option value="">-- Sélectionner un sport --</option>
-                <option *ngFor="let s of sports" [value]="s.id">
-                  {{ s.nameSport }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bloc TYPE DE L'ÉVÉNEMENT -->
-        <div class="ef-card">
-          <div class="ef-card-head">
-            <span class="ef-card-title">2. TYPE DE L'ÉVÉNEMENT</span>
-          </div>
-          <div class="ef-grid ef-grid--3">
-            <div *ngFor="let type of filteredEventTypes" 
-                class="ef-type-card"
-                [class.ef-type-card--selected]="form.get('eventTypeId')?.value === type.id"
-                (click)="selectEventType(type)">
-              <div class="ef-type-icon">
-                {{ type.icon }}
-              </div>
-              <div class="ef-type-body">
-                <div class="ef-type-name">{{ type.typeName }}</div>
-                <div class="ef-type-desc">
-                  {{ type.description }}
-                </div>
-              </div>
-            </div>
-            <select class="ef-hidden" formControlName="eventTypeId"
-                    (change)="onEventTypeChange(form.get('eventTypeId')?.value)">
-              <option value="">-- Sélectionner --</option>
-              <option *ngFor="let t of filteredEventTypes" [value]="t.id">{{ t.typeName }}</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Bloc Informations détaillées -->
-        <div class="ef-card">
-          <div class="ef-card-head">
-            <span class="ef-card-title">3. DÉTAILS DE L'ÉVÉNEMENT</span>
-          </div>
-
-          <div class="ef-field">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <label class="ef-label" style="margin-bottom: 0;">NOM DE L'ÉVÉNEMENT</label>
-              <button type="button" class="ai-gen-btn" (click)="generateAINameSuggestions()" [disabled]="aiLoading">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L4 10.8l5.886-1.912L12 3z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
-                Idées de noms
-              </button>
-            </div>
-            <div style="position: relative;">
-              <input class="ef-input" formControlName="name"
-                     placeholder="Entrez le nom de votre événement"
-                     [class.ef-input--err]="isFieldInvalid('name')"/>
-              
-              <!-- AI Name Suggestions List -->
-              <div class="ai-suggestions-list" *ngIf="nameSuggestions.length > 0">
-                <div class="ai-suggestion-item" *ngFor="let suggestion of nameSuggestions" (click)="selectNameSuggestion(suggestion)">
-                  ✨ {{ suggestion }}
-                </div>
-              </div>
-
-              <div class="ai-loading-overlay" *ngIf="aiLoading && nameSuggestions.length === 0 && !form.get('name')?.value">
-                <div class="ef-spinner-small"></div>
-              </div>
-            </div>
-            <span class="ef-err" *ngIf="isFieldInvalid('name')">Minimum 3 caractères</span>
-          </div>
-
-          <div class="ef-field">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <label class="ef-label" style="margin-bottom: 0;">DESCRIPTION</label>
-              <button type="button" class="ai-gen-btn" (click)="generateAIDescription()" [disabled]="aiLoading">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L4 10.8l5.886-1.912L12 3z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
-                Générer avec l'IA
-              </button>
-            </div>
-            <div style="position: relative;">
-              <textarea class="ef-input ef-textarea" formControlName="description" rows="3"
-                        placeholder="Décrivez l'événement..."
-                        [class.ef-input--err]="isFieldInvalid('description')"></textarea>
-              <div class="ai-loading-overlay" *ngIf="aiLoading">
-                <div class="ef-spinner-small"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bloc Dates -->
-        <div class="ef-card">
-          <div class="ef-card-head">
-            <span class="ef-card-title">4. DATES DE L'ÉVÉNEMENT</span>
-          </div>
-          <div class="ef-row">
-            <div class="ef-field">
-              <label class="ef-label">DATE DE DÉBUT</label>
-              <input class="ef-input" type="date" formControlName="startDate" [min]="todayDate"
-                     [class.ef-input--err]="isFieldInvalid('startDate')"/>
-            </div>
-            <div class="ef-field">
-              <label class="ef-label">DATE DE FIN</label>
-              <input class="ef-input" type="date" formControlName="endDate" [min]="minEndDate"
-                     [class.ef-input--err]="isFieldInvalid('endDate')"/>
-            </div>
-          </div>
-        </div>
-      <div class="ef-grid" [ngClass]="(isCompetition || requiresTeams) ? 'ef-grid--2' : 'ef-grid--1'">
-
-        <!-- Colonne gauche : Lieu et terrain (toujours visible) -->
-        <div>
-          <div class="ef-card" style="height: 100%;">
+          <!-- Bloc SPORT -->
+          <div class="ef-card">
             <div class="ef-card-head">
-              <span class="ef-card-title">{{ contextAnalysis?.requiresSpecialRoute ? 'LIEU ET PARCOURS' : 'LIEU ET TERRAIN' }}</span>
+              <span class="ef-card-title">1. CHOISIR LE SPORT</span>
             </div>
-
-            <div class="ef-field">
-              <label class="ef-label">LIEU</label>
-              <div class="ef-input-icon-wrap" style="position: relative;">
-                <input class="ef-input" formControlName="location"
-                       placeholder="Ex: Hammamet, Tunisie" autocomplete="off"
-                       (blur)="onLocationBlur()"
-                       [class.ef-input--err]="isFieldInvalid('location')"/>
-                
-                <div *ngIf="isSearchingLocation" class="ef-input-icon" style="right: 12px;">
-                  <span class="ef-spinner-small"></span>
-                </div>
-
-                <ul class="ef-autocomplete-list" *ngIf="locationSuggestions.length > 0">
-                  <li *ngFor="let s of locationSuggestions" (click)="selectLocation(s)">
-                    <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
-                    <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="ef-field" *ngIf="!contextAnalysis?.requiresSpecialRoute">
-              <label class="ef-label">SÉLECTIONNER UN TERRAIN</label>
-              <div class="ef-input-icon-wrap">
-                <select class="ef-input ef-select" formControlName="terrainId">
-                  <option value="">Sélectionner un terrain</option>
-                  <option *ngFor="let t of filteredTerrains" [value]="t.id">
-                    {{ t.nom }} — {{ t.ville }}
-                    <ng-container *ngIf="t.capacite"> ({{ t.capacite }} places)</ng-container>
+            <div class="ef-row">
+              <div class="ef-field ef-field--grow">
+                <label class="ef-label">SÉLECTIONNER LE SPORT</label>
+                <select class="ef-input ef-select" formControlName="sportId"
+                        (change)="onSportChange(form.get('sportId')?.value)"
+                        [class.ef-input--err]="isFieldInvalid('sportId')">
+                  <option value="">-- Sélectionner un sport --</option>
+                  <option *ngFor="let s of sports" [value]="s.id">
+                    {{ s.nameSport }}
                   </option>
                 </select>
               </div>
-              <span class="ef-hint" *ngIf="form.get('terrainId')?.value">
-                ✓ {{ getSelectedTerrainName() }}
-              </span>
             </div>
           </div>
-        </div>
 
-        <!-- Colonne milieu : Parcours (uniquement si requiresSpecialRoute) -->
-        <div *ngIf="contextAnalysis?.requiresSpecialRoute">
-          <div class="ef-card" style="height: 100%;">
+          <!-- Bloc TYPE DE L'ÉVÉNEMENT -->
+          <div class="ef-card">
             <div class="ef-card-head">
-              <span class="ef-card-title">DÉTAILS DU PARCOURS</span>
+              <span class="ef-card-title">2. TYPE DE L'ÉVÉNEMENT</span>
             </div>
-
-            <div class="ef-map-container">
-              <div id="map"></div>
-              
-              <div class="distance-badge" *ngIf="totalRouteDistance > 0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><path d="M12 6v6l4 2"/></svg>
-                {{ totalRouteDistance.toFixed(2) }} km
+            <div class="ef-grid ef-grid--3">
+              <div *ngFor="let type of filteredEventTypes" 
+                  class="ef-type-card"
+                  [class.ef-type-card--selected]="form.get('eventTypeId')?.value === type.id"
+                  (click)="selectEventType(type)">
+                <div class="ef-type-icon">
+                  {{ type.icon }}
+                </div>
+                <div class="ef-type-body">
+                  <div class="ef-type-name">{{ type.typeName }}</div>
+                  <div class="ef-type-desc">
+                    {{ type.description }}
+                  </div>
+                </div>
               </div>
-
-              <div class="map-controls">
-                <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'start'" (click)="setMapMode('start')" title="Définit le point de départ">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  Départ
-                </button>
-                <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'end'" (click)="setMapMode('end')" title="Définit le point d'arrivée final">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-                  Arrivée
-                </button>
-                <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'stop'" (click)="setMapMode('stop')" title="Ajoute un stop (ravitaillement, etc) sur le tracé">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                  Stop
-                </button>
-                <button type="button" class="map-btn" (click)="undoLastPoint()" style="flex: 0.3;" title="Annuler le dernier point">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
-                </button>
-                <button type="button" class="map-btn" (click)="clearRoute()" style="flex: 0.3; color: var(--red);" title="Effacer tout le parcours">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                </button>
-              </div>
-            </div>
-            
-            <div class="map-hint">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-              Cliquez sur la carte après avoir activé un mode pour placer vos points.
-            </div>
-
-            <div class="ef-field">
-              <label class="ef-label">POINT DE DÉPART *</label>
-              <div class="ef-input-icon-wrap" style="position: relative;">
-                <input class="ef-input" formControlName="startPoint" placeholder="Placé via la carte" autocomplete="off" (blur)="onStartPointBlur()"/>
-                <div *ngIf="isSearchingStartPoint" class="ef-input-icon" style="right: 12px;"><span class="ef-spinner-small"></span></div>
-                <ul class="ef-autocomplete-list" *ngIf="startPointSuggestions.length > 0">
-                  <li *ngFor="let s of startPointSuggestions" (click)="selectStartPoint(s)">
-                    <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
-                    <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="ef-field">
-              <label class="ef-label">POINT D'ARRIVÉE</label>
-              <div class="ef-input-icon-wrap" style="position: relative;">
-                <input class="ef-input" formControlName="endPoint" placeholder="Défini par le dernier stop" autocomplete="off" (blur)="onEndPointBlur()"/>
-                <div *ngIf="isSearchingEndPoint" class="ef-input-icon" style="right: 12px;"><span class="ef-spinner-small"></span></div>
-                <ul class="ef-autocomplete-list" *ngIf="endPointSuggestions.length > 0">
-                  <li *ngFor="let s of endPointSuggestions" (click)="selectEndPoint(s)">
-                    <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
-                    <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="ef-field" formArrayName="distances">
-              <label class="ef-label" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>STOPS DE DISTANCES (KM)</span>
-                <button type="button" class="ef-btn-text" (click)="addDistance()" style="font-size: 12px; color: var(--text-brand); background: none; border: none; cursor: pointer;">+ Ajouter</button>
-              </label>
-              <div *ngFor="let dist of distancesControl.controls; let i = index" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
-                <input class="ef-input" [formControlName]="i" type="number" step="0.1" min="0" placeholder="Ex: 5.5" style="flex: 1;" />
-                <button type="button" *ngIf="distancesControl.length > 1" (click)="removeDistance(i)" style="background: none; border: none; color: #f43f5e; cursor: pointer; font-size: 16px; font-weight: bold;" title="Retirer">&times;</button>
-              </div>
+              <select class="ef-hidden" formControlName="eventTypeId"
+                      (change)="onEventTypeChange(form.get('eventTypeId')?.value)">
+                <option value="">-- Sélectionner --</option>
+                <option *ngFor="let t of filteredEventTypes" [value]="t.id">{{ t.typeName }}</option>
+              </select>
             </div>
           </div>
 
-        </div>
-
-        <!-- Colonne droite : selon type (n'apparait que si on choisit un type) -->
-        <div *ngIf="isCompetition || requiresTeams">
-          <!-- Bloc compétition -->
-          <div class="ef-card" *ngIf="isCompetition" style="height: 100%;">
+          <!-- Bloc Informations détaillées -->
+          <div class="ef-card">
             <div class="ef-card-head">
-              <span class="ef-card-title">DÉTAILS COMPÉTITION</span>
+              <span class="ef-card-title">3. DÉTAILS DE L'ÉVÉNEMENT</span>
             </div>
 
             <div class="ef-field">
-              <label class="ef-label">NOM DE LA COMPÉTITION *</label>
-              <input class="ef-input" formControlName="competitionName"
-                     placeholder="Ex: Championnat Régional 2026"
-                     [class.ef-input--err]="isFieldInvalid('competitionName')"/>
-            </div>
-
-            <div class="ef-field">
-              <label class="ef-label">CAPACITÉ (MAX ÉQUIPES) *</label>
-              <div class="ef-input-icon-wrap">
-                <input class="ef-input" type="number" formControlName="maxTeam"
-                       placeholder="Ex: 8" min="2"
-                       [class.ef-input--err]="isFieldInvalid('maxTeam')"/>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="ef-label" style="margin-bottom: 0;">NOM DE L'ÉVÉNEMENT</label>
+                <button type="button" class="ai-gen-btn" (click)="generateAINameSuggestions()" [disabled]="aiLoading">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L4 10.8l5.886-1.912L12 3z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
+                  Idées de noms
+                </button>
               </div>
-              <span class="ef-err-small" *ngIf="isFieldInvalid('maxTeam')">Saisie requise</span>
+              <div style="position: relative;">
+                <input class="ef-input" formControlName="name"
+                       placeholder="Entrez le nom de votre événement"
+                       [class.ef-input--err]="isFieldInvalid('name')"/>
+                
+                <!-- AI Name Suggestions List -->
+                <div class="ai-suggestions-list" *ngIf="nameSuggestions.length > 0">
+                  <div class="ai-suggestion-item" *ngFor="let suggestion of nameSuggestions" (click)="selectNameSuggestion(suggestion)">
+                    ✨ {{ suggestion }}
+                  </div>
+                </div>
+
+                <div class="ai-loading-overlay" *ngIf="aiLoading && nameSuggestions.length === 0 && !form.get('name')?.value">
+                  <div class="ef-spinner-small"></div>
+                </div>
+              </div>
+              <span class="ef-err" *ngIf="isFieldInvalid('name')">Minimum 3 caractères</span>
+            </div>
+
+            <div class="ef-field">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="ef-label" style="margin-bottom: 0;">DESCRIPTION</label>
+                <button type="button" class="ai-gen-btn" (click)="generateAIDescription()" [disabled]="aiLoading">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 1.912 5.886L20 10.8l-5.886 1.912L12 18.6l-1.912-5.886L4 10.8l5.886-1.912L12 3z"/><path d="M5 3v4M3 5h4M19 17v4M17 19h4"/></svg>
+                  Générer avec l'IA
+                </button>
+              </div>
+              <div style="position: relative;">
+                <textarea class="ef-input ef-textarea" formControlName="description" rows="3"
+                          placeholder="Décrivez l'événement..."
+                          [class.ef-input--err]="isFieldInvalid('description')"></textarea>
+                <div class="ai-loading-overlay" *ngIf="aiLoading">
+                  <div class="ef-spinner-small"></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Bloc Friendly : équipes -->
-          <div class="ef-card" *ngIf="requiresTeams" style="height: 100%;">
+          <!-- Bloc Dates -->
+          <div class="ef-card">
             <div class="ef-card-head">
-              <span class="ef-card-title">ÉQUIPES PARTICIPANTES</span>
+              <span class="ef-card-title">4. DATES DE L'ÉVÉNEMENT</span>
             </div>
-            <div class="ef-field">
-              <label class="ef-label">SÉLECTIONNER LES ÉQUIPES *</label>
-              <div class="ef-input-icon-wrap">
-                <select class="ef-input ef-select" (change)="addTeamToSelection($event)"
-                        [class.ef-input--err]="isFieldInvalid('teamIds')">
-                  <option value="" selected>-- Cliquer pour ajouter une équipe --</option>
-                  <option *ngFor="let team of availableTeams" [value]="team.id">{{ team.name }}</option>
-                </select>
+            <div class="ef-row">
+              <div class="ef-field">
+                <label class="ef-label">DATE DE DÉBUT</label>
+                <input class="ef-input" type="date" formControlName="startDate" [min]="todayDate"
+                       [class.ef-input--err]="isFieldInvalid('startDate')"/>
               </div>
-
-              <!-- Liste des équipes sélectionnées (Chips) -->
-              <div class="ef-chip-list" *ngIf="selectedTeamsObjects.length > 0">
-                <span class="ef-chip" *ngFor="let t of selectedTeamsObjects">
-                  {{ t.name }}
-                  <button type="button" class="ef-chip-remove" (click)="removeTeamFromSelection(t.id!)" title="Retirer cette équipe">&times;</button>
-                </span>
+              <div class="ef-field">
+                <label class="ef-label">DATE DE FIN</label>
+                <input class="ef-input" type="date" formControlName="endDate" [min]="minEndDate"
+                       [class.ef-input--err]="isFieldInvalid('endDate')"/>
               </div>
-
-              <span class="ef-hint" *ngIf="!isFieldInvalid('teamIds')">Minimum 2 équipes requises</span>
-              <span class="ef-err" *ngIf="isFieldInvalid('teamIds')">Vous devez sélectionner au moins 2 équipes.</span>
             </div>
           </div>
-        </div>
 
-      </div>
+          <!-- ── GRILLE PRINCIPALE (LIEU / PARCOURS / PARTICIPANTS) ────────────────── -->
+          <div class="ef-grid" [ngClass]="(isCompetition || requiresParticipants) ? 'ef-grid--2' : 'ef-grid--1'">
 
-    </form>
+            <!-- Colonne GAUCHE : Lieu + Participants (si applicable) -->
+            <div class="ef-grid ef-grid--1">
+              <!-- Carte Lieu -->
+              <div class="ef-card">
+                <div class="ef-card-head">
+                  <span class="ef-card-title">{{ contextAnalysis?.requiresSpecialRoute ? 'LIEU ET PARCOURS' : 'LIEU ET TERRAIN' }}</span>
+                </div>
+
+                <div class="ef-field">
+                  <label class="ef-label">LIEU</label>
+                  <div class="ef-input-icon-wrap" style="position: relative;">
+                    <input class="ef-input" formControlName="location"
+                           placeholder="Ex: Hammamet, Tunisie" autocomplete="off"
+                           (blur)="onLocationBlur()"
+                           [class.ef-input--err]="isFieldInvalid('location')"/>
+                    
+                    <div *ngIf="isSearchingLocation" class="ef-input-icon" style="right: 12px;">
+                      <span class="ef-spinner-small"></span>
+                    </div>
+
+                    <ul class="ef-autocomplete-list" *ngIf="locationSuggestions.length > 0">
+                      <li *ngFor="let s of locationSuggestions" (click)="selectLocation(s)">
+                        <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="ef-field" *ngIf="!contextAnalysis?.requiresSpecialRoute">
+                  <label class="ef-label">SÉLECTIONNER UN TERRAIN</label>
+                  <div class="ef-input-icon-wrap">
+                    <select class="ef-input ef-select" formControlName="terrainId">
+                      <option value="">Sélectionner un terrain</option>
+                      <option *ngFor="let t of filteredTerrains" [value]="t.id">
+                        {{ t.nom }} — {{ t.ville }}
+                        <ng-container *ngIf="t.capacite"> ({{ t.capacite }} places)</ng-container>
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Carte Participants (Groupée sous le Lieu) -->
+              <div class="ef-card" *ngIf="requiresParticipants">
+                <div class="ef-card-head">
+                  <span class="ef-card-title">{{ isIndividualSport ? 'PARTICIPANTS (INDIVIDUELS)' : 'ÉQUIPES PARTICIPANTES' }}</span>
+                </div>
+                
+                <div class="ef-field">
+                  <label class="ef-label">{{ isIndividualSport ? 'SÉLECTIONNER LES MEMBRES *' : 'SÉLECTIONNER LES ÉQUIPES *' }}</label>
+                  
+                  <div class="ef-input-icon-wrap">
+                    <select *ngIf="!isIndividualSport" class="ef-input ef-select" (change)="addTeamToSelection($event)"
+                            [class.ef-input--err]="isFieldInvalid('teamIds')">
+                      <option value="" selected>-- Cliquer pour ajouter une équipe --</option>
+                      <option *ngFor="let team of availableTeams" [value]="team.id">{{ team.name }}</option>
+                    </select>
+
+                    <select *ngIf="isIndividualSport" class="ef-input ef-select" (change)="addParticipantToSelection($event)"
+                            [class.ef-input--err]="isFieldInvalid('participantIds')">
+                      <option value="" selected>-- Cliquer pour ajouter un membre --</option>
+                      <option *ngFor="let user of availableParticipants" [value]="user.idUser">
+                        {{ user.firstName }} {{ user.lastName }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="ef-chip-list" *ngIf="!isIndividualSport && selectedTeamsObjects.length > 0">
+                    <span class="ef-chip" *ngFor="let t of selectedTeamsObjects">
+                      {{ t.name }}
+                      <button type="button" class="ef-chip-remove" (click)="removeTeamFromSelection(t.id!)" title="Retirer">&times;</button>
+                    </span>
+                  </div>
+
+                  <div class="ef-chip-list" *ngIf="isIndividualSport && selectedParticipantsObjects.length > 0">
+                    <span class="ef-chip" *ngFor="let u of selectedParticipantsObjects">
+                      {{ u.firstName }} {{ u.lastName }}
+                      <button type="button" class="ef-chip-remove" (click)="removeParticipantFromSelection(u.idUser)" title="Retirer">&times;</button>
+                    </span>
+                  </div>
+
+                  <span class="ef-hint" *ngIf="!isIndividualSport">Minimum 2 équipes requises pour l'analyse IA.</span>
+                  <span class="ef-hint" *ngIf="isIndividualSport">Sélectionnez les participants pour prédire le podium.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Colonne DROITE : Parcours + Détails Compétition -->
+            <div class="ef-grid ef-grid--1">
+              <!-- Bloc Parcours -->
+              <div class="ef-card" *ngIf="contextAnalysis?.requiresSpecialRoute">
+                <div class="ef-card-head">
+                  <span class="ef-card-title">DÉTAILS DU PARCOURS</span>
+                </div>
+
+                <div class="ef-map-container">
+                  <div id="map"></div>
+                  
+                  <div class="distance-badge" *ngIf="totalRouteDistance > 0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z"/><path d="M12 6v6l4 2"/></svg>
+                    {{ totalRouteDistance.toFixed(2) }} km
+                  </div>
+
+                  <div class="map-controls">
+                    <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'start'" (click)="setMapMode('start')" title="Définit le point de départ">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                      Départ
+                    </button>
+                    <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'end'" (click)="setMapMode('end')" title="Définit le point d'arrivée final">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                      Arrivée
+                    </button>
+                    <button type="button" class="map-btn" [class.map-btn--active]="mapMode === 'stop'" (click)="setMapMode('stop')" title="Ajoute un stop (ravitaillement, etc) sur le tracé">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                      Stop
+                    </button>
+                    <button type="button" class="map-btn" (click)="undoLastPoint()" style="flex: 0.3;" title="Annuler le dernier point">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+                    </button>
+                    <button type="button" class="map-btn" (click)="clearRoute()" style="flex: 0.3; color: var(--red);" title="Effacer tout le parcours">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                  </div>
+                </div>
+                
+                <div class="map-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  Cliquez sur la carte après avoir activé un mode pour placer vos points.
+                </div>
+
+                <div class="ef-field">
+                  <label class="ef-label">POINT DE DÉPART *</label>
+                  <div class="ef-input-icon-wrap" style="position: relative;">
+                    <input class="ef-input" formControlName="startPoint" placeholder="Placé via la carte" autocomplete="off" (blur)="onStartPointBlur()"/>
+                    <div *ngIf="isSearchingStartPoint" class="ef-input-icon" style="right: 12px;"><span class="ef-spinner-small"></span></div>
+                    <ul class="ef-autocomplete-list" *ngIf="startPointSuggestions.length > 0">
+                      <li *ngFor="let s of startPointSuggestions" (click)="selectStartPoint(s)">
+                        <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="ef-field">
+                  <label class="ef-label">POINT D'ARRIVÉE</label>
+                  <div class="ef-input-icon-wrap" style="position: relative;">
+                    <input class="ef-input" formControlName="endPoint" placeholder="Défini par le dernier stop" autocomplete="off" (blur)="onEndPointBlur()"/>
+                    <div *ngIf="isSearchingEndPoint" class="ef-input-icon" style="right: 12px;"><span class="ef-spinner-small"></span></div>
+                    <ul class="ef-autocomplete-list" *ngIf="endPointSuggestions.length > 0">
+                      <li *ngFor="let s of endPointSuggestions" (click)="selectEndPoint(s)">
+                        <span style="font-weight: 500; display: block; margin-bottom: 2px;">{{ s.display_name.split(',')[0] }}</span>
+                        <span style="font-size: 11px; color: var(--text-muted); display: block; line-height: 1.3;">{{ s.display_name }}</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="ef-field" formArrayName="distances" style="margin-top: 16px;">
+                  <label class="ef-label" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>STOPS DE DISTANCES (KM)</span>
+                    <button type="button" class="ef-btn-text" (click)="addDistance()" style="font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; font-weight: 700;">+ AJOUTER</button>
+                  </label>
+                  <div *ngFor="let dist of distancesControl.controls; let i = index" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                    <input class="ef-input" [formControlName]="i" type="number" step="0.1" min="0" placeholder="Ex: 5.5" style="flex: 1;" />
+                    <button type="button" *ngIf="distancesControl.length > 1" (click)="removeDistance(i)" style="background: none; border: none; color: #f43f5e; cursor: pointer; font-size: 16px; font-weight: bold;" title="Retirer">&times;</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bloc Compétition -->
+              <div class="ef-card" *ngIf="isCompetition">
+                <div class="ef-card-head">
+                  <span class="ef-card-title">DÉTAILS COMPÉTITION</span>
+                </div>
+
+                <div class="ef-field">
+                  <label class="ef-label">NOM DE LA COMPÉTITION *</label>
+                  <input class="ef-input" formControlName="competitionName"
+                         placeholder="Ex: Championnat Régional 2026"
+                         [class.ef-input--err]="isFieldInvalid('competitionName')"/>
+                </div>
+
+                <div class="ef-field">
+                  <label class="ef-label">CAPACITÉ (MAX ÉQUIPES) *</label>
+                  <div class="ef-input-icon-wrap">
+                    <input class="ef-input" type="number" formControlName="maxTeam"
+                           placeholder="Ex: 8" min="2"
+                           [class.ef-input--err]="isFieldInvalid('maxTeam')"/>
+                  </div>
+                  <span class="ef-err-small" *ngIf="isFieldInvalid('maxTeam')">Saisie requise</span>
+                </div>
+              </div>
+            </div>
+
+          </div> <!-- Fermeture ef-grid principale -->
+
+        </form>
       </div> <!-- Close ef-form-layout -->
 
-  <!-- ══ RÉCAPITULATIF SIDEBAR ═══════════════════════════════ -->
-  <aside class="ef-recap">
-    <div class="ef-recap-head">Récapitulatif en direct</div>
+      <!-- ── RÉCAPITULATIF SIDEBAR ═══════════════════════════════ -->
+      <aside class="ef-recap">
+        <div class="ef-recap-head">Récapitulatif en direct</div>
 
-    <div class="ef-recap-badge" *ngIf="selectedEventType">
-      {{ isCompetition ? '🏆' : '🤝' }} {{ selectedEventType.typeName }}
-    </div>
-
-    <div class="ef-recap-rows">
-      <div class="ef-recap-row" *ngIf="selectedEventType">
-        <span class="ef-recap-key">TYPE</span>
-        <span class="ef-recap-val">{{ selectedEventType.typeName }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="form.get('name')?.value">
-        <span class="ef-recap-key">NOM DE L'ÉVÉNEMENT</span>
-        <span class="ef-recap-val ef-recap-val--accent">{{ form.get('name')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="form.get('location')?.value">
-        <span class="ef-recap-key">LIEU</span>
-        <span class="ef-recap-val">{{ form.get('location')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="isCompetition && form.get('maxTeam')?.value">
-        <span class="ef-recap-key">NOMBRE D'ÉQUIPES</span>
-        <span class="ef-recap-val">{{ form.get('maxTeam')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="form.get('endDate')?.value">
-        <span class="ef-recap-key">DATE</span>
-        <span class="ef-recap-val">{{ form.get('startDate')?.value }} – {{ form.get('endDate')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="form.get('sportId')?.value">
-        <span class="ef-recap-key">SPORT</span>
-        <span class="ef-recap-val">{{ getSelectedSportName() }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="form.get('terrainId')?.value && !contextAnalysis?.requiresSpecialRoute">
-        <span class="ef-recap-key">TERRAIN</span>
-        <span class="ef-recap-val">{{ getSelectedTerrainName() }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="contextAnalysis?.requiresSpecialRoute && form.get('startPoint')?.value">
-        <span class="ef-recap-key">DÉPART</span>
-        <span class="ef-recap-val">{{ form.get('startPoint')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="contextAnalysis?.requiresSpecialRoute && form.get('endPoint')?.value">
-        <span class="ef-recap-key">ARRIVÉE</span>
-        <span class="ef-recap-val">{{ form.get('endPoint')?.value }}</span>
-      </div>
-      <div class="ef-recap-row" *ngIf="contextAnalysis?.requiresSpecialRoute && distancesControl.length > 0">
-        <span class="ef-recap-key">DISTANCES</span>
-        <span class="ef-recap-val">
-          <ng-container *ngFor="let dist of distancesControl.controls; let last = last">
-            {{ dist.value ? dist.value + 'km' : '' }}{{ !last && dist.value ? ', ' : '' }}
-          </ng-container>
-        </span>
-      </div>
-    </div>
-    <div class="ai-assistant-card" *ngIf="form.get('sportId')?.value">
-      <div class="ai-assistant-head">
-        <div class="ai-sparkle">✨</div>
-        <span>AI ASSISTANT</span>
-      </div>
-
-      <!-- Context Advice -->
-      <div class="ai-recommendation-box" *ngIf="contextAnalysis?.advice">
-        <div class="ai-rec-text" style="color: var(--text);">
-          💡 {{ contextAnalysis.advice }}
+        <div class="ef-recap-badge" *ngIf="selectedEventType">
+          {{ isCompetition ? '🏆' : '🤝' }} {{ selectedEventType.typeName }}
         </div>
-      </div>
 
+        <div class="ef-recap-rows">
+          <div class="ef-recap-row" *ngIf="selectedEventType">
+            <span class="ef-recap-key">TYPE</span>
+            <span class="ef-recap-val">{{ selectedEventType.typeName }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="form.get('name')?.value">
+            <span class="ef-recap-key">NOM DE L'ÉVÉNEMENT</span>
+            <span class="ef-recap-val ef-recap-val--accent">{{ form.get('name')?.value }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="form.get('location')?.value">
+            <span class="ef-recap-key">LIEU</span>
+            <span class="ef-recap-val">{{ form.get('location')?.value }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="isCompetition && form.get('maxTeam')?.value">
+            <span class="ef-recap-key">NOMBRE D'ÉQUIPES</span>
+            <span class="ef-recap-val">{{ form.get('maxTeam')?.value }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="form.get('endDate')?.value">
+            <span class="ef-recap-key">DATE</span>
+            <span class="ef-recap-val">{{ form.get('startDate')?.value }} – {{ form.get('endDate')?.value }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="form.get('sportId')?.value">
+            <span class="ef-recap-key">SPORT</span>
+            <span class="ef-recap-val">{{ getSelectedSportName() }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="form.get('terrainId')?.value && !contextAnalysis?.requiresSpecialRoute">
+            <span class="ef-recap-key">TERRAIN</span>
+            <span class="ef-recap-val">{{ getSelectedTerrainName() }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="contextAnalysis?.requiresSpecialRoute && form.get('startPoint')?.value">
+            <span class="ef-recap-key">DÉPART</span>
+            <span class="ef-recap-val">{{ form.get('startPoint')?.value }}</span>
+          </div>
+          <div class="ef-recap-row" *ngIf="contextAnalysis?.requiresSpecialRoute && form.get('endPoint')?.value">
+            <span class="ef-recap-key">ARRIVÉE</span>
+            <span class="ef-recap-val">{{ form.get('endPoint')?.value }}</span>
+          </div>
+        </div>
 
+        <div class="ai-assistant-card" *ngIf="form.get('sportId')?.value">
+          <div class="ai-assistant-head">
+            <div class="ai-sparkle">✨</div>
+            <span>AI ASSISTANT</span>
+          </div>
+
+          <!-- Advice -->
+          <div class="ai-recommendation-box" *ngIf="contextAnalysis?.advice">
+            <div class="ai-rec-text">💡 {{ contextAnalysis.advice }}</div>
+          </div>
+
+          <!-- Prediction -->
+          <div class="ai-prediction-card">
+            <div class="ai-pred-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Pronostic de victoire</span>
+              <span *ngIf="selectedTeamIds.length < 2" style="font-size: 8px; color: var(--accent); opacity: 0.8;">Attente d'équipes</span>
+            </div>
+            
+            <div *ngIf="isPredictingEvent" class="ai-predicting-wrap">
+              <div class="ef-spinner-small"></div>
+              <span>Analyse tactique en cours...</span>
+            </div>
+
+            <div *ngIf="eventPrediction && !isPredictingEvent">
+              <div class="ai-pred-winner" *ngIf="!eventPrediction.isRace">{{ eventPrediction.winner }}</div>
+              <div class="ai-pred-ranking" *ngIf="eventPrediction.isRace">
+                <div *ngFor="let rank of eventPrediction.ranking" class="ai-rank-item">{{ rank }}</div>
+              </div>
+              
+              <div class="ai-pred-bar-container">
+                <div class="ai-pred-bar-fill" [style.width.%]="eventPrediction.confidence"></div>
+              </div>
+              <div class="ai-pred-conf">
+                <span>Confiance IA</span>
+                <span>{{ eventPrediction.confidence }}%</span>
+              </div>
+              <div class="ai-pred-analysis">
+                {{ eventPrediction.analysis }}
+              </div>
+            </div>
+
+            <div *ngIf="!eventPrediction && !isPredictingEvent" class="ai-pred-analysis" style="opacity: 0.6; font-style: italic;">
+              Sélectionnez au moins 2 participants pour voir l'analyse.
+            </div>
+          </div>
+        </div>
+
+        <!-- Boutons -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+          <button type="submit" form="eventForm" class="ef-btn ef-btn--primary" style="width: 100%;">
+            {{ isEditMode ? 'Mettre à jour' : 'Créer et publier' }}
+          </button>
+          <button type="button" class="ef-btn" style="width: 100%; background: transparent; border: 1px solid var(--border);" (click)="cancel()">
+            Annuler
+          </button>
+        </div>
+      </aside>
 
     </div>
-
-    <!-- ── Actions du formulaire ─────────────────────────────── -->
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-      <button type="submit" form="eventForm" class="ef-btn ef-btn--primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 14px;" [disabled]="isLoading">
-        <span *ngIf="!isLoading">
-          {{ isEditMode ? 'Mettre à jour' : 'Créer et publier' }}
-        </span>
-        <span *ngIf="isLoading">Chargement...</span>
-      </button>
-      <button type="button" class="ef-btn" style="width: 100%; justify-content: center; padding: 12px; background: transparent; color: var(--text); border: 1px solid var(--border);" (click)="cancel()">
-        Annuler
-      </button>
-    </div>
-  </aside>
-
-    </div> <!-- Close ef-content-wrapper -->
   </div>
 </div>

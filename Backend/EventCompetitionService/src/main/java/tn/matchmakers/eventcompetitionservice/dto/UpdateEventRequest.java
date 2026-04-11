@@ -26,6 +26,7 @@ public class UpdateEventRequest {
 
     // (si requiresTeams)
     private List<String> teamIds;
+    private List<String> participantIds;
 
     // (si isCompetition)
     private String competitionName;
