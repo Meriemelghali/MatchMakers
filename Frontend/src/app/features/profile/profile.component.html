@@ -16,7 +16,7 @@
         </div>
         <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl">
           <model-viewer
-            [attr.src]="userProfile?.avatar3dUrl"
+            [src]="getSafeUrl(userProfile?.avatar3dUrl!)"
             camera-controls
             auto-rotate
             shadow-intensity="1"
@@ -210,12 +210,43 @@
 
   <!-- Modal Ready Player Me -->
   <div class="avatar-modal-overlay" *ngIf="showAvatarCreator">
-    <div class="avatar-modal">
+    <div class="avatar-modal" [class.wide-modal]="!isCustomMode">
       <div class="avatar-modal-header">
-        <h3>Générateur d'Avatar 3D</h3>
+        <h3>{{ isCustomMode ? "Éditeur d'Avatar Custom" : "Suggestions pour " + (userProfile?.favoriteSports?.[0] || 'vous') }}</h3>
         <button class="close-btn" (click)="closeAvatarCreator()"><i class="fas fa-times"></i></button>
       </div>
-      <iframe [src]="avatarCreatorUrl" 
+      
+      <!-- SUGGESTIONS MODE -->
+      <div class="suggestions-container" *ngIf="!isCustomMode">
+        <p class="suggestions-hint">Choisissez l'un de ces modèles basés sur vos sports ou créez le vôtre.</p>
+        <div class="suggestions-grid">
+          <div class="suggestion-card" *ngFor="let suggestion of suggestedAvatars" (click)="selectAvatar(suggestion.url)">
+            <div class="suggestion-preview">
+              <model-viewer
+                [src]="getSafeUrl(suggestion.url)"
+                auto-rotate
+                camera-controls
+                touch-action="pan-y"
+                shadow-intensity="1"
+                environment-image="neutral"
+                class="preview-viewer">
+              </model-viewer>
+            </div>
+            <div class="suggestion-info">
+              <button class="btn-apply">Choisir</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" (click)="switchToCustomMode()">
+            <i class="fas fa-magic"></i> Je préfère créer mon propre avatar
+          </button>
+        </div>
+      </div>
+
+      <!-- IFRAME MODE (CUSTOM) -->
+      <iframe *ngIf="isCustomMode"
+              [src]="avatarCreatorUrl" 
               allow="camera *; microphone *; clipboard-write *"
               allowfullscreen="true"
               class="avatar-iframe"></iframe>

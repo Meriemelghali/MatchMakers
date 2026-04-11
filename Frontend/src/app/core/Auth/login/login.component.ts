@@ -89,7 +89,8 @@ export class LoginComponent {
     this.authService.verify2Fa({
       email: this.email,
       password: this.password,
-      code: this.mfaCode
+      code: this.mfaCode,
+      type: this.twoFactorType
     }).subscribe({
       next: (res) => {
         this.authService.saveTokensAndRedirect(res, this.router);
