@@ -15,19 +15,19 @@
 
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
                 <div>
-                    <div class="page-head-eyebrow">{{ terrain.typeSport }} • {{ terrain.typeSurface ?
-                        terrain.typeSurface.replace('_', ' ') : '' }}</div>
+                    <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
+                        terrain?.typeSurface.replace('_', ' ') : '' }}</div>
                     <h1 class="page-head-title" style="font-size: 36px; margin-bottom: 16px; letter-spacing: -0.03em;">
-                        {{ terrain.nom }}</h1>
+                        {{ terrain?.nom }}</h1>
                     <div class="flex items-center gap-10">
-                        <span class="badge" [class]="'badge-' + terrain.statut.toLowerCase()">{{ terrain.statut
+                        <span class="badge" [class]="'badge-' + terrain?.statut?.toLowerCase()">{{ terrain?.statut
                             }}</span>
-                        <span class="t-muted text-sm">{{ terrain.adresse }}, {{ terrain.ville }}</span>
+                        <span class="t-muted text-sm">{{ terrain?.adresse }}, {{ terrain?.ville }}</span>
                     </div>
                 </div>
                 <div>
                     <!-- IMPORTANT: Explicit SVG sizing -->
-                    <a [routerLink]="['/terrains', terrain.id, 'edit']" class="btn btn-secondary"
+                    <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="btn btn-secondary"
                         style="background: var(--layer-2); border-color: var(--border-s);">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round">
@@ -47,7 +47,7 @@
                     <div class="t-label mb-8" style="color: var(--text-3); font-size: 11px;">TARIF / HEURE</div>
                     <div
                         style="font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--brand);">
-                        {{ terrain.prixParHeure | number:'1.0-2' }} <span
+                        {{ terrain?.prixParHeure | number:'1.0-2' }} <span
                             style="font-size: 14px; color: var(--text-2);">TND</span></div>
                 </div>
                 <div
@@ -55,7 +55,7 @@
                     <div class="t-label mb-8" style="color: var(--text-3); font-size: 11px;">CAPACITÉ MAX</div>
                     <div
                         style="font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-1);">
-                        {{ terrain.capacite || '—' }}</div>
+                        {{ terrain?.capacite || '—' }}</div>
                 </div>
                 <div
                     style="background: rgba(20,25,32,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 24px;">
@@ -68,8 +68,8 @@
                     style="background: rgba(20,25,32,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 24px;">
                     <div class="t-label mb-8" style="color: var(--text-3); font-size: 11px;">DISPONIBILITÉ</div>
                     <div style="font-family: var(--font-display); font-size: 20px; font-weight: 600; padding-top: 4px;"
-                        [style.color]="terrain.statut === 'DISPONIBLE' ? 'var(--green)' : 'var(--red)'">
-                        {{ terrain.statut === 'DISPONIBLE' ? 'Maint. Ouvert' : 'Temporairement Fermé' }}
+                        [style.color]="terrain?.statut === 'DISPONIBLE' ? 'var(--green)' : 'var(--red)'">
+                        {{ terrain?.statut === 'DISPONIBLE' ? 'Maint. Ouvert' : 'Temporairement Fermé' }}
                     </div>
                 </div>
             </div>
@@ -77,10 +77,39 @@
         </div>
     </div>
 
-    <div class="container" style="max-width: 1000px; padding-top: 24px;">
+    <div class="container" style="max-width: 1000px; padding-top: 32px;">
 
-        <!-- Premium Dual Column Layout -->
-        <div style="display: flex; gap: 32px; align-items: flex-start;">
+        <!-- ── 3D Stadium Preview ─────────────────────────────────────────── -->
+        <div class="stadium-3d-card">
+
+            <div class="stadium-3d-header">
+                <div class="stadium-3d-title">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M2 20h20M5 20V8l7-6 7 6v12"/><path d="M9 20v-6h6v6"/>
+                    </svg>
+                    Aperçu 3D de l'Infrastructure
+                </div>
+                <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="stadium-3d-edit-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                    Modifier le terrain
+                </a>
+            </div>
+
+            <app-terrain-viewer
+                [readonly]="true"
+                [sportType]="terrain?.typeSport!"
+                [surface]="terrain?.typeSurface! || 'GAZON_NATUREL'"
+                [capacite]="terrain?.capacite! ?? null"
+                [eclairage]="terrain?.eclairage!">
+            </app-terrain-viewer>
+
+        </div>
+
+        <!-- ── Premium Dual Column Layout ────────────────────────────────── -->
+        <div style="display: flex; gap: 32px; align-items: flex-start; margin-top: 32px;">
 
             <!-- Left Col: Availability, Schedule, Reservations -->
             <div style="flex: 2; display: flex; flex-direction: column; gap: 24px;">
@@ -136,12 +165,12 @@
                 </div>
 
                 <!-- Schedule -->
-                <div class="card" *ngIf="terrain.creneaux && terrain.creneaux.length">
+                <div class="card" *ngIf="terrain?.creneaux && terrain?.creneaux?.length">
                     <div class="section-head">
                         <div class="section-title-bar">Programme d'Ouverture</div>
                     </div>
                     <div class="timeline" style="margin-left: 0; padding-left: 0; border: none;">
-                        <div *ngFor="let c of terrain.creneaux" class="timeline-item"
+                        <div *ngFor="let c of terrain?.creneaux" class="timeline-item"
                             style="padding: 12px 16px; border: 1px solid var(--border-s); border-radius: var(--r-sm); margin-bottom: 8px; background: rgba(255,255,255,0.02);">
                             <div class="timeline-body flex items-center justify-between w-full" style="margin: 0;">
                                 <div class="flex items-center gap-16">
@@ -233,7 +262,7 @@
                     <div class="flex flex-col gap-8">
                         <button *ngFor="let s of statuses" class="btn w-full"
                             style="justify-content: flex-start; padding: 0 16px;"
-                            [class.btn-primary]="terrain.statut === s" [class.btn-secondary]="terrain.statut !== s"
+                            [class.btn-primary]="terrain?.statut === s" [class.btn-secondary]="terrain?.statut !== s"
                             (click)="changeStatus(s)">
                             <div style="width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;"
                                 [style.background]="s === 'DISPONIBLE' ? 'var(--green)' : (s === 'FERME' ? 'var(--red)' : 'var(--amber)')">
@@ -250,35 +279,35 @@
                     </div>
                     <div class="info-grid mb-16">
                         <div class="info-key">Contact Org.</div>
-                        <div class="info-val" style="font-weight: 500; font-size: 13px;">{{ terrain.contact || '—' }}
+                        <div class="info-val" style="font-weight: 500; font-size: 13px;">{{ terrain?.contact || '—' }}
                         </div>
 
                         <div class="info-key">GPS Latitude</div>
-                        <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain.latitude || '—' }}</div>
+                        <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.latitude || '—' }}</div>
 
                         <div class="info-key">GPS Longitude</div>
-                        <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain.longitude || '—' }}</div>
+                        <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.longitude || '—' }}</div>
                     </div>
 
                     <div class="divider"></div>
 
                     <div class="t-label mb-12">Services & Équipements</div>
                     <div class="flex flex-wrap gap-8 mb-16">
-                        <span class="tag" *ngIf="terrain.eclairage">Éclairage noct.</span>
-                        <span class="tag" *ngIf="terrain.vestiaires">Vestiaires</span>
-                        <span class="tag" *ngIf="terrain.parking">Parking</span>
-                        <span class="tag" *ngIf="terrain.tribunes">Gradins</span>
-                        <span class="tag" *ngIf="terrain.bar">Buvette</span>
+                        <span class="tag" *ngIf="terrain?.eclairage">Éclairage noct.</span>
+                        <span class="tag" *ngIf="terrain?.vestiaires">Vestiaires</span>
+                        <span class="tag" *ngIf="terrain?.parking">Parking</span>
+                        <span class="tag" *ngIf="terrain?.tribunes">Gradins</span>
+                        <span class="tag" *ngIf="terrain?.bar">Buvette</span>
                         <span
-                            *ngIf="!terrain.eclairage && !terrain.vestiaires && !terrain.parking && !terrain.tribunes && !terrain.bar"
+                            *ngIf="!terrain?.eclairage && !terrain?.vestiaires && !terrain?.parking && !terrain?.tribunes && !terrain?.bar"
                             style="font-size: 12.5px; color: var(--text-3);">Basique (aucun équipement
                             supplémentaire)</span>
                     </div>
 
-                    <div *ngIf="terrain.description">
+                    <div *ngIf="terrain?.description">
                         <div class="divider"></div>
                         <p class="t-body" style="font-size: 13px; color: var(--text-2); line-height: 1.5;">{{
-                            terrain.description }}</p>
+                            terrain?.description }}</p>
                     </div>
                 </div>
 
