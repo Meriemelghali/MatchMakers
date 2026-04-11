@@ -11,5 +11,6 @@ public record AuthResponse(
         Instant refreshExpiresAt,
         String email,
         List<String> roles,
-        Set<String> permissions) {
+        Set<String> permissions,
+        tn.matchmakers.userservice.entities.enums.ThemePreference theme) {
 }

@@ -18,6 +18,7 @@
   --layer-2: #141920;
   --layer-3: #1C2330;
   --layer-4: #242D3C;
+  --bg-end: #040608;
 
   --border: rgba(255, 255, 255, 0.06);
   --border-s: rgba(255, 255, 255, 0.10);
@@ -49,6 +50,25 @@
   --dur: 180ms;
 }
 
+[data-theme='LIGHT'] {
+  --base: #F8FAFC;
+  --layer-1: #FFFFFF;
+  --layer-2: #F1F5F9;
+  --layer-3: #E2E8F0;
+  --layer-4: #CBD5E1;
+  --bg-end: #E2E8F0;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-s: rgba(0, 0, 0, 0.12);
+
+  --text-1: #0F172A;
+  --text-2: #475569;
+  --text-3: #64748B;
+  
+  --brand-dim: rgba(232, 80, 10, 0.12);
+  --brand-line: rgba(232, 80, 10, 0.3);
+}
+
 /* ── RESET ── */
 *,
 *::before,
@@ -66,7 +86,7 @@ html {
 body {
   font-family: var(--font);
   background: radial-gradient(circle at 60% -20%, rgba(232, 80, 10, 0.08) 0%, transparent 60%),
-    linear-gradient(180deg, var(--base) 0%, #040608 100%);
+    linear-gradient(180deg, var(--base) 0%, var(--bg-end) 100%);
   background-attachment: fixed;
   color: var(--text-1);
   min-height: 100vh;

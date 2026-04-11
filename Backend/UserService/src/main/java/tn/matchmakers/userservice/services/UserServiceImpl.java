@@ -137,4 +137,51 @@ public class UserServiceImpl implements UserService {
         return UserMapper.mapToUserResponseDto(savedUser);
     }
 
+    @Override
+    public UserResponseDto updateProfile(String userId, tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto) {
+        log.info("Mise à jour du profil pour l'utilisateur: {}", userId);
+        log.info("Données reçues - Sports: {}, Bio: {}", profileUpdateDto.getFavoriteSports(), profileUpdateDto.getBio());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        user.setFirstName(profileUpdateDto.getFirstName());
+        user.setLastName(profileUpdateDto.getLastName());
+        user.setBio(profileUpdateDto.getBio());
+        user.setPhoneNumber(profileUpdateDto.getPhoneNumber());
+        
+        if (profileUpdateDto.getAvatar3dUrl() != null) {
+            user.setAvatar3dUrl(profileUpdateDto.getAvatar3dUrl());
+        }
+        
+        if (profileUpdateDto.getFavoriteSports() != null && profileUpdateDto.getFavoriteSports().size() > 3) {
+            throw new IllegalArgumentException("Vous ne pouvez pas sélectionner plus de 3 sports");
+        }
+        user.setFavoriteSports(profileUpdateDto.getFavoriteSports());
+        
+        if (profileUpdateDto.getTheme() != null) {
+            user.setTheme(profileUpdateDto.getTheme());
+        }
+
+        log.info("Entité User prête pour sauvegarde - Sports: {}", user.getFavoriteSports());
+        User savedUser = userRepository.save(user);
+        log.info("Sauvegarde effectuée avec succès pour: {}", userId);
+
+        return UserMapper.mapToUserResponseDto(savedUser);
+    }
+
+    @Override
+    public void changePassword(String userId, tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Le mot de passe actuel est incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+        user.setTokenVersion(user.getTokenVersion() + 1); // Invalider les anciens tokens
+        userRepository.save(user);
+    }
+
 }

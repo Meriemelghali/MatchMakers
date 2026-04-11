@@ -114,5 +114,11 @@ public class TeamServiceImpl implements TeamService {
         team.setUpdatedAt(LocalDateTime.now());
         return mapper.toDto(repository.save(team));
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TeamDto> getTeamsByUserId(String userId) {
+        return mapper.toDtoList(repository.findByMembersUserId(userId));
+    }
 }
 
