@@ -43,10 +43,12 @@ const ROWS_TO_CAP = [0, 300, 1000, 3000, 8000, 20000];
 export class TerrainViewerComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     // ── Inputs from parent form ───────────────────────────────────────────────
-    @Input() sportType: string = 'FOOTBALL';
-    @Input() surface:   string = 'GAZON_NATUREL';
+    @Input() sportType: string  = 'FOOTBALL';
+    @Input() surface:   string  = 'GAZON_NATUREL';
     @Input() capacite:  number | null = null;
     @Input() eclairage: boolean = false;
+    /** When true: no creator bar, stays auto-rotating, hover shows info only */
+    @Input() readonly:  boolean = false;
 
     // ── Outputs back to parent form ───────────────────────────────────────────
     @Output() surfaceChange  = new EventEmitter<string>();
@@ -193,7 +195,9 @@ export class TerrainViewerComponent implements AfterViewInit, OnChanges, OnDestr
         this.controls.maxPolarAngle   = Math.PI / 2.1;
         this.controls.autoRotate      = true;
         this.controls.autoRotateSpeed = 0.5;
-        c.addEventListener('pointerdown', () => { this.controls.autoRotate = false; });
+        c.addEventListener('pointerdown', () => {
+            if (!this.readonly) this.controls.autoRotate = false;
+        });
 
         // Fixed lights (never removed)
         const ambient = new THREE.AmbientLight(0xffffff, 0.5);
@@ -545,14 +549,20 @@ export class TerrainViewerComponent implements AfterViewInit, OnChanges, OnDestr
                 const mat = hitMesh.material as THREE.MeshLambertMaterial;
                 if (mat?.emissive) { mat.emissive.set(0xaaaaaa); mat.emissiveIntensity = 0.28; }
                 const type = this.hoverables.find(h => h.mesh === hitMesh)?.type ?? '';
-                const labels: Record<string, string> = {
+                const editLabels: Record<string, string> = {
                     field:    'Cliquer pour changer la surface',
                     bleachers:'Cliquer pour ajouter un rang',
                     lights:   'Cliquer pour basculer l\'éclairage'
                 };
+                const readLabels: Record<string, string> = {
+                    field:    `Surface · ${this.surfaceLabel}`,
+                    bleachers:`Gradins · ${this.standLabel}`,
+                    lights:   this.vEclairage ? 'Éclairage nocturne · 4 pylônes actifs' : 'Sans éclairage'
+                };
+                const labels = this.readonly ? readLabels : editLabels;
                 this.zone.run(() => { this.hoveredLabel = labels[type] ?? ''; });
             }
-            c.style.cursor = 'pointer';
+            c.style.cursor = this.readonly ? 'default' : 'pointer';
         } else {
             this.clearHover();
             if (this.hoveredLabel) this.zone.run(() => { this.hoveredLabel = ''; });
@@ -568,6 +578,7 @@ export class TerrainViewerComponent implements AfterViewInit, OnChanges, OnDestr
     }
 
     private onCanvasClick(e: MouseEvent) {
+        if (this.readonly) return;
         if (Math.abs(e.clientX - this.mdPos.x) > 5 || Math.abs(e.clientY - this.mdPos.y) > 5) return;
         if (!this.hoveredMesh) return;
         const found = this.hoverables.find(h => h.mesh === this.hoveredMesh);
