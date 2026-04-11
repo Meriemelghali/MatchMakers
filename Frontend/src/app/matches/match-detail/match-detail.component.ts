@@ -1,10 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { MatchService } from '../services/match.service';
+import { GeminiAiService } from '../services/gemini-ai.service';
 import { Match, MatchStatus, EventType } from '../models/match.model';
 import { TerrainService } from '../../terrains/services/terrain.service';
 
@@ -25,6 +26,12 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     eventForm!: FormGroup;
     showEventForm = false;
 
+    // AI Summary state
+    summaryLoading = false;
+    summaryText    = '';
+    summaryError   = '';
+    summaryFromLlm = false;
+
     eventTypes: EventType[] = ['BUT', 'CARTON_JAUNE', 'CARTON_ROUGE', 'REMPLACEMENT', 'ARRET', 'HORS_JEU', 'PENALTY', 'DEBUT_MI_TEMPS', 'FIN_MI_TEMPS'];
     statusTransitions: Record<string, MatchStatus[]> = {
         PLANIFIE: ['EN_COURS', 'ANNULE', 'REPORTE'],
@@ -37,10 +44,10 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     constructor(
         private fb: FormBuilder,
         private route: ActivatedRoute,
-        private router: Router,
         private matchService: MatchService,
         private sanitizer: DomSanitizer,
-        private terrainService: TerrainService
+        private terrainService: TerrainService,
+        private geminiAi: GeminiAiService
     ) { }
 
     ngOnInit() {
@@ -96,6 +103,26 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     deleteEvent(eventId: string) {
         if (!this.match?.id || !confirm('Supprimer cet événement ?')) return;
         this.matchService.deleteEvent(this.match.id, eventId).pipe(takeUntil(this.destroy$)).subscribe(m => this.match = m);
+    }
+
+    generateSummary() {
+        if (!this.match) return;
+        this.summaryLoading = true;
+        this.summaryText    = '';
+        this.summaryError   = '';
+        this.geminiAi.generateMatchSummary(this.match)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    this.summaryText    = res.summary;
+                    this.summaryFromLlm = res.from_llm;
+                    this.summaryLoading = false;
+                },
+                error: () => {
+                    this.summaryError   = 'Erreur lors de la génération du résumé.';
+                    this.summaryLoading = false;
+                }
+            });
     }
 
     getIconClass(type: string): string {
