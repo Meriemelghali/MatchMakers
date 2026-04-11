@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { ThemeService, ThemeType } from '../ThemeService/theme.service';
 
 export interface LoginRequest {
   email: string;
@@ -15,6 +16,7 @@ export interface AuthResponse {
   email: string;
   roles: string[];
   permissions: string[];
+  theme?: string;
 }
 
 
@@ -25,7 +27,10 @@ export class AuthService {
 
   private apiUrl = 'http://localhost:8081/users/auth';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private themeService: ThemeService
+  ) { }
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request);
@@ -48,6 +53,10 @@ export class AuthService {
       localStorage.setItem('userEmail', payload.email || response.email || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
     } catch (e) { }
+
+    if (response.theme) {
+      this.themeService.setTheme(response.theme as ThemeType, true);
+    }
   }
 
   getUserId(): string | null {
@@ -59,6 +68,7 @@ export class AuthService {
   }
 
   logout() {
+    this.themeService.setTheme('DARK', false);
     localStorage.clear();
   }
 

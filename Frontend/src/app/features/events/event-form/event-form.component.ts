@@ -23,6 +23,7 @@ import 'leaflet-routing-machine';
 export class EventFormComponent implements OnInit, OnDestroy {
 
   form!: FormGroup;
+  isInitialLoad = false;
   isLoading = false;
   isEditMode = false;
   eventId: string | null = null;
@@ -119,6 +120,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.eventId = this.route.snapshot.paramMap.get('id');
     if (this.eventId) {
       this.isEditMode = true;
+      // loadEvent will be called only after eventTypes are loaded (see loadEventTypes)
       this.loadEvent(this.eventId);
     }
     
@@ -167,11 +169,27 @@ export class EventFormComponent implements OnInit, OnDestroy {
   loadEventTypes(): void {
     this.eventService.getEventTypes().subscribe({
       next: (types) => {
-        this.eventTypes = types;
+        this.eventTypes = types.map(t => ({ ...t, id: t.id || (t as any)._id }));
         this.filterEventTypes();
+        // If event data is already loaded (edit mode), restore the eventType by name
+        if (this.isEditMode && this.originalEvent?.eventTypeName) {
+          const resolvedType = this.resolveEventTypeByName(this.originalEvent.eventTypeName);
+          if (resolvedType) {
+            this.filterEventTypes();
+            this.onEventTypeChange(resolvedType.id);
+            this.form.get('eventTypeId')?.setValue(resolvedType.id);
+          }
+        }
       },
       error: () => this.errorMsg = 'Erreur lors du chargement des types.'
     });
+  }
+
+  /** Find an EventType from the loaded list by its typeName (case-insensitive) */
+  private resolveEventTypeByName(name?: string): EventType | undefined {
+    if (!name || this.eventTypes.length === 0) return undefined;
+    const normalized = name.trim().toLowerCase();
+    return this.eventTypes.find(t => t.typeName.trim().toLowerCase() === normalized);
   }
   loadSports(): void {
     this.sportService.getAll().subscribe({
@@ -189,7 +207,11 @@ export class EventFormComponent implements OnInit, OnDestroy {
           ...t,
           id: t.id || (t as any)._id
         }));
-        this.filterTerrains(); // ← filter directly
+        this.filterTerrains();
+        // If event data is already loaded (edit mode), restore the terrain selection
+        if (this.isEditMode && this.originalEvent?.terrainId) {
+          this.form.get('terrainId')?.setValue(this.originalEvent.terrainId);
+        }
       },
       error: () => console.warn('terrain-service indisponible')
     });
@@ -214,9 +236,17 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   loadEvent(id: string): void {
     this.isLoading = true;
+    this.isInitialLoad = true;
     this.eventService.getById(id).subscribe({
       next: (event) => {
         this.originalEvent = event;
+        
+        // Setup sport context (without resetting fields, isInitialLoad guards it)
+        this.onSportChange(event.sportId ?? '');
+
+        // Resolve eventTypeId by name since the backend doesn't return eventType.id in the response
+        const resolvedTypeForPatch = this.resolveEventTypeByName(event.eventTypeName);
+
         this.form.patchValue({
           name:            event.name,
           description:     event.description,
@@ -225,15 +255,20 @@ export class EventFormComponent implements OnInit, OnDestroy {
           endDate:         event.endDate,
           sportId:         event.sportId,
           terrainId:       event.terrainId,
-          eventTypeId:     event.eventType?.id,
-          competitionName: event.competition?.nameCompetition,
+          eventTypeId:     resolvedTypeForPatch?.id ?? '',
+          competitionName: event.competition?.nameCompetition ?? event.competitionName,
           maxTeam:         event.competition?.maxTeam,
           format:          event.competition?.format,
           teamIds:         event.teamIds || [],
           participantIds:  event.participantIds || [],
           startPoint:      event.startPoint || '',
           endPoint:        event.endPoint || '',
-        });
+        }, { emitEvent: false });
+
+        // Dismiss any autocomplete dropdowns triggered by patchValue
+        this.locationSuggestions = [];
+        this.startPointSuggestions = [];
+        this.endPointSuggestions = [];
 
         // Patch distances
         if (event.distances && event.distances.length > 0) {
@@ -242,14 +277,58 @@ export class EventFormComponent implements OnInit, OnDestroy {
           event.distances.forEach(d => distancesArray.push(this.fb.control(d, Validators.min(0))));
         }
 
-        this.onEventTypeChange(event.eventType?.id);
+        // Try to apply eventType now (works if eventTypes already loaded)
+        const resolvedType = this.resolveEventTypeByName(event.eventTypeName);
+        if (resolvedType) {
+          this.filterEventTypes();
+          this.onEventTypeChange(resolvedType.id);
+          this.form.get('eventTypeId')?.setValue(resolvedType.id);
+        }
+        // Otherwise loadEventTypes() will handle it via originalEvent check
+
+        // Restore map for route-based sports
+        if (event.routePath && event.routePath.length > 0) {
+          setTimeout(() => this.restoreMapFromData(event), 500);
+        }
+
         this.isLoading = false;
+        // Allow a tick for all async pipes to settle, then disable load protection
+        setTimeout(() => { this.isInitialLoad = false; }, 100);
       },
       error: () => {
         this.errorMsg = 'Événement non trouvé.';
         this.isLoading = false;
+        this.isInitialLoad = false;
       }
     });
+
+  }
+
+  private restoreMapFromData(event: Event): void {
+    if (!event.routePath || event.routePath.length === 0) return;
+    
+    // We expect the map to be initialized via change detection since requiresSpecialRoute becomes true
+    if (!this.map) {
+      // Retry in 100ms if map not ready
+      setTimeout(() => this.restoreMapFromData(event), 200);
+      return;
+    }
+
+    this.clearRoute();
+    
+    // Set points
+    const points = event.routePath.map(p => L.latLng(p.lat, p.lng));
+    if (points.length >= 1) this.startLatLng = points[0];
+    if (points.length >= 2) this.endLatLng = points[points.length - 1];
+
+    // Reconstruct routing
+    if (this.routingControl) {
+      this.routingControl.setWaypoints(points);
+    }
+
+    // Zoom
+    const group = L.featureGroup(points.map(p => L.marker(p)));
+    this.map.fitBounds(group.getBounds().pad(0.1));
   }
   onEventTypeChange(eventTypeId: string | undefined): void {
     this.selectedEventType = this.eventTypes.find(t => t.id === eventTypeId) || null;
@@ -459,13 +538,16 @@ export class EventFormComponent implements OnInit, OnDestroy {
     return t ? `${t.nom} — ${t.ville}` : '';
   }
   onSportChange(sportId: string): void {
-    // reset team selections
-    this.form.get('teamIds')?.setValue([]);
-    this.form.get('teamIds')?.updateValueAndValidity();
+    // Don't reset selections during initial edit mode load
+    if (!this.isInitialLoad) {
+      // reset team selections
+      this.form.get('teamIds')?.setValue([]);
+      this.form.get('teamIds')?.updateValueAndValidity();
 
-    // Reset event type selection since we are changing sport
-    this.form.get('eventTypeId')?.setValue('');
-    this.selectedEventType = null;
+      // Reset event type selection since we are changing sport
+      this.form.get('eventTypeId')?.setValue('');
+      this.selectedEventType = null;
+    }
 
     this.filterEventTypes();
     this.filterTerrains();
@@ -562,15 +644,44 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.filteredTerrains = temps;
 
     // Deselect if current terrain is no longer in the filtered list
-    const currentTId = this.form.get('terrainId')?.value;
-    if (currentTId && !this.filteredTerrains.some(t => t.id === currentTId)) {
-      this.form.get('terrainId')?.setValue('');
+    // But don't do this during initial edit mode load - we need to keep the original value
+    if (!this.isInitialLoad) {
+      const currentTId = this.form.get('terrainId')?.value;
+      if (currentTId && !this.filteredTerrains.some(t => t.id === currentTId)) {
+        this.form.get('terrainId')?.setValue('');
+      }
     }
   }
+  /** Détermine l'étape actuelle (1, 2 ou 3) */
+  get currentStep(): number {
+    const hasSport = !!this.form.get('sportId')?.value;
+    if (!hasSport) return 1;
+
+    const hasBasicInfo = !!this.form.get('name')?.value && 
+                         !!this.form.get('eventTypeId')?.value && 
+                         !!this.form.get('startDate')?.value;
+    if (!hasBasicInfo) return 2;
+
+    return 3;
+  }
+
+  /** Libellé de l'étape actuelle */
+  get currentStepLabel(): string {
+    switch (this.currentStep) {
+      case 1: return 'Choix du sport';
+      case 2: return 'Informations générales';
+      case 3: return 'Lieu et logistique';
+      default: return 'Configuration';
+    }
+  }
+
   /** Pourcentage de la barre de progression (stepper) */
   get stepProgress(): number {
-    const fields = ['eventTypeId', 'name', 'description', 'location', 'startDate', 'endDate', 'sportId'];
-    const filled = fields.filter(f => !!this.form.get(f)?.value).length;
+    const fields = ['sportId', 'eventTypeId', 'name', 'description', 'startDate', 'endDate', 'location', 'terrainId'];
+    const filled = fields.filter(f => {
+      const val = this.form.get(f)?.value;
+      return val !== null && val !== undefined && val !== '' && (Array.isArray(val) ? val.length > 0 : true);
+    }).length;
     return Math.round((filled / fields.length) * 100);
   }
 
@@ -898,12 +1009,12 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
   get availableParticipants(): User[] {
     const selected = this.selectedParticipantIds;
-    return this.users.filter(u => u.idUser && !selected.includes(u.idUser));
+    return this.users.filter(u => u.id && !selected.includes(u.id));
   }
 
   get selectedParticipantsObjects(): User[] {
     const selected = this.selectedParticipantIds;
-    return this.users.filter(u => u.idUser && selected.includes(u.idUser));
+    return this.users.filter(u => u.id && selected.includes(u.id));
   }
 
   addParticipantToSelection(event: any): void {
@@ -938,6 +1049,11 @@ export class EventFormComponent implements OnInit, OnDestroy {
       debounceTime(450),
       distinctUntilChanged(),
       switchMap((value: string) => {
+        // Don't fire autocomplete during initial edit mode population
+        if (this.isInitialLoad) {
+          this.locationSuggestions = [];
+          return of([]);
+        }
         if (!value || value.trim().length < 3) {
           this.locationSuggestions = [];
           return of([]);

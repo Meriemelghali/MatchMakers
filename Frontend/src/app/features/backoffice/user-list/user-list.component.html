@@ -38,7 +38,10 @@
         <tbody>
           <tr *ngIf="isLoading">
             <td colspan="5" class="loading-state">
-              Chargement des données...
+              <div class="loader-container">
+                <div class="modern-spinner"></div>
+                <span class="loader-text">Récupération des utilisateurs...</span>
+              </div>
             </td>
           </tr>
           <tr *ngIf="!isLoading && filteredUsers.length === 0">
@@ -54,7 +57,7 @@
                 </div>
                 <div class="user-name">
                   <span class="full-name">{{ user.firstName }} {{ user.lastName }}</span>
-                  <span class="user-id">ID: {{ user.idUser.substring(0, 8) }}...</span>
+                  <span class="user-id">ID: {{ user.id ? user.id.substring(0, 8) : '' }}...</span>
                 </div>
               </div>
             </td>
@@ -86,7 +89,7 @@
                       {{ role.name }}
                     </option>
                   </select>
-                  <button class="btn-mini-action promote" (click)="assignRole(user.idUser, roleSelect.value)" title="Assigner">
+                  <button class="btn-mini-action promote" (click)="assignRole(user.id, roleSelect.value)" title="Assigner">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   </button>
                 </div>
@@ -97,7 +100,7 @@
                 </button>
 
                 <!-- Supprimer -->
-                <button class="btn-action delete" (click)="deleteUser(user.idUser)" title="Supprimer">
+                <button class="btn-action delete" (click)="deleteUser(user.id)" title="Supprimer">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                 </button>
               </div>

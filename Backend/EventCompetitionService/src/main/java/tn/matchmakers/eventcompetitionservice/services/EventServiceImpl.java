@@ -139,6 +139,28 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        // 11. Notifier les utilisateurs intéressés (nouveau)
+        try {
+            SportDto sport = getSportDetails(savedEvent.getSportId());
+            if (sport != null) {
+                Map<String, Object> notificationRequest = new HashMap<>();
+                notificationRequest.put("title", savedEvent.getName());
+                notificationRequest.put("description", savedEvent.getDescriptionEvent());
+                notificationRequest.put("location", savedEvent.getLocation());
+                notificationRequest.put("sportName", sport.getNameSport());
+                notificationRequest.put("startDate", savedEvent.getStartDate().toString());
+                notificationRequest.put("endDate", savedEvent.getEndDate().toString());
+
+                log.info("Envoi de la notification pour le sport: '{}' à l'URL: http://localhost:8081/users/notify-new-event", sport.getNameSport());
+                restTemplate.postForObject("http://localhost:8081/users/notify-new-event", notificationRequest, Void.class);
+                log.info("Notification envoyée avec succès pour l'événement '{}'", savedEvent.getName());
+            } else {
+                log.warn("Impossible de notifier les utilisateurs : le sport avec l'ID {} n'a pas pu être récupéré", savedEvent.getSportId());
+            }
+        } catch (Exception e) {
+            log.error("ÉCHEC de la notification (l'événement a été créé quand même): {}", e.getMessage());
+        }
+
         return new EventResponseDto(savedEvent);
     }
 

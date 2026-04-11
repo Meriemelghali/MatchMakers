@@ -18,7 +18,7 @@
 
         <!-- Stepper -->
         <div class="ef-stepper" style="width: 100%; margin-top: -8px; margin-bottom: 8px;">
-          <span class="ef-step ef-step--active">Étape 1 sur 3 : Choix du sport</span>
+          <span class="ef-step ef-step--active">Étape {{ currentStep }} sur 3 : {{ currentStepLabel }}</span>
           <div class="ef-stepper-bar">
             <div class="ef-stepper-fill" [style.width]="stepProgress + '%'"></div>
           </div>
@@ -219,7 +219,7 @@
                     <select *ngIf="isIndividualSport" class="ef-input ef-select" (change)="addParticipantToSelection($event)"
                             [class.ef-input--err]="isFieldInvalid('participantIds')">
                       <option value="" selected>-- Cliquer pour ajouter un membre --</option>
-                      <option *ngFor="let user of availableParticipants" [value]="user.idUser">
+                      <option *ngFor="let user of availableParticipants" [value]="user.id">
                         {{ user.firstName }} {{ user.lastName }}
                       </option>
                     </select>
@@ -235,7 +235,7 @@
                   <div class="ef-chip-list" *ngIf="isIndividualSport && selectedParticipantsObjects.length > 0">
                     <span class="ef-chip" *ngFor="let u of selectedParticipantsObjects">
                       {{ u.firstName }} {{ u.lastName }}
-                      <button type="button" class="ef-chip-remove" (click)="removeParticipantFromSelection(u.idUser)" title="Retirer">&times;</button>
+                      <button type="button" class="ef-chip-remove" (click)="removeParticipantFromSelection(u.id)" title="Retirer">&times;</button>
                     </span>
                   </div>
 
@@ -457,7 +457,7 @@
           <button type="submit" form="eventForm" class="ef-btn ef-btn--primary" style="width: 100%;">
             {{ isEditMode ? 'Mettre à jour' : 'Créer et publier' }}
           </button>
-          <button type="button" class="ef-btn" style="width: 100%; background: transparent; border: 1px solid var(--border);" (click)="cancel()">
+          <button type="button" class="ef-btn ef-btn--ghost" style="width: 100%;" (click)="cancel()">
             Annuler
           </button>
         </div>

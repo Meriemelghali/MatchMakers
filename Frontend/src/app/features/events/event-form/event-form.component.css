@@ -393,9 +393,10 @@
 .ef-btn--ghost {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--text);
+  opacity: 0.8;
 }
-.ef-btn--ghost:hover { border-color: var(--text-muted); color: var(--text); }
+.ef-btn--ghost:hover { border-color: var(--text-muted); color: var(--text); opacity: 1; }
 
 .ef-btn--primary {
   background: var(--accent);

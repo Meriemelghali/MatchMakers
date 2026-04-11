@@ -137,4 +137,99 @@ public class UserServiceImpl implements UserService {
         return UserMapper.mapToUserResponseDto(savedUser);
     }
 
+    @Override
+    public UserResponseDto updateProfile(String userId, tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto) {
+        log.info("Mise à jour du profil pour l'utilisateur: {}", userId);
+        log.info("Données reçues - Sports: {}, Bio: {}", profileUpdateDto.getFavoriteSports(), profileUpdateDto.getBio());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        user.setFirstName(profileUpdateDto.getFirstName());
+        user.setLastName(profileUpdateDto.getLastName());
+        user.setBio(profileUpdateDto.getBio());
+        user.setPhoneNumber(profileUpdateDto.getPhoneNumber());
+        
+        if (profileUpdateDto.getAvatar3dUrl() != null) {
+            user.setAvatar3dUrl(profileUpdateDto.getAvatar3dUrl());
+        }
+        
+        if (profileUpdateDto.getFavoriteSports() != null && profileUpdateDto.getFavoriteSports().size() > 3) {
+            throw new IllegalArgumentException("Vous ne pouvez pas sélectionner plus de 3 sports");
+        }
+        user.setFavoriteSports(profileUpdateDto.getFavoriteSports());
+        
+        if (profileUpdateDto.getTheme() != null) {
+            user.setTheme(profileUpdateDto.getTheme());
+        }
+
+        log.info("Entité User prête pour sauvegarde - Sports: {}", user.getFavoriteSports());
+        User savedUser = userRepository.save(user);
+        log.info("Sauvegarde effectuée avec succès pour: {}", userId);
+
+        return UserMapper.mapToUserResponseDto(savedUser);
+    }
+
+    @Override
+    public void changePassword(String userId, tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        if (!passwordEncoder.matches(changePasswordDto.getCurrentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Le mot de passe actuel est incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(changePasswordDto.getNewPassword()));
+        user.setTokenVersion(user.getTokenVersion() + 1); // Invalider les anciens tokens
+        userRepository.save(user);
+    }
+
+    @Override
+    public void notifyUsersForNewEvent(tn.matchmakers.userservice.dto.EventNotificationDto dto) {
+        log.info("Notification des utilisateurs pour l'événement: {} (Sport: {})", dto.getTitle(), dto.getSportName());
+
+        // We fetch all users and filter in Java to ensure case-insensitive matching in the favoriteSports list
+        String targetSport = dto.getSportName().trim().toLowerCase();
+        List<User> allUsers = userRepository.findAll();
+        
+        List<User> interestedUsers = allUsers.stream()
+                .filter(u -> u.getFavoriteSports() != null && 
+                             u.getFavoriteSports().stream()
+                                     .anyMatch(s -> s.trim().toLowerCase().equals(targetSport)))
+                .collect(Collectors.toList());
+        
+        if (interestedUsers.isEmpty()) {
+            log.info("Aucun utilisateur intéressé par le sport (insensible à la casse): {}", dto.getSportName());
+            return;
+        }
+
+        log.info("Envoi de {} invitations par email...", interestedUsers.size());
+
+        try {
+            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/event-invitation.html"));
+            
+            // Préparer le contenu avec les détails de l'événement
+            String customizedHtml = htmlTemplate
+                    .replace("{{sportName}}", dto.getSportName())
+                    .replace("{{title}}", dto.getTitle())
+                    .replace("{{description}}", dto.getDescription())
+                    .replace("{{location}}", dto.getLocation())
+                    .replace("{{startDate}}", dto.getStartDate().toString())
+                    .replace("{{endDate}}", dto.getEndDate().toString());
+
+            for (User user : interestedUsers) {
+                try {
+                    emailService.sendHtmlEmail(
+                            user.getEmail(),
+                            "Invitation MatchMakers : " + dto.getTitle() + " (" + dto.getSportName() + ")",
+                            customizedHtml
+                    );
+                } catch (jakarta.mail.MessagingException e) {
+                    log.error("Échec de l'envoi de l'invitation à {}: {}", user.getEmail(), e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            log.error("Erreur technique lors du chargement du template d'invitation", e);
+        }
+    }
 }

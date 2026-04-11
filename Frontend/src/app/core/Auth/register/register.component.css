@@ -11,14 +11,14 @@
   width: 35%;
   background: #080B10;
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 40px;
+  overflow-y: auto; /* Allow scrolling if the form is taller than the screen */
 }
 
 .login-box {
   width: 100%;
   max-width: 380px;
+  margin: auto; /* Centers the box inside the flex container safely for scrolling */
 }
 
 .brand {

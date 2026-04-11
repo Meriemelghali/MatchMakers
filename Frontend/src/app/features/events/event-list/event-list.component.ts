@@ -82,7 +82,7 @@ export class EventListComponent implements OnInit, OnDestroy {
     this.userService.getAllUsers().subscribe({
       next: (users) => {
         users.forEach(u => {
-          this.userNames[u.idUser] = `${u.firstName} ${u.lastName}`.trim();
+          this.userNames[u.id] = `${u.firstName} ${u.lastName}`.trim();
         });
       },
       error: () => console.warn('Erreur lors du chargement des utilisateurs')
