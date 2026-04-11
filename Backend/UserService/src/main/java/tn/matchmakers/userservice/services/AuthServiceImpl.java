@@ -128,7 +128,8 @@ public class AuthServiceImpl implements AuthService {
                 user.getRoles().stream()
                         .flatMap(role -> role.getPermissions().stream())
                         .map(permission -> permission.getName())
-                        .collect(java.util.stream.Collectors.toSet())
+                        .collect(java.util.stream.Collectors.toSet()),
+                user.getTheme()
         );
     }
 

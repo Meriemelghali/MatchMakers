@@ -42,6 +42,8 @@ public class User extends BaseEntity implements UserDetails {
     private String phoneNumber;
 
     private String profilePictureUrl;
+    private String avatar3dUrl;
+    private List<String> favoriteSports = new ArrayList<>();
 
     private ThemePreference theme = ThemePreference.LIGHT;
 

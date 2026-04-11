@@ -11,16 +11,20 @@ import java.util.List;
 @Data
 @Builder
 public class UserResponseDto {
-    private String idUser;
+    private String id;
     private String firstName;
     private String lastName;
     private String username;
     private String email;
     private String phoneNumber;
-    private List<String> roles;;
+    private List<String> roles;
+    private String bio;
+    private List<String> favoriteSports;
     private AccountStatus accountStatus;
     private LocalDateTime createdAt;
     private String profilePictureUrl;
-    private Sex sex  ;
-    private String classId ;
+    private String avatar3dUrl;
+    private Sex sex;
+    private String classId;
+    private tn.matchmakers.userservice.entities.enums.ThemePreference theme;
 }

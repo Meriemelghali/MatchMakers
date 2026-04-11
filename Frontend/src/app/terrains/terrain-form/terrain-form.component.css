@@ -1,1 +1,86 @@
-/* TerrainFormComponent styles */
+/* ── Map Picker ──────────────────────────────────────────────────────────── */
+
+.map-container {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  border: 1px solid var(--border-s);
+  overflow: hidden;
+  margin-top: 8px;
+  background: #1a1f28;
+  z-index: 0;
+}
+
+/* Clip the rounded corners without hiding Leaflet's internal layout */
+.map-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--border-s);
+  z-index: 500;
+}
+
+.map-coords-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  background: rgba(232, 80, 10, 0.08);
+  border: 1px solid rgba(232, 80, 10, 0.2);
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.map-hint {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+/* ── Map action buttons ──────────────────────────────────────────────────── */
+
+.map-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(232, 80, 10, 0.3);
+  background: rgba(232, 80, 10, 0.08);
+  color: var(--brand, #e8500a);
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.map-action-btn:hover:not(:disabled) {
+  background: rgba(232, 80, 10, 0.15);
+  border-color: rgba(232, 80, 10, 0.5);
+}
+
+.map-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.map-action-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-3);
+}
+
+.map-action-btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-2);
+}

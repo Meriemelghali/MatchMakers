@@ -26,7 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/events")
 @SecurityRequirement(name = "bearer-jwt")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:8080"})
 public class EventController {
 
     private final EventService eventService;
@@ -92,6 +92,12 @@ public class EventController {
     public ResponseEntity<List<EventResponseDto>> getByOrganizer(@PathVariable String userId) {
         List<EventResponseDto> dtoList = eventService.getByOrganizer(userId).stream().map(EventResponseDto::new).toList();
         return ResponseEntity.ok(dtoList);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<EventResponseDto>> getByUser(@PathVariable String userId) {
+        // For now, return events organized by the user
+        return this.getByOrganizer(userId);
     }
 
     //  GET BY DATE RANGE
