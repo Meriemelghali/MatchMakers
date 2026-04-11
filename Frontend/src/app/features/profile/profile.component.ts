@@ -9,6 +9,14 @@ import { Sport } from '../../features/sports/sport.model';
 import { ThemeService, ThemeType } from '../../core/services/ThemeService/theme.service';
 import { ToastService, ToastMessage } from '../../core/services/toast.service';
 
+export interface AvatarSuggestion {
+  id: string;
+  name: string;
+  url: string;
+  previewUrl?: string;
+  sportCategory: string;
+}
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -33,6 +41,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isSaving = false;
   showAvatarCreator = false;
   avatarCreatorUrl: SafeResourceUrl;
+  
+  // Suggestion System
+  suggestedAvatars: AvatarSuggestion[] = [];
+  isCustomMode = false; // Toggle between suggestions and full creator
 
   private messageHandler = this.handleIframeMessage.bind(this);
 
@@ -212,10 +224,55 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // --- READY PLAYER ME AVATAR ---
   openAvatarCreator() {
     this.showAvatarCreator = true;
+    this.isCustomMode = false;
+    this.generateAvatarSuggestions();
   }
 
   closeAvatarCreator() {
     this.showAvatarCreator = false;
+  }
+
+  generateAvatarSuggestions() {
+    const sports = this.userProfile?.favoriteSports || [];
+    const hasSports = sports.length > 0;
+    
+    // Modèles d'athlètes Ready Player Me réels et certifiés
+    const realModels = [
+      'https://models.readyplayer.me/648085f1c9fc6360c70e28b8.glb', // Athlète Masculin
+      'https://models.readyplayer.me/648085f5287f32997b60f589.glb', // Athlète Féminin
+      'https://models.readyplayer.me/648085fba71f3918a09b589a.glb', // Style Sportif 1
+      'https://models.readyplayer.me/6480860539121d5852504620.glb'  // Style Sportif 2
+    ];
+
+    // Créer 4 suggestions
+    this.suggestedAvatars = realModels.map((url, index) => {
+      // Rotation sur les sports favoris de l'utilisateur
+      const sportName = hasSports ? sports[index % sports.length] : 'Style';
+      return {
+        id: (index + 1).toString(),
+        name: `${sportName}`,
+        url: url, // On garde l'URL brute pour l'ID/Logique
+        sportCategory: sportName
+      };
+    });
+  }
+
+  getSafeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  selectAvatar(url: string) {
+    this.profileForm.patchValue({ avatar3dUrl: url });
+    this.profileForm.markAsDirty();
+    if (this.userProfile) {
+      this.userProfile.avatar3dUrl = url;
+    }
+    this.toastService.success("Modèle suggéré appliqué ! N'oubliez pas d'enregistrer.");
+    this.closeAvatarCreator();
+  }
+
+  switchToCustomMode() {
+    this.isCustomMode = true;
   }
 
   handleIframeMessage(event: MessageEvent) {
