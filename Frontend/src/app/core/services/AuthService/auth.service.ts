@@ -11,12 +11,16 @@ export interface LoginRequest {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  accessTokenExpiresAt: string;
-  refreshTokenExpiresAt: string;
+  accessExpiresAt: string;
+  refreshExpiresAt: string;
   email: string;
   roles: string[];
   permissions: string[];
   theme?: string;
+  requiresMfaChoice?: boolean;
+  requires2FA?: boolean;
+  twoFactorType?: string;
+  qrCodeImageBase64?: string;
 }
 
 
@@ -34,6 +38,19 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request);
+  }
+
+  // --- 2FA Endpoints ---
+  setup2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/setup-2fa`, payload);
+  }
+
+  verifySetup2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-setup-2fa`, payload);
+  }
+
+  verify2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-2fa`, payload);
   }
 
   // Sauvegarder le token dans localStorage
@@ -56,6 +73,24 @@ export class AuthService {
 
     if (response.theme) {
       this.themeService.setTheme(response.theme as ThemeType, true);
+    }
+  }
+
+  saveTokensAndRedirect(response: AuthResponse, router: import('@angular/router').Router) {
+    this.saveTokens(response);
+    const roles = response.roles || [];
+    
+    if (roles.length > 1) {
+      router.navigate(['/role-selection']);
+    } else {
+      const role = roles.length === 1 ? roles[0] : 'SPORTIF';
+      localStorage.setItem('userRole', role);
+      
+      if (role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'ROLE_ADMIN') {
+        router.navigate(['/admin-choice']);
+      } else {
+        router.navigate(['/events']);
+      }
     }
   }
 
