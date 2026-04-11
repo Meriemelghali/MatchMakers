@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
 import tn.matchmakers.userservice.entities.enums.Sex;
 import tn.matchmakers.userservice.entities.enums.ThemePreference;
+import tn.matchmakers.userservice.entities.enums.TwoFactorType;
 
 
 import java.time.LocalDateTime;
@@ -57,6 +58,12 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime lastLoginAt;
     private List<DeviceInfo> trustedDevices = new ArrayList<>();
     private Integer tokenVersion = 0;
+
+    // 2FA Fields
+    private TwoFactorType twoFactorType = TwoFactorType.NONE;
+    private String totpSecret;
+    private String twoFactorCode;
+    private LocalDateTime twoFactorCodeExpiry;
 
     private String resetPasswordToken;
     private LocalDateTime resetPasswordTokenExpiry;
