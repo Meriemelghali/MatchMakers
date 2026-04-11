@@ -103,18 +103,52 @@
                                     <input class="field-input" formControlName="contact" placeholder="+216 ...">
                                 </div>
                             </div>
-                            <div class="form-grid mb-16">
-                                <div class="field">
-                                    <label class="field-label">Latitude GPS</label>
-                                    <input class="field-input" type="number" step="any" formControlName="latitude"
-                                        placeholder="ex. 36.8189">
+                            <!-- Map Picker -->
+                            <div class="field mb-16">
+                                <label class="field-label"
+                                    style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>Localisation sur la carte</span>
+                                    <span style="display:flex; gap:8px;">
+                                        <button type="button" class="map-action-btn" (click)="locateMe()"
+                                            [disabled]="locating" title="Utiliser ma position actuelle">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                                <circle cx="12" cy="12" r="3"/>
+                                                <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                                            </svg>
+                                            {{ locating ? 'Localisation...' : 'Ma position' }}
+                                        </button>
+                                        <button type="button" class="map-action-btn map-action-btn--ghost"
+                                            *ngIf="lat || lng" (click)="clearPin()" title="Effacer le marqueur">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                                <path d="M18 6 6 18M6 6l12 12"/>
+                                            </svg>
+                                            Effacer
+                                        </button>
+                                    </span>
+                                </label>
+
+                                <!-- Map container -->
+                                <div #mapEl class="map-container"></div>
+
+                                <!-- Coordinates badge -->
+                                <div *ngIf="lat && lng" class="map-coords-badge">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 9.2c0 7.3-8 10.8-8 10.8z"/>
+                                        <circle cx="12" cy="10" r="2.5"/>
+                                    </svg>
+                                    {{ lat }}, {{ lng }}
                                 </div>
-                                <div class="field">
-                                    <label class="field-label">Longitude GPS</label>
-                                    <input class="field-input" type="number" step="any" formControlName="longitude"
-                                        placeholder="ex. 10.1658">
+                                <div *ngIf="!lat || !lng" class="map-hint">
+                                    Cliquez sur la carte pour placer l'épingle · Glissez le marqueur pour affiner
                                 </div>
                             </div>
+
+                            <!-- Hidden inputs keep the form values -->
+                            <input type="hidden" formControlName="latitude">
+                            <input type="hidden" formControlName="longitude">
                             <div class="field">
                                 <label class="field-label">Description ou règles du terrain</label>
                                 <textarea class="field-input" formControlName="description"
