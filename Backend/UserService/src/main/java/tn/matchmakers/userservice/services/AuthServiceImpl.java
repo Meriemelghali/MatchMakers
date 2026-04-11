@@ -20,6 +20,20 @@ import tn.matchmakers.userservice.repositories.UserRepository;
 import tn.matchmakers.userservice.security.JwtService;
 import tn.matchmakers.userservice.services.serviceInterfaces.AuthService;
 
+import tn.matchmakers.userservice.entities.enums.TwoFactorType;
+import tn.matchmakers.userservice.dto.Setup2FaRequest;
+import tn.matchmakers.userservice.dto.Verify2FaRequest;
+
+// TOTP imports
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
+import dev.samstevens.totp.qr.QrData;
+import dev.samstevens.totp.qr.ZxingPngQrGenerator;
+import dev.samstevens.totp.time.SystemTimeProvider;
+import dev.samstevens.totp.code.DefaultCodeVerifier;
+import dev.samstevens.totp.code.DefaultCodeGenerator;
+import dev.samstevens.totp.code.HashingAlgorithm;
+import dev.samstevens.totp.util.Utils;
+
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -42,21 +56,16 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse authenticate(LoginRequest request, DeviceInfo device) {
         String message = "Invalid email or password" ;
-        try {
-            // check user exist or not
-            User user = userRepository.findByEmail(request.email())
-                    .orElseThrow(() -> new BadCredentialsException(message));
-            // check account status
-            checkAccountStatus(user);
-            // check password
-            validatePassword(request, user);
-            // check login
-            handleSuccessfulLogin(user, device);
-            // générer tokens
-            return createAuthResponse(user, device);
-        } catch (UsernameNotFoundException e) {
-            throw new BadCredentialsException(message);
-        }
+
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new BadCredentialsException(message));
+        
+        checkAccountStatus(user);
+        validatePassword(request, user);
+            
+        // Handle 2FA : Always ask for choice if mandatory (dynamic 2FA choice)
+        log.info("2FA Dynamic Choice triggered for user: {}", user.getEmail());
+        return AuthResponse.choiceRequired(user.getEmail());
     }
 
     //ACCOUNT CHECK
@@ -116,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
         sessionRepository.save(session);
 
         // Build response
-        return new AuthResponse(
+        return AuthResponse.success(
                 accessToken,
                 refreshToken,
                 Instant.now().plusMillis(jwtService.getAccessExpirationMs()),
@@ -185,5 +194,110 @@ public class AuthServiceImpl implements AuthService {
         user.setFailedLoginAttempts(0);
         user.setLockUntil(null);
         userRepository.save(user);
+    }
+
+    // --- 2FA LOGIC ---
+    @Override
+    public AuthResponse setup2Fa(Setup2FaRequest request, DeviceInfo device) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        validatePasswordForRequest(request.getPassword(), user);
+
+        if (request.getType().equals("EMAIL")) {
+            user.setTwoFactorType(TwoFactorType.EMAIL);
+            generateAndSendEmailOTP(user);
+            return AuthResponse.mfaRequired(user.getEmail(), "EMAIL", null);
+        } else if (request.getType().equals("AUTH_APP")) {
+            user.setTwoFactorType(TwoFactorType.AUTH_APP);
+            
+            String secret = user.getTotpSecret();
+            if (secret == null) {
+                dev.samstevens.totp.secret.SecretGenerator tempSecretGenerator = new DefaultSecretGenerator();
+                secret = tempSecretGenerator.generate();
+                user.setTotpSecret(secret);
+                userRepository.save(user);
+            }
+
+            QrData data = new QrData.Builder()
+                .label(user.getEmail())
+                .secret(secret)
+                .issuer("MatchMakers")
+                .algorithm(HashingAlgorithm.SHA1)
+                .digits(6)
+                .period(30)
+                .build();
+                
+            dev.samstevens.totp.qr.QrGenerator generator = new ZxingPngQrGenerator();
+            try {
+                byte[] imageData = generator.generate(data);
+                String mimeType = generator.getImageMimeType();
+                String dataUri = Utils.getDataUriForImage(imageData, mimeType);
+                return AuthResponse.mfaRequired(user.getEmail(), "AUTH_APP", dataUri);
+            } catch (Exception e) {
+                throw new RuntimeException("Error generating QR Code");
+            }
+        }
+        throw new IllegalArgumentException("Invalid 2FA Type");
+    }
+
+    @Override
+    public AuthResponse verifySetup2Fa(Verify2FaRequest request, DeviceInfo device) {
+        return verify2Fa(request, device);
+    }
+
+    @Override
+    public AuthResponse verify2Fa(Verify2FaRequest request, DeviceInfo device) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new BadCredentialsException("User not found"));
+        validatePasswordForRequest(request.getPassword(), user);
+
+        boolean isValid = false;
+
+        if (user.getTwoFactorType() == TwoFactorType.EMAIL) {
+            if (user.getTwoFactorCode() == null || user.getTwoFactorCodeExpiry() == null || user.getTwoFactorCodeExpiry().isBefore(LocalDateTime.now())) {
+                throw new BadCredentialsException("Code expiré ou manquant");
+            }
+            if (user.getTwoFactorCode().equals(request.getCode())) {
+                isValid = true;
+                user.setTwoFactorCode(null);
+                user.setTwoFactorCodeExpiry(null);
+            }
+        } else if (user.getTwoFactorType() == TwoFactorType.AUTH_APP) {
+            dev.samstevens.totp.time.TimeProvider timeProvider = new SystemTimeProvider();
+            dev.samstevens.totp.code.CodeGenerator codeGenerator = new DefaultCodeGenerator();
+            dev.samstevens.totp.code.CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
+            isValid = verifier.isValidCode(user.getTotpSecret(), request.getCode());
+        }
+
+        if (!isValid) {
+            throw new BadCredentialsException("Code 2FA invalide");
+        }
+
+        // 2FA passed, do successful login behavior
+        handleSuccessfulLogin(user, device);
+        return createAuthResponse(user, device);
+    }
+
+    private void validatePasswordForRequest(String passwordInput, User user) {
+        if (!passwordEncoder.matches(passwordInput, user.getPasswordHash())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+    }
+
+    private void generateAndSendEmailOTP(User user) {
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
+        user.setTwoFactorCode(code);
+        user.setTwoFactorCodeExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+
+        // Envoyer le code par email
+        String body = "<div style=\"font-family:Arial;color:#333;\"><div style=\"text-align:center;padding:20px;\"><h1 style=\"color:#E8500A;\">MatchMakers</h1><p>Voici votre code de vérification pour vous connecter à votre espace.</p><h2 style=\"background:#eee;padding:15px;letter-spacing:5px;\">" + code + "</h2><p>Ce code expirera dans 10 minutes.</p></div></div>";
+        try {
+            emailService.sendHtmlEmail(user.getEmail(), "Code de vérification MatchMakers", body);
+            log.info("2FA OTP sent to {}", user.getEmail());
+        } catch(Exception e) {
+            log.error("Erreur lors de l'envoi de l'OTP: {}", e.getMessage());
+            log.error(">>>> CODE OTP GENERE : {}", code);
+        }
     }
 }
