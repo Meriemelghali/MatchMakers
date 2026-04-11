@@ -1,0 +1,89 @@
+<div class="viewer-wrap">
+
+    <!-- 3D Canvas -->
+    <canvas #canvas class="viewer-canvas"></canvas>
+
+    <!-- Top-left: sport badge -->
+    <div class="viewer-tl">
+        <span class="sport-badge">{{ fieldLabel }}</span>
+    </div>
+
+    <!-- Top-right: hover tooltip -->
+    <div class="viewer-tr">
+        <span class="hover-tip" [class.hover-tip--visible]="hoveredLabel">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <path d="M15 15l6 6M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"/>
+            </svg>
+            {{ hoveredLabel || 'Glisser · Scroll pour zoomer' }}
+        </span>
+    </div>
+
+    <!-- ── Creator Bar ──────────────────────────────────────────────────────── -->
+    <div class="creator-bar">
+
+        <!-- Surface picker -->
+        <div class="creator-group">
+            <div class="creator-label">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M3 9h18M9 21V9"/>
+                </svg>
+                Surface
+            </div>
+            <div class="swatches">
+                <button
+                    *ngFor="let s of surfaceOptions"
+                    type="button"
+                    class="swatch"
+                    [class.swatch--on]="vSurface === s.key"
+                    [style.background]="s.hex"
+                    [title]="s.label"
+                    (click)="setSurface(s.key)">
+                </button>
+            </div>
+            <div class="creator-val">
+                <span class="val-dot" [style.background]="surfaceHex"></span>
+                {{ surfaceLabel }}
+            </div>
+        </div>
+
+        <div class="creator-sep"></div>
+
+        <!-- Bleacher rows stepper -->
+        <div class="creator-group">
+            <div class="creator-label">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M2 20h20M5 20V8l7-6 7 6v12"/>
+                    <path d="M9 20v-6h6v6"/>
+                </svg>
+                Gradins
+            </div>
+            <div class="stepper">
+                <button type="button" class="step-btn" (click)="changeRows(-1)" [disabled]="vRows <= 0">−</button>
+                <div class="step-dots">
+                    <span *ngFor="let d of rowsDots" class="step-dot" [class.step-dot--on]="d < vRows"></span>
+                </div>
+                <button type="button" class="step-btn" (click)="changeRows(1)"  [disabled]="vRows >= 5">+</button>
+            </div>
+            <div class="creator-val">{{ standLabel }}</div>
+        </div>
+
+        <div class="creator-sep"></div>
+
+        <!-- Lighting toggle -->
+        <div class="creator-group">
+            <div class="creator-label">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17H8v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/>
+                </svg>
+                Éclairage
+            </div>
+            <button type="button" class="light-toggle" [class.light-toggle--on]="vEclairage" (click)="toggleLighting()">
+                <span class="light-pip"></span>
+                {{ vEclairage ? 'Allumé' : 'Éteint' }}
+            </button>
+            <div class="creator-val">{{ vEclairage ? '4 pylônes actifs' : 'Journée' }}</div>
+        </div>
+
+    </div>
+</div>
