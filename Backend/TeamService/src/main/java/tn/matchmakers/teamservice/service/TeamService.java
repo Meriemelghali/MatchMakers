@@ -19,5 +19,6 @@ public interface TeamService {
     TeamDto joinTeam(String id, String userId, String username, String role);
 
     TeamDto leaveTeam(String id, String userId);
+    List<TeamDto> getTeamsByUserId(String userId);
 }
 

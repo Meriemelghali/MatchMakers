@@ -14,10 +14,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/teams")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:8080"})
 public class TeamController {
 
     private final TeamService service;
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<TeamDto>> getByUser(@PathVariable String userId) {
+        return ResponseEntity.ok(service.getTeamsByUserId(userId));
+    }
 
     @PostMapping
     public ResponseEntity<TeamDto> create(@Valid @RequestBody TeamCreateRequest request) {
