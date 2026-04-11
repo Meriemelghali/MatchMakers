@@ -136,6 +136,13 @@
 			<version>32.0.1-jre</version>
 		</dependency>
 
+		<!-- TOTP for 2FA -->
+		<dependency>
+			<groupId>dev.samstevens.totp</groupId>
+			<artifactId>totp</artifactId>
+			<version>1.7.1</version>
+		</dependency>
+
 		<!-- Dev tools -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

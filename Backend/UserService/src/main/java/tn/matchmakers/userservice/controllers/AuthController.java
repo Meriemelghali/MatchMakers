@@ -12,6 +12,8 @@ import tn.matchmakers.userservice.dto.UserCreateDto;
 import tn.matchmakers.userservice.dto.UserResponseDto;
 import tn.matchmakers.userservice.dto.ForgotPasswordRequest;
 import tn.matchmakers.userservice.dto.ResetPasswordRequest;
+import tn.matchmakers.userservice.dto.Setup2FaRequest;
+import tn.matchmakers.userservice.dto.Verify2FaRequest;
 import tn.matchmakers.userservice.entities.DeviceInfo;
 import tn.matchmakers.userservice.security.JwtService;
 import tn.matchmakers.userservice.services.UserServiceImpl;
@@ -59,6 +61,25 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         authService.resetPassword(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok(Map.of("message", "Mot de passe réinitialisé avec succès."));
+    }
+
+    // --- 2FA Endpoints ---
+    @PostMapping("/setup-2fa")
+    public ResponseEntity<AuthResponse> setup2Fa(@Valid @RequestBody Setup2FaRequest request, HttpServletRequest httpRequest) {
+        DeviceInfo device = deviceMetadataService.extractDeviceInfo(httpRequest);
+        return ResponseEntity.ok(authService.setup2Fa(request, device));
+    }
+
+    @PostMapping("/verify-setup-2fa")
+    public ResponseEntity<AuthResponse> verifySetup2Fa(@Valid @RequestBody Verify2FaRequest request, HttpServletRequest httpRequest) {
+        DeviceInfo device = deviceMetadataService.extractDeviceInfo(httpRequest);
+        return ResponseEntity.ok(authService.verifySetup2Fa(request, device));
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<AuthResponse> verify2Fa(@Valid @RequestBody Verify2FaRequest request, HttpServletRequest httpRequest) {
+        DeviceInfo device = deviceMetadataService.extractDeviceInfo(httpRequest);
+        return ResponseEntity.ok(authService.verify2Fa(request, device));
     }
 
     @GetMapping("/validate-token")
