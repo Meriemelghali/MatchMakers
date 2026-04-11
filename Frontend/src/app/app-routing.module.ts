@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { LoginComponent } from './core/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
-import { authGuard } from './core/guards/auth.guard';  
+import { authGuard } from './core/guards/auth.guard';
 import { RegisterComponent } from './core/Auth/register/register.component';
 import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
@@ -12,7 +12,7 @@ import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffic
 
 
 const routes: Routes = [
-  //par défaut 
+  //par défaut
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   {
     path: '',
@@ -64,6 +64,11 @@ const routes: Routes = [
         path: 'leaderboard',
         loadChildren: () => import('./features/leaderboard/leaderboard.module').then(m => m.LeaderboardModule)
       },
+    {
+      path: 'products',
+      loadChildren: () =>
+        import('./features/products/products.module').then(m => m.ProductsModule)
+    }
       // autres routes privées ici
     ]
   },

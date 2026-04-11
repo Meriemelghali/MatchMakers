@@ -27,9 +27,9 @@ import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffic
     ForgotPasswordComponent,
     ResetPasswordComponent,
     AdminChoiceComponent,
-    BackofficeLayoutComponent
+    BackofficeLayoutComponent,
   ],
-  
+
   imports: [
     BrowserModule,
     AppRoutingModule,

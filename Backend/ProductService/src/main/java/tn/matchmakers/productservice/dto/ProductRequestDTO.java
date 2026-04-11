@@ -8,7 +8,7 @@ public class ProductRequestDTO {
     private String name;
     private String description;
     private double price;
-    private double rentalPricePerDay;  // 0 si pas de location
+    private double rentalPricePerHour;
     private int stock;
     private String imageUrl;
     private String sport;

@@ -1,0 +1,19 @@
+.payment-option {
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-lg);
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 150ms ease;
+  background: var(--color-background-primary);
+}
+
+.payment-option:hover {
+  border-color: var(--color-border-primary);
+  background: var(--color-background-secondary);
+}
+
+.payment-option-active {
+  border: 2px solid #185FA5 !important;
+  background: #E6F1FB !important;
+}
