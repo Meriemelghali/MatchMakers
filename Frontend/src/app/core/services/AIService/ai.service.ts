@@ -95,4 +95,14 @@ export class AIService {
   innovateType(type: EventType): Observable<any> {
     return this.http.post<any>(`http://localhost:8083/eventsCompetitions/api/event-types/innovate`, type);
   }
+
+  predictMatchOutcome(team1: string, team2: string, history: any[]): Observable<any> {
+    const payload = { team1, team2, history };
+    return this.http.post<any>(`http://localhost:8083/eventsCompetitions/api/ai/predict-match`, payload);
+  }
+
+  predictEventOutcome(sport: string, eventType: string, participants: string[]): Observable<any> {
+    const payload = { sport, eventType, participants };
+    return this.http.post<any>(`http://localhost:8083/eventsCompetitions/api/ai/predict-event`, payload);
+  }
 }

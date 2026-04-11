@@ -60,6 +60,7 @@ export interface CreateEventRequest {
   maxTeam?: number;
   format?: CompetitionFormat;
   teamIds?: string[];
+  participantIds?: string[];
 
   // Route fields
   startPoint?: string;
@@ -76,6 +77,7 @@ export interface UpdateEventRequest {
   terrainId?: string;
   statutEvent?: StatutEvent;
   teamIds?: string[];
+  participantIds?: string[];
   competitionName?: string;
   maxTeam?: number;
   format?: CompetitionFormat;

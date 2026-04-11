@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { MatchService } from '../services/match.service';
 import { Match, MatchStatus, EventType } from '../models/match.model';
 import { TerrainService } from '../../terrains/services/terrain.service';
+import { AIService } from '../../core/services/AIService/ai.service';
 
 @Component({
     selector: 'app-match-detail',
@@ -21,6 +22,9 @@ export class MatchDetailComponent implements OnInit, OnDestroy {
     error = '';
     updating = false;
     terrainName?: string;
+
+    isPredicting = false;
+    prediction?: any;
 
     eventForm!: FormGroup;
     showEventForm = false;

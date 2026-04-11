@@ -87,6 +87,7 @@ public class EventServiceImpl implements EventService {
                 .endPoint(dto.getEndPoint())
                 .distances(dto.getDistances())
                 .routePath(dto.getRoutePath())
+                .participantIds(dto.getParticipantIds() != null ? dto.getParticipantIds() : new ArrayList<>())
                 .eventType(eventType)
                 .build();
 
@@ -182,19 +183,16 @@ public class EventServiceImpl implements EventService {
         if (dto.getRoutePath() != null)   existing.setRoutePath(dto.getRoutePath());
         if (dto.getStatutEvent() != null) existing.setStatutEvent(dto.getStatutEvent());
 
-        // 4. Mettre à jour équipes si requiresTeams sans bracket
-        EventType eventType = existing.getEventType();
-        if (Boolean.TRUE.equals(eventType.getRequiresTeams())
-                && !Boolean.TRUE.equals(eventType.getIsCompetition())
-                && dto.getTeamIds() != null) {
-            if (dto.getTeamIds().size() < 2) {
-                throw new InvalidEventConfigException(
-                        "Un événement avec équipes nécessite au moins 2 équipes.");
-            }
+        // 4. Mettre à jour équipes / participants
+        if (dto.getTeamIds() != null) {
             existing.setTeamIds(dto.getTeamIds());
+        }
+        if (dto.getParticipantIds() != null) {
+            existing.setParticipantIds(dto.getParticipantIds());
         }
 
         // 5. Mettre à jour la compétition si elle existe
+        EventType eventType = existing.getEventType(); // ensure eventType is available
         if (Boolean.TRUE.equals(eventType.getIsCompetition())
                 && existing.getCompetition() != null) {
             Competition competition = existing.getCompetition();
@@ -204,6 +202,8 @@ public class EventServiceImpl implements EventService {
                 competition.setMaxTeam(dto.getMaxTeam());
             if (dto.getFormat() != null)
                 competition.setFormat(dto.getFormat());
+            if (dto.getTeamIds() != null)
+                competition.setTeamIds(new ArrayList<>(dto.getTeamIds()));
             competitionRepository.save(competition);
         }
 
@@ -433,17 +433,16 @@ public class EventServiceImpl implements EventService {
                             ? competitionName : "Compétition — " + eventName)
                     .maxTeam(maxTeam != null ? maxTeam : 0L)
                     .format(format)
+                    .teamIds(teamIds != null ? new ArrayList<>(teamIds) : new ArrayList<>())
                     .status(CompetitionStatus.PENDING)
                     .build();
             event.setCompetition(competitionRepository.save(competition));
 
             // Branche B — équipes sans bracket (Friendly Match)
         } else if (Boolean.TRUE.equals(eventType.getRequiresTeams())) {
-            if (teamIds == null || teamIds.size() < 2) {
-                throw new InvalidEventConfigException(
-                        "Un Friendly Match nécessite au moins 2 équipes.");
+            if (teamIds != null && !teamIds.isEmpty()) {
+                event.setTeamIds(teamIds);
             }
-            event.setTeamIds(teamIds);
         }
         // Branche C — individuel simple → rien
     }

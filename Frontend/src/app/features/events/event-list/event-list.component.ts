@@ -31,6 +31,7 @@ export class EventListComponent implements OnInit, OnDestroy {
   matchesByEvent: Record<string, Match[]> = {};
   teamNames: Record<string, string> = {}; // id -> name map
   userNames: Record<string, string> = {}; // userId -> fullName map
+  private missingTeamIds = new Set<string>(); // set of IDs that returned 404
 
   statutOptions = [
     { label: 'Planned', value: StatutEvent.PLANNED },
@@ -95,7 +96,14 @@ export class EventListComponent implements OnInit, OnDestroy {
   getTeamName(id: string): string {
     if (!id) return 'Unknown';
     if (this.teamNames[id]) return this.teamNames[id];
+    if (this.missingTeamIds.has(id)) return id; // Already checked and not found
     
+    // Ignore obviously fake or placeholder IDs
+    if (id.startsWith('fake-') || id === 'unknown' || id.length < 5) {
+      this.missingTeamIds.add(id);
+      return id;
+    }
+
     // If name is not in cache, fetch it individually
     this.fetchMissingTeamName(id);
     return id; // temporary fallback to ID
@@ -103,7 +111,7 @@ export class EventListComponent implements OnInit, OnDestroy {
 
   private fetchMissingTeamName(id: string): void {
     // Basic check to avoid redundant calls for same ID
-    if ((this as any).loadingTeams?.[id]) return;
+    if ((this as any).loadingTeams?.[id] || this.missingTeamIds.has(id)) return;
     if (!(this as any).loadingTeams) (this as any).loadingTeams = {};
     (this as any).loadingTeams[id] = true;
 
@@ -111,11 +119,16 @@ export class EventListComponent implements OnInit, OnDestroy {
       next: (team) => {
         if (team && team.name) {
           this.teamNames[id] = team.name;
+        } else {
+          this.missingTeamIds.add(id);
         }
         delete (this as any).loadingTeams[id];
       },
-      error: () => {
-        // Mark as error to prevent further attempts?
+      error: (err) => {
+        // If 404, mark as missing to prevent further attempts
+        if (err.status === 404) {
+          this.missingTeamIds.add(id);
+        }
         this.teamNames[id] = id; 
         delete (this as any).loadingTeams[id];
       }

@@ -247,4 +247,60 @@ public class EventAIService {
         icons.put("ATHLETICS", "🥇");
         return icons.getOrDefault(sport, "📍");
     }
+
+    public Map<String, Object> predictMatchOutcome(Map<String, Object> requestBody) {
+        try {
+            String url = AI_SERVICE_URL + "/predict-match";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling AI Service for match prediction: " + e.getMessage());
+        }
+        
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("predictedScore", "N/A");
+        fallback.put("winProbability", 50);
+        fallback.put("analysis", "Le service d'analyse IA est temporairement indisponible.");
+        return fallback;
+    }
+
+    public Map<String, Object> predictEventOutcome(Map<String, Object> requestBody) {
+        try {
+            String url = AI_SERVICE_URL + "/predict-event-outcome";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return response.getBody();
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling AI Service for event prediction: " + e.getMessage());
+        }
+        
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("winner", "Analyse impossible");
+        fallback.put("confidence", 0);
+        fallback.put("analysis", "Le service d'analyse IA est temporairement indisponible.");
+        return fallback;
+    }
 }
