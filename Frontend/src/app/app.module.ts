@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -16,7 +16,8 @@ import { ResetPasswordComponent } from './core/Auth/reset-password/reset-passwor
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
-
+import { ProfileComponent } from './features/profile/profile.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { RoleSelectionComponent } from './core/Auth/role-selection/role-selectio
     ResetPasswordComponent,
     AdminChoiceComponent,
     BackofficeLayoutComponent,
-    RoleSelectionComponent
+    RoleSelectionComponent,
+    ProfileComponent
   ],
   
   imports: [
@@ -37,12 +39,13 @@ import { RoleSelectionComponent } from './core/Auth/role-selection/role-selectio
     AppRoutingModule,
     HttpClientModule,
     FormsModule,
-    HttpClientModule,
+    ReactiveFormsModule,
     RouterModule
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppModule { }
