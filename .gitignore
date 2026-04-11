@@ -1,3 +1,5 @@
+application-local.properties
+*.env
 # OS / IDE
 .DS_Store
 Thumbs.db
