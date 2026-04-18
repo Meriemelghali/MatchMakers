@@ -19,11 +19,17 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final EmailNotificationService emailNotificationService;
+    private final CurrentUserService currentUserService;
 
     private static final double DELIVERY_FEE = 7.0;
 
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
+        // ✅ Récupération automatique depuis le token
+        String userEmail    = currentUserService.getCurrentUserEmail();
+        String userFullName = currentUserService.getCurrentUserFullName();
+        String userId       = currentUserService.getCurrentUserId();
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new RuntimeException("Produit introuvable"));
@@ -56,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
         productRepository.save(product);
 
         Order newOrder = Order.builder()
-                .userId(request.getUserId())
+                .userId(userId)
                 .productId(request.getProductId())
                 .productName(product.getName())
                 .quantity(request.getQuantity())
@@ -78,7 +84,13 @@ public class OrderServiceImpl implements OrderService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return toDTO(orderRepository.save(newOrder));
+        Order saved = orderRepository.save(newOrder);
+        OrderResponseDTO response = toDTO(saved);
+
+        // 📧 Email automatique à l'adresse du user connecté
+        emailNotificationService.sendOrderConfirmation(userEmail, userFullName, response);
+
+        return response;
     }
 
     @Override
@@ -116,7 +128,15 @@ public class OrderServiceImpl implements OrderService {
 
         existingOrder.setStatus(OrderStatus.CANCELLED);
         existingOrder.setUpdatedAt(LocalDateTime.now());
-        return toDTO(orderRepository.save(existingOrder));
+        Order saved = orderRepository.save(existingOrder);
+        OrderResponseDTO response = toDTO(saved);
+
+        // ✅ Email annulation automatique
+        String userEmail    = currentUserService.getCurrentUserEmail();
+        String userFullName = currentUserService.getCurrentUserFullName();
+        emailNotificationService.sendOrderCancelled(userEmail, userFullName, response);
+
+        return response;
     }
 
     private OrderResponseDTO toDTO(Order o) {
