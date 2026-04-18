@@ -16,8 +16,9 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   products: Product[] = [];
   filtered: Product[] = [];
-  loading = false;
-  error = '';
+  loading  = false;
+  error    = '';
+  deleting = false;
 
   sportFilter  = new FormControl('');
   typeFilter   = new FormControl('');
@@ -26,9 +27,18 @@ export class ProductListComponent implements OnInit, OnDestroy {
   sports = ['Football', 'Tennis', 'Basketball', 'Cyclisme', 'Handball'];
   types  = Object.values(ProductType);
 
-  constructor(private productService: ProductService, private router: Router) {}
+  showDeleteModal  = false;
+  productToDelete: string | null = null;
+
+  isAdmin = false;
+
+  constructor(
+    private productService: ProductService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
+    this.checkRole();
     this.load();
     [this.sportFilter, this.typeFilter, this.searchFilter].forEach(ctrl =>
       ctrl.valueChanges
@@ -39,12 +49,51 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 
+  checkRole() {
+    try {
+      // ✅ Ton auth.service.ts sauvegarde sous 'accessToken'
+      const token = localStorage.getItem('accessToken');
+      if (!token) { this.isAdmin = false; return; }
+
+      // ✅ Option 1 — lire depuis userRole directement
+      const userRole = localStorage.getItem('userRole');
+      if (userRole) {
+        this.isAdmin = userRole === 'ADMIN' ||
+                       userRole === 'ROLE_ADMIN' ||
+                       userRole === 'Admin';
+        return;
+      }
+
+      // ✅ Option 2 — décoder le JWT si userRole absent
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const roles: any = payload.roles
+                      || payload.role
+                      || payload.authorities
+                      || [];
+
+      this.isAdmin = Array.isArray(roles)
+        ? roles.some((r: string) =>
+            r === 'ADMIN' || r === 'ROLE_ADMIN' || r === 'Admin')
+        : roles === 'ADMIN' || roles === 'ROLE_ADMIN';
+
+    } catch (e) {
+      this.isAdmin = false;
+    }
+  }
+
   load() {
     this.loading = true;
-    this.error = '';
+    this.error   = '';
     this.productService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
-      next: data => { this.products = data; this.applyFilter(); this.loading = false; },
-      error: () => { this.error = 'Erreur de chargement des produits'; this.loading = false; }
+      next: data => {
+        this.products = data;
+        this.applyFilter();
+        this.loading = false;
+      },
+      error: () => {
+        this.error   = 'Erreur de chargement des produits';
+        this.loading = false;
+      }
     });
   }
 
@@ -65,13 +114,40 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.searchFilter.setValue('');
   }
 
-  addProduct()        { this.router.navigate(['/products/add']); }
+  addProduct()            { this.router.navigate(['/products/add']); }
   editProduct(id: string) { this.router.navigate(['/products/edit', id]); }
 
-  deleteProduct(id: string, e: Event) {
+  openDeleteModal(id: string, e: Event) {
     e.stopPropagation();
-    if (!confirm('Confirmer la suppression ?')) return;
-    this.productService.delete(id).pipe(takeUntil(this.destroy$))
-      .subscribe({ next: () => this.load(), error: () => alert('Erreur lors de la suppression') });
+    this.productToDelete = id;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.productToDelete = null;
+  }
+
+  confirmDelete() {
+    if (!this.productToDelete) return;
+    this.deleting        = true;
+    const idToDelete     = this.productToDelete;
+    this.showDeleteModal = false;
+    this.productToDelete = null;
+
+    this.products = this.products.filter(p => p.id !== idToDelete);
+    this.applyFilter();
+
+    this.productService.delete(idToDelete)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => { this.deleting = false; },
+        error: (err) => {
+          this.deleting = false;
+          this.error    = 'Erreur lors de la suppression du produit';
+          this.load();
+          console.error('Delete error:', err);
+        }
+      });
   }
 }

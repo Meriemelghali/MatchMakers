@@ -100,4 +100,72 @@ async def leaderboard(req: LeaderboardRequest):
         latency_ms=int((time.time() - t0) * 1000),
     )
 
+class ProductChatRequest(BaseModel):
+    question: str = Field(min_length=1)
+    products_context: Optional[str] = None  # liste des produits en JSON
+    model: Optional[str] = None
 
+class ProductChatResponse(BaseModel):
+    answer: str
+    from_llm: bool
+    model: Optional[str] = None
+    latency_ms: int
+
+
+def _build_product_prompt(req: ProductChatRequest) -> str:
+    parts = []
+    parts.append("Tu es un assistant commercial pour la boutique sportive MatchMakers.")
+    parts.append("Tu aides les clients à trouver des produits sportifs.")
+    parts.append("Réponds en français, de façon concise et utile (5-8 lignes max).")
+    parts.append("Si un produit correspond à la question, mentionne son nom et son prix.")
+    parts.append("Si aucun produit ne correspond, dis-le poliment.")
+    parts.append("Ne réponds qu'aux questions liées aux produits sportifs.")
+
+    if req.products_context and req.products_context.strip():
+        parts.append("")
+        parts.append("LISTE DES PRODUITS DISPONIBLES:")
+        parts.append(req.products_context.strip())
+
+    parts.append("")
+    parts.append("QUESTION DU CLIENT:")
+    parts.append(req.question.strip())
+    return "\n".join(parts)
+
+
+@app.post("/products-chat", response_model=ProductChatResponse)
+async def products_chat(req: ProductChatRequest):
+    t0 = time.time()
+    model = (req.model or OLLAMA_MODEL).strip()
+    prompt = _build_product_prompt(req)
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            r = await client.post(
+                f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "stream": False
+                },
+            )
+            r.raise_for_status()
+            data = r.json()
+            choices = data.get("choices") or []
+            msg = (choices[0].get("message") if choices else None) or {}
+            text = (msg.get("content") or "").strip()
+            if text:
+                return ProductChatResponse(
+                    answer=text,
+                    from_llm=True,
+                    model=model,
+                    latency_ms=int((time.time() - t0) * 1000),
+                )
+    except Exception:
+        pass
+
+    return ProductChatResponse(
+        answer="Je suis désolé, le service IA n'est pas disponible. Veuillez réessayer plus tard.",
+        from_llm=False,
+        model=model,
+        latency_ms=int((time.time() - t0) * 1000),
+    )

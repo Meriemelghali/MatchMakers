@@ -7,6 +7,8 @@ import { ProductFormComponent } from './product-form/product-form.component';
 import { ProductOrderComponent } from './product-order/product-order.component';
 import { ProductOrderHistoryComponent } from './product-order-history/product-order-history.component';
 import { ProductPaymentComponent } from './product-payment/product-payment.component';
+import { ProductChatbotComponent } from './product-chatbot/product-chatbot.component';
+import { ProductStatsComponent } from './product-stats/product-stats.component';
 
 
 @NgModule({
@@ -15,7 +17,9 @@ import { ProductPaymentComponent } from './product-payment/product-payment.compo
     ProductFormComponent,
     ProductOrderComponent,
     ProductOrderHistoryComponent,
-    ProductPaymentComponent
+    ProductPaymentComponent,
+    ProductChatbotComponent,
+    ProductStatsComponent
   ],
   imports: [
     CommonModule,

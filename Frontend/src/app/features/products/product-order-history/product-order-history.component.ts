@@ -13,6 +13,9 @@ export class ProductOrderHistoryComponent implements OnInit {
   loading = false;
   error = '';
   OrderStatus = OrderStatus;
+  showCancelModal = false;
+  orderToCancel: string | null = null;
+  cancelling = false;
 
   constructor(private orderService: OrderService, private router: Router) {}
 
@@ -25,11 +28,43 @@ export class ProductOrderHistoryComponent implements OnInit {
     });
   }
 
-  cancel(id: string) {
-    if (!confirm('Annuler cette commande ?')) return;
-    this.orderService.cancelOrder(id).subscribe({
-      next: () => this.ngOnInit(),
-      error: () => alert('Erreur lors de l\'annulation')
+  openCancelModal(id: string, e: Event) {
+    e.stopPropagation();
+    this.orderToCancel = id;
+    this.showCancelModal = true;
+  }
+
+  closeCancelModal() {
+    this.showCancelModal = false;
+    this.orderToCancel = null;
+  }
+
+  confirmCancel() {
+    if (!this.orderToCancel) return;
+    
+    // Fermer immédiatement le modal et désactiver le bouton
+    this.cancelling = true;
+    const idToCancel = this.orderToCancel;
+    this.showCancelModal = false;
+    this.orderToCancel = null;
+    
+    // Mettre à jour le statut localement
+    const order = this.orders.find(o => o.id === idToCancel);
+    if (order) {
+      order.status = OrderStatus.CANCELLED;
+    }
+    
+    // Appeler le service pour annuler au backend
+    this.orderService.cancelOrder(idToCancel).subscribe({
+      next: () => {
+        this.cancelling = false;
+      },
+      error: () => {
+        this.cancelling = false;
+        this.error = 'Erreur lors de l\'annulation de la commande';
+        // Restaurer le statut en cas d'erreur
+        this.ngOnInit();
+      }
     });
   }
 
