@@ -13,4 +13,6 @@ public class Verify2FaRequest {
 
     @NotBlank(message = "Le code est obligatoire")
     private String code;
+
+    private String type; // Opt: "EMAIL" or "AUTH_APP"
 }

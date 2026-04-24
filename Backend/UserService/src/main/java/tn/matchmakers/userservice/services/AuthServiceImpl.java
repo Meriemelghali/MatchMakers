@@ -28,7 +28,6 @@ import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.qr.QrData;
 import dev.samstevens.totp.qr.ZxingPngQrGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
-import dev.samstevens.totp.code.DefaultCodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.HashingAlgorithm;
 import dev.samstevens.totp.util.Utils;
@@ -209,13 +208,14 @@ public class AuthServiceImpl implements AuthService {
         } else if (request.getType().equals("AUTH_APP")) {
             user.setTwoFactorType(TwoFactorType.AUTH_APP);
             
-            String secret = user.getTotpSecret();
-            if (secret == null) {
-                dev.samstevens.totp.secret.SecretGenerator tempSecretGenerator = new DefaultSecretGenerator();
-                secret = tempSecretGenerator.generate();
-                user.setTotpSecret(secret);
-                userRepository.save(user);
-            }
+            // On génère toujours un nouveau secret pour forcer la resynchronisation
+            // lors de la configuration du QR Code.
+            dev.samstevens.totp.secret.SecretGenerator tempSecretGenerator = new DefaultSecretGenerator();
+            String secret = tempSecretGenerator.generate();
+            user.setTotpSecret(secret);
+            userRepository.save(user);
+
+            log.info("New TOTP Secret generated for user: {}", user.getEmail());
 
             QrData data = new QrData.Builder()
                 .label(user.getEmail())
@@ -251,9 +251,16 @@ public class AuthServiceImpl implements AuthService {
         validatePasswordForRequest(request.getPassword(), user);
 
         boolean isValid = false;
+        
+        // On utilise le type envoyé (AUTH_APP ou EMAIL) ou celui de la DB par défaut
+        String activeType = (request.getType() != null) ? request.getType() : user.getTwoFactorType().name();
+        
+        log.info("Verifying 2FA for user: {} | Request Type: {} | DB Type: {} | Final Type: {}", 
+                user.getEmail(), request.getType(), user.getTwoFactorType(), activeType);
 
-        if (user.getTwoFactorType() == TwoFactorType.EMAIL) {
+        if ("EMAIL".equals(activeType)) {
             if (user.getTwoFactorCode() == null || user.getTwoFactorCodeExpiry() == null || user.getTwoFactorCodeExpiry().isBefore(LocalDateTime.now())) {
+                log.warn("Email OTP expired or missing for user: {}", user.getEmail());
                 throw new BadCredentialsException("Code expiré ou manquant");
             }
             if (user.getTwoFactorCode().equals(request.getCode())) {
@@ -261,14 +268,26 @@ public class AuthServiceImpl implements AuthService {
                 user.setTwoFactorCode(null);
                 user.setTwoFactorCodeExpiry(null);
             }
-        } else if (user.getTwoFactorType() == TwoFactorType.AUTH_APP) {
+        } else if ("AUTH_APP".equals(activeType)) {
+            // Nettoyage du code : suppression des espaces et tirets éventuels
+            String cleanCode = request.getCode().replaceAll("\\s+", "").replace("-", "");
+            
+            log.info("Verifying TOTP for user: {} | Server Time: {} | Code Length: {}", 
+                    user.getEmail(), LocalDateTime.now(), cleanCode.length());
+            
             dev.samstevens.totp.time.TimeProvider timeProvider = new SystemTimeProvider();
             dev.samstevens.totp.code.CodeGenerator codeGenerator = new DefaultCodeGenerator();
-            dev.samstevens.totp.code.CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-            isValid = verifier.isValidCode(user.getTotpSecret(), request.getCode());
+            
+            dev.samstevens.totp.code.DefaultCodeVerifier verifier = new dev.samstevens.totp.code.DefaultCodeVerifier(codeGenerator, timeProvider);
+            // verifier.setAllowedTimePeriod(1); // Suspendu temporairement pour cause de conflit de version
+            
+            isValid = verifier.isValidCode(user.getTotpSecret(), cleanCode);
+            log.info("TOTP verification result for {} (Secret start: {}): {}", 
+                    user.getEmail(), (user.getTotpSecret() != null ? user.getTotpSecret().substring(0, 4) : "NULL"), isValid);
         }
 
         if (!isValid) {
+            log.warn("Invalid 2FA code attempt for user: {} (Expected Type: {})", user.getEmail(), activeType);
             throw new BadCredentialsException("Code 2FA invalide");
         }
 
