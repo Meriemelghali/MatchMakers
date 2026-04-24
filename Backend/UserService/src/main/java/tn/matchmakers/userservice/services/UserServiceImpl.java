@@ -19,12 +19,13 @@ import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
         // Lire le template HTML
         // Envoi mail HTML avec template
         try {
-            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/welcome-template.html"));
+            String htmlTemplate = StreamUtils.copyToString(new ClassPathResource("templates/welcome-template.html").getInputStream(), StandardCharsets.UTF_8);
             htmlTemplate = htmlTemplate
                     .replace("{{prenom}}", savedUser.getFirstName())
                     .replace("{{email}}", savedUser.getEmail());
@@ -206,7 +207,7 @@ public class UserServiceImpl implements UserService {
         log.info("Envoi de {} invitations par email...", interestedUsers.size());
 
         try {
-            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/event-invitation.html"));
+            String htmlTemplate = StreamUtils.copyToString(new ClassPathResource("templates/event-invitation.html").getInputStream(), StandardCharsets.UTF_8);
             
             // Préparer le contenu avec les détails de l'événement
             String customizedHtml = htmlTemplate

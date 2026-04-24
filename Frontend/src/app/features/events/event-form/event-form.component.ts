@@ -66,6 +66,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
   startMarker: L.Marker | null = null;
   endMarker: L.Marker | null = null;
   stopMarkers: L.Marker[] = [];
+  terrainMarkers: L.Marker[] = [];
   
   startLatLng: L.LatLng | null = null;
   endLatLng: L.LatLng | null = null;
@@ -84,6 +85,10 @@ export class EventFormComponent implements OnInit, OnDestroy {
     'Padel':      'PADEL',
     'Rugby':      'RUGBY',
     'Handball':   'HANDBALL',
+    'Cycling':    'CYCLING',
+    'Running':    'RUNNING',
+    'Ciclisme':   'CYCLING',
+    'Course':     'RUNNING',
   };
 
   formatOptions = [
@@ -115,6 +120,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.loadTerrains();  // ← NOUVEAU
     this.loadTeams();
     this.loadUsers();
+    this.setupMapListeners();
 
     // mode edit si URL contient un id
     this.eventId = this.route.snapshot.paramMap.get('id');
@@ -630,18 +636,19 @@ export class EventFormComponent implements OnInit, OnDestroy {
 
     // 2. Filter by Location (City/Ville)
     if (locationVal && locationVal.length > 2) {
-      const locFiltered = temps.filter(t => {
-        const ville = (t.ville || '').toLowerCase();
+      const removeAccents = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const locNormalized = removeAccents(locationVal).toLowerCase();
+      const locParts = locNormalized.split(',').map((p: string) => p.trim());
+      
+      temps = temps.filter(t => {
+        const ville = removeAccents(t.ville || '').toLowerCase();
         if (!ville) return false;
-        const locParts = locationVal.split(',').map((p: string) => p.trim().toLowerCase());
         return locParts.some((p: string) => p.includes(ville) || ville.includes(p));
       });
-      
-      // Permissive location: Only apply if results found
-      if (locFiltered.length > 0) temps = locFiltered;
     }
 
     this.filteredTerrains = temps;
+    this.updateTerrainMarkers();
 
     // Deselect if current terrain is no longer in the filtered list
     // But don't do this during initial edit mode load - we need to keep the original value
@@ -842,9 +849,9 @@ export class EventFormComponent implements OnInit, OnDestroy {
             setTimeout(() => this.initMap(), 100);
          } else {
             this.clearRoute();
-            if (this.map) {
-              this.map.remove();
-              this.map = null;
+            // Ensure map stays for terrain filtering even if not special route
+            if (!this.map) {
+               setTimeout(() => this.initMap(), 100);
             }
          }
          this.form.get('terrainId')?.updateValueAndValidity();
@@ -1060,7 +1067,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
         }
         this.isSearchingLocation = true;
         // Limit to 4 results, country=Tunisia
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1&email=contact@matchmakers.tn`;
         return this.http.get<any[]>(url).pipe(
           catchError(() => of([]))
         );
@@ -1068,6 +1075,21 @@ export class EventFormComponent implements OnInit, OnDestroy {
     ).subscribe((results: any[]) => {
       this.isSearchingLocation = false;
       this.locationSuggestions = results;
+
+      // Real-time Map Sync: Fly to first result while typing if no selection was made
+      if (results && results.length > 0) {
+        const first = results[0];
+        if (first.lat && first.lon) {
+          const lat = parseFloat(first.lat);
+          const lon = parseFloat(first.lon);
+          if (!this.map) {
+             this.initMap();
+             setTimeout(() => { if (this.map) this.map.flyTo([lat, lon], 12); }, 200);
+          } else {
+             this.map.flyTo([lat, lon], 12);
+          }
+        }
+      }
     });
   }
 
@@ -1081,14 +1103,46 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.filterTerrains(); // MAJ des terrains basés sur la sélection finalisée
     
     if (this.map && suggestion.lat && suggestion.lon) {
-      this.map.flyTo([suggestion.lat, suggestion.lon], 12);
+      this.map.flyTo([parseFloat(suggestion.lat), parseFloat(suggestion.lon)], 12);
     }
   }
 
   onLocationBlur(): void {
+    const val = this.form.get('location')?.value;
+    if (val && val.length > 2) {
+      if (this.locationSuggestions.length > 0) {
+        // Pick the first result that was found during typing
+        const first = this.locationSuggestions[0];
+        if (this.map && first.lat && first.lon) {
+          this.map.flyTo([parseFloat(first.lat), parseFloat(first.lon)], 12);
+        }
+      } else {
+        // No results were found yet, do a fresh search
+        this.searchAndFly(val);
+      }
+    }
+    this.filterTerrains();
     setTimeout(() => {
       this.locationSuggestions = [];
-    }, 250); // Timeout pour laisser le clic se faire sur la suggestion
+    }, 250); 
+  }
+
+  /**
+   * Performs an immediate search for a location and flys the map to the first result.
+   */
+  searchAndFly(query: string): void {
+    if (!query || query.length < 3) return;
+    
+    // Limits search to Tunisia
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=tn&format=json&limit=1&email=contact@matchmakers.tn`;
+    this.http.get<any[]>(url).subscribe(results => {
+      if (results && results.length > 0) {
+        const first = results[0];
+        if (this.map && first.lat && first.lon) {
+          this.map.flyTo([parseFloat(first.lat), parseFloat(first.lon)], 12);
+        }
+      }
+    });
   }
 
   // ==== START POINT GEOLOCATION ====
@@ -1105,7 +1159,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
           return of([]);
         }
         this.isSearchingStartPoint = true;
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1&email=contact@matchmakers.tn`;
         return this.http.get<any[]>(url).pipe(catchError(() => of([])));
       })
     ).subscribe((results: any[]) => {
@@ -1140,7 +1194,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
           return of([]);
         }
         this.isSearchingEndPoint = true;
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value.trim())}&countrycodes=tn&format=json&limit=4&addressdetails=1&email=contact@matchmakers.tn`;
         return this.http.get<any[]>(url).pipe(catchError(() => of([])));
       })
     ).subscribe((results: any[]) => {
@@ -1354,7 +1408,7 @@ export class EventFormComponent implements OnInit, OnDestroy {
   }
 
   reverseGeocode(lat: number, lng: number, controlName: string): void {
-     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`;
+     const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&email=contact@matchmakers.tn`;
      this.http.get<any>(url).subscribe(res => {
          let name = `${lat.toFixed(4)}, ${lng.toFixed(4)}`; 
          if (res && res.display_name) {
@@ -1418,8 +1472,45 @@ export class EventFormComponent implements OnInit, OnDestroy {
     this.totalRouteDistance = 0;
     this.mapMode = null;
     
-    this.distancesControl.clear();
     this.distancesControl.push(this.fb.control('', Validators.min(0)));
     this.form.patchValue({ startPoint: '', endPoint: '' });
+  }
+
+  updateTerrainMarkers(): void {
+    if (!this.map) return;
+    
+    // Clear old markers
+    this.terrainMarkers.forEach(m => this.map!.removeLayer(m));
+    this.terrainMarkers = [];
+
+    // Create custom icon for terrains
+    const terrainIcon = L.divIcon({
+      className: 'custom-terrain-marker',
+      html: `<div style="background:var(--accent); width:12px; height:12px; border-radius:50%; border:2px solid white; box-shadow:0 0 10px var(--accent);"></div>`,
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    });
+
+    this.filteredTerrains.forEach(terrain => {
+      if (terrain.latitude && terrain.longitude) {
+        const m = L.marker([terrain.latitude, terrain.longitude], { icon: terrainIcon })
+          .addTo(this.map!)
+          .bindPopup(`<b>${terrain.nom}</b><br>${terrain.ville}<br><button style="background:var(--accent); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer; margin-top:5px;" onclick="window.dispatchEvent(new CustomEvent('selectTerrain', {detail: '${terrain.id}'}))">Choisir ce terrain</button>`);
+        
+        this.terrainMarkers.push(m);
+      }
+    });
+  }
+
+  /** Listener for map-based terrain selection */
+  setupMapListeners(): void {
+    window.addEventListener('selectTerrain', (e: any) => {
+        const terrainId = e.detail;
+        if (terrainId) {
+            this.form.get('terrainId')?.setValue(terrainId);
+            this.successMsg = 'Terrain sélectionné via la carte !';
+            setTimeout(() => this.successMsg = '', 2000);
+        }
+    });
   }
 }
