@@ -16,7 +16,7 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
                 <div>
                     <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
-                        terrain?.typeSurface.replace('_', ' ') : '' }}</div>
+                        terrain?.typeSurface?.replace('_', ' ') : '' }}</div>
                     <h1 class="page-head-title" style="font-size: 36px; margin-bottom: 16px; letter-spacing: -0.03em;">
                         {{ terrain?.nom }}</h1>
                     <div class="flex items-center gap-10">

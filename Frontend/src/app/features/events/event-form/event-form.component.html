@@ -171,6 +171,7 @@
                     <input class="ef-input" formControlName="location"
                            placeholder="Ex: Hammamet, Tunisie" autocomplete="off"
                            (blur)="onLocationBlur()"
+                           (keydown.enter)="$event.preventDefault(); searchAndFly(form.get('location')?.value)"
                            [class.ef-input--err]="isFieldInvalid('location')"/>
                     
                     <div *ngIf="isSearchingLocation" class="ef-input-icon" style="right: 12px;">

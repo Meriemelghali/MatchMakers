@@ -17,6 +17,7 @@ $m2 = Join-Path $root ".m2"
 $tmp = Join-Path $root ".tmp"
 $pipCache = Join-Path $root ".pip-cache"
 New-Item -ItemType Directory -Force -Path $m2, $tmp, $pipCache | Out-Null
+$env:MAVEN_USER_HOME = $m2
 
 function Get-MavenCmd() {
   $dists = Join-Path $m2 "wrapper\\dists"
@@ -77,9 +78,9 @@ function Start-Svc([string]$name, [string]$dir) {
   "Starting $name ... log: $out" | Out-Host
   $mvn = Get-MavenCmd
   if ($mvn) {
-    $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; & `"$mvn`" -f pom.xml spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run"
   } else {
-    $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run"
   }
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
