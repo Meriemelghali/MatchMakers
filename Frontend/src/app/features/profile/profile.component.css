@@ -349,13 +349,21 @@ input:disabled {
 .close-btn {
   background: transparent;
   border: none;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text-2);
   cursor: pointer;
+  padding: 8px;
+  margin: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
 }
 
 .close-btn:hover {
   color: var(--red);
+  transform: scale(1.1);
 }
 
 .avatar-iframe {

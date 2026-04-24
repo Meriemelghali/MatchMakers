@@ -213,7 +213,7 @@
     <div class="avatar-modal" [class.wide-modal]="!isCustomMode">
       <div class="avatar-modal-header">
         <h3>{{ isCustomMode ? "Éditeur d'Avatar Custom" : "Suggestions pour " + (userProfile?.favoriteSports?.[0] || 'vous') }}</h3>
-        <button class="close-btn" (click)="closeAvatarCreator()"><i class="fas fa-times"></i></button>
+        <button type="button" class="close-btn" (click)="closeAvatarCreator($event)"><i class="fas fa-times"></i></button>
       </div>
       
       <!-- SUGGESTIONS MODE -->
@@ -223,7 +223,7 @@
           <div class="suggestion-card" *ngFor="let suggestion of suggestedAvatars" (click)="selectAvatar(suggestion.url)">
             <div class="suggestion-preview">
               <model-viewer
-                [src]="getSafeUrl(suggestion.url)"
+                [src]="suggestion.safeUrl"
                 auto-rotate
                 camera-controls
                 touch-action="pan-y"

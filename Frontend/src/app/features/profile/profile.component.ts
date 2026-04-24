@@ -13,6 +13,7 @@ export interface AvatarSuggestion {
   id: string;
   name: string;
   url: string;
+  safeUrl: SafeResourceUrl; // Pré-calculé pour la performance
   previewUrl?: string;
   sportCategory: string;
 }
@@ -228,7 +229,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.generateAvatarSuggestions();
   }
 
-  closeAvatarCreator() {
+  closeAvatarCreator(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    console.log('Modal closing requested');
     this.showAvatarCreator = false;
   }
 
@@ -251,7 +257,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return {
         id: (index + 1).toString(),
         name: `${sportName}`,
-        url: url, // On garde l'URL brute pour l'ID/Logique
+        url: url,
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(url),
         sportCategory: sportName
       };
     });
