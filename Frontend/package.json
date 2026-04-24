@@ -24,6 +24,7 @@
     "@types/three": "^0.183.1",
     "chart.js": "^4.5.1",
     "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12",
     "rxjs": "~7.8.0",
     "three": "^0.160.1",
     "tslib": "^2.3.0",

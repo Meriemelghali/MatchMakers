@@ -73,7 +73,7 @@
                                     <label class="field-label">Type de surface *</label>
                                     <select class="field-input" formControlName="typeSurface">
                                         <option value="">— Sélectionner —</option>
-                                        <option *ngFor="let s of surfaces" [value]="s">{{ s.replace('_', ' ') }}
+                                        <option *ngFor="let s of surfaces" [value]="s">{{ s?.replace('_', ' ') }}
                                         </option>
                                     </select>
                                     <div class="field-error"
@@ -294,7 +294,7 @@
                                     <div class="flex items-center justify-between">
                                         <div class="tc-sport-badge">{{ form.value.typeSport || 'SPORT' }}</div>
                                         <span class="t-muted" style="font-size:11.5px">{{ form.value.typeSurface ?
-                                            form.value.typeSurface.replace('_', ' ') : 'Surface' }}</span>
+                                            form.value.typeSurface?.replace('_', ' ') : 'Surface' }}</span>
                                     </div>
                                 </div>
                                 <div class="tc-footer" style="padding: 12px 16px;">

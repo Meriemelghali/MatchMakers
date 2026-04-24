@@ -190,6 +190,15 @@ public class MatchServiceImpl implements MatchService {
         return toDTO(matchRepository.save(match));
     }
 
+    @Override
+    public List<MatchDTO> obtenirHistoriqueEquipes(String eq1, String eq2) {
+        return matchRepository.findByEquipe1InOrEquipe2In(eq1, eq2)
+                .stream()
+                .map(this::toDTO)
+                .sorted(Comparator.comparing(MatchDTO::getDateDebut).reversed())
+                .collect(Collectors.toList());
+    }
+
     // ---- PRIVATE HELPERS -----------------------------------------------------
 
     private Match trouverMatch(String id) {

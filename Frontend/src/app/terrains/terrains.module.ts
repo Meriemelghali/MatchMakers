@@ -10,8 +10,10 @@ import { TerrainDetailComponent } from './terrain-detail/terrain-detail.componen
 import { ReservationsListComponent } from './reservations-list/reservations-list.component';
 import { TerrainViewerComponent } from './terrain-viewer/terrain-viewer.component';
 
+import { RouterModule } from '@angular/router';
+
 @NgModule({
     declarations: [TerrainListComponent, TerrainFormComponent, TerrainDetailComponent, ReservationsListComponent, TerrainViewerComponent],
-    imports: [CommonModule, TerrainsRoutingModule, ReactiveFormsModule, FormsModule, SharedModule, GoogleMapsModule]
+    imports: [CommonModule, TerrainsRoutingModule, ReactiveFormsModule, FormsModule, SharedModule, GoogleMapsModule, RouterModule]
 })
 export class TerrainsModule { }
