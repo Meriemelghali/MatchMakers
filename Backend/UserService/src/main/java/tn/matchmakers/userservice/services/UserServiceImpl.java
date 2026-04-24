@@ -19,12 +19,13 @@ import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.StreamUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +75,7 @@ public class UserServiceImpl implements UserService {
         // Lire le template HTML
         // Envoi mail HTML avec template
         try {
-            String htmlTemplate = Files.readString(Paths.get("src/main/resources/templates/welcome-template.html"));
+            String htmlTemplate = StreamUtils.copyToString(new ClassPathResource("templates/welcome-template.html").getInputStream(), StandardCharsets.UTF_8);
             htmlTemplate = htmlTemplate
                     .replace("{{prenom}}", savedUser.getFirstName())
                     .replace("{{email}}", savedUser.getEmail());
@@ -184,4 +185,52 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public void notifyUsersForNewEvent(tn.matchmakers.userservice.dto.EventNotificationDto dto) {
+        log.info("Notification des utilisateurs pour l'événement: {} (Sport: {})", dto.getTitle(), dto.getSportName());
+
+        // We fetch all users and filter in Java to ensure case-insensitive matching in the favoriteSports list
+        String targetSport = dto.getSportName().trim().toLowerCase();
+        List<User> allUsers = userRepository.findAll();
+        
+        List<User> interestedUsers = allUsers.stream()
+                .filter(u -> u.getFavoriteSports() != null && 
+                             u.getFavoriteSports().stream()
+                                     .anyMatch(s -> s.trim().toLowerCase().equals(targetSport)))
+                .collect(Collectors.toList());
+        
+        if (interestedUsers.isEmpty()) {
+            log.info("Aucun utilisateur intéressé par le sport (insensible à la casse): {}", dto.getSportName());
+            return;
+        }
+
+        log.info("Envoi de {} invitations par email...", interestedUsers.size());
+
+        try {
+            String htmlTemplate = StreamUtils.copyToString(new ClassPathResource("templates/event-invitation.html").getInputStream(), StandardCharsets.UTF_8);
+            
+            // Préparer le contenu avec les détails de l'événement
+            String customizedHtml = htmlTemplate
+                    .replace("{{sportName}}", dto.getSportName())
+                    .replace("{{title}}", dto.getTitle())
+                    .replace("{{description}}", dto.getDescription())
+                    .replace("{{location}}", dto.getLocation())
+                    .replace("{{startDate}}", dto.getStartDate().toString())
+                    .replace("{{endDate}}", dto.getEndDate().toString());
+
+            for (User user : interestedUsers) {
+                try {
+                    emailService.sendHtmlEmail(
+                            user.getEmail(),
+                            "Invitation MatchMakers : " + dto.getTitle() + " (" + dto.getSportName() + ")",
+                            customizedHtml
+                    );
+                } catch (jakarta.mail.MessagingException e) {
+                    log.error("Échec de l'envoi de l'invitation à {}: {}", user.getEmail(), e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            log.error("Erreur technique lors du chargement du template d'invitation", e);
+        }
+    }
 }

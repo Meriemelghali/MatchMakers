@@ -229,8 +229,8 @@ export class TerrainViewerComponent implements AfterViewInit, OnChanges, OnDestr
 
         // Remove all tagged objects, keep fixed lights
         this.scene.children
-            .filter(o => o.userData['t'])
-            .forEach(o => {
+            .filter((o: THREE.Object3D) => o.userData['t'])
+            .forEach((o: THREE.Object3D) => {
                 if ((o as THREE.Mesh).geometry) (o as THREE.Mesh).geometry.dispose();
                 this.scene.remove(o);
             });

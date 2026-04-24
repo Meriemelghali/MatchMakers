@@ -51,4 +51,10 @@ public class UserController {
         userService.changePassword(userId, changePasswordDto);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/notify-new-event")
+    public ResponseEntity<Void> notifyNewEvent(@RequestBody tn.matchmakers.userservice.dto.EventNotificationDto dto) {
+        userService.notifyUsersForNewEvent(dto);
+        return ResponseEntity.ok().build();
+    }
 }
