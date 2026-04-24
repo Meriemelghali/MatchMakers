@@ -5,10 +5,10 @@
   <title>Match Makers</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://ajax.googleapis.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https: https://maps.gstatic.com https://maps.googleapis.com; connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* https://readyplayer.me https://*.readyplayer.me https://maps.googleapis.com https://ajax.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com https://nominatim.openstreetmap.org https://router.project-osrm.org; frame-src https://readyplayer.me https://*.readyplayer.me; font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:; connect-src * ws: wss:; frame-src *;">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuD_zEdvGI047WEHffGMQ6Am7Dfj1b9rM&libraries=places"></script>
 </head>
 <body>
