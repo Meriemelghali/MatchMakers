@@ -1,0 +1,129 @@
+<div class="dashboard-page">
+  <div class="page-head">
+    <div class="page-head-meta">
+      <div class="page-head-eyebrow">
+        <i class="fas fa-shield-alt"></i> Administration Sécurisée
+      </div>
+      <h1 class="page-head-title">Dashboard Réclamations & IA</h1>
+      <p class="page-head-sub">Surveillance en temps réel des incidents et médiation automatique par IA.</p>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <!-- Colonne Principale : Réclamations Urgentes -->
+    <div class="main-column">
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <i class="fas fa-exclamation-triangle t-orange"></i> Plaintes nécessitant action
+          </div>
+          <span class="badge badge-annule">
+            <span class="pulse"></span> {{ urgentes.length }} URGENCES
+          </span>
+        </div>
+
+        <div *ngIf="loading" class="loader">
+          <div class="spinner"></div>
+        </div>
+
+        <div *ngIf="!loading && urgentes.length === 0" class="empty">
+          <div class="empty-icon">
+            <i class="fas fa-check-circle fa-4x"></i>
+          </div>
+          <div class="empty-title">Tout est en ordre</div>
+          <p class="empty-body">Aucune plainte urgente n'est en attente de traitement.</p>
+        </div>
+
+        <div *ngIf="!loading && urgentes.length > 0" class="reclamation-list">
+          <div *ngFor="let rec of urgentes" class="reclamation-card">
+            <div class="reclamation-header">
+              <div class="reclamation-info">
+                <h3 class="reclamation-title">{{ rec.title }}</h3>
+                <div class="flex gap-8 mt-8">
+                  <span class="tag">
+                    <i class="fas fa-tag"></i> {{ rec.type }}
+                  </span>
+                  <span class="badge" [ngClass]="rec.status === 'ALERTE_ADMIN' ? 'badge-occupe' : 'badge-annule'">
+                    <i class="fas" [ngClass]="rec.status === 'ALERTE_ADMIN' ? 'fa-user-slash' : 'fa-clock'"></i>
+                    {{ rec.status === 'ALERTE_ADMIN' ? 'JOUEUR TOXIQUE' : 'PRIORITÉ HAUTE' }}
+                  </span>
+                </div>
+              </div>
+              <button (click)="resolveReclamation(rec.id)" class="btn btn-success btn-sm">
+                <i class="fas fa-check"></i> Résoudre
+              </button>
+            </div>
+
+            <p class="reclamation-desc">{{ rec.description }}</p>
+
+            <div class="reclamation-meta info-grid mt-16">
+              <span class="info-key"><i class="fas fa-user"></i> Plaignant</span>
+              <span class="info-val fw-600">{{ rec.userId }}</span>
+              
+              <span class="info-key" *ngIf="rec.targetUserId"><i class="fas fa-bullseye"></i> Cible</span>
+              <span class="info-val text-danger fw-700" *ngIf="rec.targetUserId">{{ rec.targetUserId }}</span>
+              
+              <span class="info-key"><i class="fas fa-gamepad"></i> Match ID</span>
+              <span class="info-val t-mono">{{ rec.matchId || 'N/A' }}</span>
+              
+              <span class="info-key"><i class="fas fa-calendar-alt"></i> Signalé le</span>
+              <span class="info-val">{{ rec.createdAt | date:'medium' }}</span>
+            </div>
+            
+            <div class="ai-response-box mt-20">
+              <div class="ai-label">
+                <i class="fas fa-robot"></i> Médiation IA effectuée
+              </div>
+              <p class="ai-content">{{ rec.aiResponse }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne Latérale : Recherche Sanctions -->
+    <div class="side-column">
+      <div class="card">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <i class="fas fa-gavel t-orange"></i> Casier Judiciaire
+          </div>
+        </div>
+        
+        <div class="search-form mt-20">
+          <div class="field">
+            <label class="field-label">Rechercher un joueur</label>
+            <div class="flex gap-8">
+              <input type="text" [(ngModel)]="searchUserName" placeholder="Nom & Prénom..." class="field-input">
+              <button (click)="searchSanctions()" class="btn btn-primary btn-sq">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedUserSanctions.length === 0" class="empty mt-20">
+          <p class="empty-body">Saisissez un nom pour consulter l'historique des sanctions.</p>
+        </div>
+
+        <div *ngIf="selectedUserSanctions.length > 0" class="sanction-history mt-24">
+          <h4 class="t-label mb-16">Sanctions pour {{ searchUserName }}</h4>
+          <div class="sf-list">
+            <div *ngFor="let sanction of selectedUserSanctions" class="sf-row">
+              <div class="sf-match">
+                <div class="sf-team">
+                  <span class="sf-team-name fw-700 t-orange">
+                    <i class="fas fa-ban"></i> {{ sanction.typeSanction }}
+                  </span>
+                  <span class="t-muted t-mono">{{ sanction.createdAt | date:'dd/MM/yy' }}</span>
+                </div>
+                <p class="t-body mt-8">{{ sanction.motif }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

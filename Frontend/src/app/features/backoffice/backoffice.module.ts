@@ -7,6 +7,9 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { EventTypeManagementComponent } from './event-type-management/event-type-management.component';
 import { RoleListComponent } from './roles/role-list/role-list.component';
 import { RoleFormComponent } from './roles/role-form/role-form.component';
+import { SportListComponent } from './sports/sport-list/sport-list.component';
+import { SportFormComponent } from './sports/sport-form/sport-form.component';
+import { AdminReclamationsComponent } from './reclamations/admin-reclamations.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +17,10 @@ import { RoleFormComponent } from './roles/role-form/role-form.component';
     DashboardComponent,
     EventTypeManagementComponent,
     RoleListComponent,
-    RoleFormComponent
+    RoleFormComponent,
+    SportListComponent,
+    SportFormComponent,
+    AdminReclamationsComponent
   ],
   imports: [
     CommonModule,

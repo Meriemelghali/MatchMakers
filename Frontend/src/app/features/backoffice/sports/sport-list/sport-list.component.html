@@ -1,0 +1,118 @@
+<div class="user-list-container">
+  <div class="list-header">
+    <div class="header-main">
+      <h1>Gestion des Sports</h1>
+      <p class="subtitle">Créez et gérez les sports disponibles sur la plateforme</p>
+    </div>
+    <div class="stats-mini">
+      <span class="count">{{ filteredSports.length }}</span>
+      <span class="label">Sports</span>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-actions">
+      <div class="left-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" 
+                 [(ngModel)]="searchText" 
+                 (input)="onSearch()" 
+                 placeholder="Rechercher par nom de sport...">
+        </div>
+      </div>
+      <div class="right-actions">
+        <button class="btn-refresh" (click)="loadSports()" [disabled]="isLoading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i> Actualiser
+        </button>
+        <button class="btn-primary" (click)="addSport()">
+          <i class="fas fa-plus"></i> Nouveau Sport
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th>NOM DU SPORT</th>
+            <th>MIN JOUEURS</th>
+            <th>MAX JOUEURS</th>
+            <th>CATÉGORIES</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoading">
+            <td colspan="5" class="loading-state">
+              <div class="loader-container">
+                <div class="modern-spinner"></div>
+                <span class="loader-text">Récupération des sports...</span>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="!isLoading && filteredSports.length === 0">
+            <td colspan="5" class="empty-state">
+              Aucun sport trouvé.
+            </td>
+          </tr>
+          <ng-container *ngFor="let sport of filteredSports">
+            <tr [class.expanded-row]="expandedSportId === sport.id">
+              <td>
+                <div class="role-name-cell" (click)="toggleCategories(sport.id)" style="cursor: pointer;">
+                  <span class="role-badge" 
+                        [style.backgroundColor]="(sport.color || '#E8500A') + '15'" 
+                        [style.color]="sport.color || '#E8500A'"
+                        [style.borderColor]="sport.color || '#E8500A'"
+                        style="border: 1px solid; border-radius: 8px; padding: 4px 10px; font-weight: 800; text-transform: uppercase;">
+                    {{ sport.nameSport }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="description-text">{{ sport.minPlayers }}</span>
+              </td>
+              <td>
+                <span class="description-text">{{ sport.maxPlayers }}</span>
+              </td>
+              <td>
+                <div class="permissions-count" (click)="toggleCategories(sport.id)" style="cursor: pointer;">
+                  <span class="badge-count" [class.active]="expandedSportId === sport.id">
+                    {{ sport.sportCategories?.length || 0 }} catégories
+                    <i class="fas" [class.fa-chevron-down]="expandedSportId !== sport.id" [class.fa-chevron-up]="expandedSportId === sport.id"></i>
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-action edit" (click)="editSport(sport.id!)" title="Modifier">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="btn-action delete" (click)="deleteSport(sport.id!)" title="Supprimer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- Expanded Categories Row -->
+            <tr *ngIf="expandedSportId === sport.id" class="categories-detail-row">
+              <td colspan="5">
+                <div class="categories-expanded-container" [@expandAnimation]>
+                  <div class="categories-list">
+                    <div *ngFor="let cat of sport.sportCategories" class="category-chip">
+                      <i class="fas fa-tag"></i>
+                      {{ cat.nameSportC }}
+                    </div>
+                    <div *ngIf="!sport.sportCategories || sport.sportCategories.length === 0" class="no-categories">
+                      Aucune catégorie associée à ce sport.
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

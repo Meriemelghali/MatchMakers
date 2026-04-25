@@ -23,6 +23,10 @@ public class UserMapper {
                 .bio(user.getBio())
                 .favoriteSports(user.getFavoriteSports())
                 .classId(user.getClassId())
+                .fitnessLevel(user.getFitnessLevel())
+                .fitnessGoals(user.getFitnessGoals())
+                .weight(user.getWeight())
+                .height(user.getHeight())
                 .theme(user.getTheme())
                 .build();
     }

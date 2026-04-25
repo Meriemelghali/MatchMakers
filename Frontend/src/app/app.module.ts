@@ -18,6 +18,8 @@ import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffic
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AiChatbotComponent } from './layouts/ai-chatbot/ai-chatbot.component';
+import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     AdminChoiceComponent,
     BackofficeLayoutComponent,
     RoleSelectionComponent,
-    ProfileComponent
+    ProfileComponent,
+    AiChatbotComponent,
+    CoachDashboardComponent
   ],
   
   imports: [
