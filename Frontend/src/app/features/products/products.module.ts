@@ -9,6 +9,10 @@ import { ProductOrderHistoryComponent } from './product-order-history/product-or
 import { ProductPaymentComponent } from './product-payment/product-payment.component';
 import { ProductChatbotComponent } from './product-chatbot/product-chatbot.component';
 import { ProductStatsComponent } from './product-stats/product-stats.component';
+import { ProductAdminComponent } from './product-admin/product-admin.component';
+import { ProductDetailComponent } from './product-detail/product-detail.component';
+import { StarRatingComponent } from './components/star-rating/star-rating.component';
+import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 
 
 @NgModule({
@@ -19,7 +23,11 @@ import { ProductStatsComponent } from './product-stats/product-stats.component';
     ProductOrderHistoryComponent,
     ProductPaymentComponent,
     ProductChatbotComponent,
-    ProductStatsComponent
+    ProductStatsComponent,
+    ProductAdminComponent,
+    ProductDetailComponent,
+    StarRatingComponent,
+    AdminOrdersComponent
   ],
   imports: [
     CommonModule,

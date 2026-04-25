@@ -9,7 +9,6 @@ import tn.matchmakers.productservice.repository.OrderRepository;
 import tn.matchmakers.productservice.repository.ProductRepository;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,60 +18,47 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final EmailNotificationService emailNotificationService;
-    private final CurrentUserService currentUserService;
-
-    private static final double DELIVERY_FEE = 7.0;
 
     @Override
     public OrderResponseDTO createOrder(OrderRequestDTO request) {
-        // ✅ Récupération automatique depuis le token
-        String userEmail    = currentUserService.getCurrentUserEmail();
-        String userFullName = currentUserService.getCurrentUserFullName();
-        String userId       = currentUserService.getCurrentUserId();
 
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
+                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        if (product.getStock() < request.getQuantity())
-            throw new RuntimeException("Stock insuffisant");
+        if (request.getPaymentMethod() == PaymentMethod.CARD) {
+    if (product.getStock() < request.getQuantity()) {
+        throw new RuntimeException("Insufficient stock");
+    }
+
+    product.setStock(product.getStock() - request.getQuantity());
+    productRepository.save(product);
+}
 
         double totalPrice;
-        long durationHours = 0;
-        double deliveryFee = 0;
 
         if (request.getOrderType() == OrderType.RENTAL) {
-            if (request.getStartDateTime() == null || request.getEndDateTime() == null)
-                throw new RuntimeException("Dates obligatoires pour une location");
+            long hours = java.time.Duration.between(
+                    request.getStartDateTime(),
+                    request.getEndDateTime()
+            ).toHours();
 
-            durationHours = ChronoUnit.HOURS.between(
-                    request.getStartDateTime(), request.getEndDateTime()
-            );
-            if (durationHours <= 0)
-                throw new RuntimeException("Durée minimum 1 heure");
-
-            totalPrice = product.getRentalPricePerHour() * durationHours * request.getQuantity();
+            totalPrice = product.getRentalPricePerHour() * request.getQuantity() * hours;
         } else {
-            deliveryFee = DELIVERY_FEE;
-            totalPrice  = (product.getPrice() * request.getQuantity()) + deliveryFee;
+            totalPrice = product.getPrice() * request.getQuantity();
         }
 
-        product.setStock(product.getStock() - request.getQuantity());
-        product.setAvailable(product.getStock() > 0);
-        productRepository.save(product);
-
-        Order newOrder = Order.builder()
-                .userId(userId)
-                .productId(request.getProductId())
+        Order order = Order.builder()
+                .userId(request.getUserId())
+                .productId(product.getId())
                 .productName(product.getName())
                 .quantity(request.getQuantity())
-                .totalPrice(totalPrice)
-                .deliveryFee(deliveryFee)
                 .orderType(request.getOrderType())
                 .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.PENDING)
+                .paymentMethod(request.getPaymentMethod())
+                .totalPrice(totalPrice)
                 .startDateTime(request.getStartDateTime())
                 .endDateTime(request.getEndDateTime())
-                .durationHours(durationHours)
                 .deliveryName(request.getDeliveryName())
                 .deliveryPhone(request.getDeliveryPhone())
                 .deliveryAddress(request.getDeliveryAddress())
@@ -81,87 +67,100 @@ public class OrderServiceImpl implements OrderService {
                 .pickupNote(request.getPickupNote())
                 .pickupDateTime(request.getPickupDateTime())
                 .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .build();
 
-        Order saved = orderRepository.save(newOrder);
-        OrderResponseDTO response = toDTO(saved);
-
-        // 📧 Email automatique à l'adresse du user connecté
-        emailNotificationService.sendOrderConfirmation(userEmail, userFullName, response);
-
-        return response;
+        return mapToResponse(orderRepository.save(order));
     }
 
+    // ===================== CONFIRM DELIVERY =====================
     @Override
-    public List<OrderResponseDTO> getOrdersByUser(String userId) {
-        return orderRepository.findByUserId(userId)
-                .stream().map(this::toDTO).collect(Collectors.toList());
+public OrderResponseDTO confirmDelivery(String id) {
+
+    Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Order not found"));
+
+    // 🔥 Si CASH → diminuer stock ici
+    if (order.getPaymentMethod() == PaymentMethod.CASH) {
+
+        Product product = productRepository.findById(order.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (product.getStock() < order.getQuantity()) {
+            throw new RuntimeException("Insufficient stock at confirmation");
+        }
+
+        product.setStock(product.getStock() - order.getQuantity());
+        productRepository.save(product);
     }
 
+    // Mise à jour commande
+    order.setStatus(OrderStatus.DELIVERED);
+    order.setPaymentStatus(PaymentStatus.PAID);
+
+    return mapToResponse(orderRepository.save(order));
+}
+
+    // ===================== CANCEL =====================
+    @Override
+    public OrderResponseDTO cancelOrder(String id) {
+
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setPaymentStatus(PaymentStatus.FAILED);
+
+        return mapToResponse(orderRepository.save(order));
+    }
+
+    // ===================== GET =====================
     @Override
     public List<OrderResponseDTO> getAllOrders() {
         return orderRepository.findAll()
-                .stream().map(this::toDTO).collect(Collectors.toList());
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     public OrderResponseDTO getOrderById(String id) {
         return orderRepository.findById(id)
-                .map(this::toDTO)
-                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + id));
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
     @Override
-    public OrderResponseDTO cancelOrder(String id) {
-        Order existingOrder = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Commande introuvable : " + id));
-
-        if (existingOrder.getStatus() == OrderStatus.CANCELLED)
-            throw new RuntimeException("Commande déjà annulée");
-
-        productRepository.findById(existingOrder.getProductId()).ifPresent(p -> {
-            p.setStock(p.getStock() + existingOrder.getQuantity());
-            p.setAvailable(true);
-            productRepository.save(p);
-        });
-
-        existingOrder.setStatus(OrderStatus.CANCELLED);
-        existingOrder.setUpdatedAt(LocalDateTime.now());
-        Order saved = orderRepository.save(existingOrder);
-        OrderResponseDTO response = toDTO(saved);
-
-        // ✅ Email annulation automatique
-        String userEmail    = currentUserService.getCurrentUserEmail();
-        String userFullName = currentUserService.getCurrentUserFullName();
-        emailNotificationService.sendOrderCancelled(userEmail, userFullName, response);
-
-        return response;
+    public List<OrderResponseDTO> getOrdersByUser(String userId) {
+        return orderRepository.findByUserId(userId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
-    private OrderResponseDTO toDTO(Order o) {
+    // ===================== MAPPER =====================
+    private OrderResponseDTO mapToResponse(Order order) {
         return OrderResponseDTO.builder()
-                .id(o.getId())
-                .userId(o.getUserId())
-                .productId(o.getProductId())
-                .productName(o.getProductName())
-                .quantity(o.getQuantity())
-                .totalPrice(o.getTotalPrice())
-                .deliveryFee(o.getDeliveryFee())
-                .orderType(o.getOrderType())
-                .status(o.getStatus())
-                .startDateTime(o.getStartDateTime())
-                .endDateTime(o.getEndDateTime())
-                .durationHours(o.getDurationHours())
-                .deliveryName(o.getDeliveryName())
-                .deliveryPhone(o.getDeliveryPhone())
-                .deliveryAddress(o.getDeliveryAddress())
-                .deliveryCity(o.getDeliveryCity())
-                .pickupLocation(o.getPickupLocation())
-                .pickupNote(o.getPickupNote())
-                .pickupDateTime(o.getPickupDateTime())
-                .createdAt(o.getCreatedAt())
-                .updatedAt(o.getUpdatedAt())
+                .id(order.getId())
+                .userId(order.getUserId())
+                .productId(order.getProductId())
+                .productName(order.getProductName())
+                .quantity(order.getQuantity())
+                .orderType(order.getOrderType())
+                .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .paymentMethod(order.getPaymentMethod())
+                .totalPrice(order.getTotalPrice())
+                .startDateTime(order.getStartDateTime())
+                .endDateTime(order.getEndDateTime())
+                .deliveryName(order.getDeliveryName())
+                .deliveryPhone(order.getDeliveryPhone())
+                .deliveryAddress(order.getDeliveryAddress())
+                .deliveryCity(order.getDeliveryCity())
+                .pickupLocation(order.getPickupLocation())
+                .pickupNote(order.getPickupNote())
+                .pickupDateTime(order.getPickupDateTime())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
                 .build();
     }
 }

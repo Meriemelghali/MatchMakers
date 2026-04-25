@@ -35,4 +35,10 @@ export class PaymentService {
   getStripe(): Promise<Stripe | null> {
     return this.stripePromise;
   }
+
+  confirmDelivery(orderId: string): Observable<PaymentResponse> {
+  return this.http.post<PaymentResponse>(
+    `${this.api}/confirm-delivery/${orderId}`, {}
+  );
+}
 }

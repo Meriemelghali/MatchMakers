@@ -169,3 +169,157 @@ async def products_chat(req: ProductChatRequest):
         model=model,
         latency_ms=int((time.time() - t0) * 1000),
     )
+
+# ───── RECOMMENDATION MODELS ─────
+from typing import List
+
+class ProductData(BaseModel):
+    id: str
+    name: str
+    sport: str
+    type: str           # SALE / RENTAL / BOTH
+    averageRating: float
+    totalReviews: int
+    totalOrders: int
+
+class RecommendRequest(BaseModel):
+    products: List[ProductData]
+    userSport: Optional[str] = None
+    excludeId: Optional[str] = None
+    topK: int = 6
+
+class SimilarRequest(BaseModel):
+    targetProduct: ProductData
+    candidates: List[ProductData]
+    topK: int = 4
+
+class ScoredProduct(BaseModel):
+    id: str
+    score: float
+    reason: str
+    
+    
+    # ───── SCORING LOGIC ─────
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+def _compute_scores(
+    products: List[ProductData],
+    user_sport: Optional[str] = None,
+    exclude_id: Optional[str] = None
+) -> List[ScoredProduct]:
+    """
+    Pondération :
+      40% rating moyen
+      40% nombre de commandes
+      20% bonus sport du user connecté
+    """
+    df = pd.DataFrame([p.dict() for p in products])
+    if exclude_id:
+        df = df[df["id"] != exclude_id]
+    if df.empty:
+        return []
+
+    scaler = MinMaxScaler()
+    df["rating_norm"] = scaler.fit_transform(df[["averageRating"]].fillna(0))
+    df["orders_norm"] = scaler.fit_transform(df[["totalOrders"]].fillna(0))
+
+    df["sport_bonus"] = 0.0
+    if user_sport:
+        df.loc[
+            df["sport"].str.lower() == user_sport.lower(),
+            "sport_bonus"
+        ] = 0.2
+
+    df["score"] = (
+        0.40 * df["rating_norm"] +
+        0.40 * df["orders_norm"] +
+        0.20 * df["sport_bonus"]
+    )
+    df = df.sort_values("score", ascending=False)
+
+    results = []
+    for _, row in df.iterrows():
+        if row["sport_bonus"] > 0 and row["score"] > 0.7:
+            reason = f"Parfait pour {user_sport}"
+        elif row["rating_norm"] >= row["orders_norm"]:
+            reason = f"★ {row['averageRating']:.1f} — top noté"
+        else:
+            reason = f"{int(row['totalOrders'])} commandes"
+
+        results.append(ScoredProduct(
+            id=row["id"],
+            score=round(float(row["score"]), 4),
+            reason=reason
+        ))
+    return results
+
+
+def _compute_similar(
+    target: ProductData,
+    candidates: List[ProductData]
+) -> List[ScoredProduct]:
+    """
+    Similarité :
+      50% même sport
+      20% même type
+      20% rating proche
+      10% commandes proches
+    """
+    results = []
+    for c in candidates:
+        if c.id == target.id:
+            continue
+
+        score = 0.0
+        reasons = []
+
+        if c.sport == target.sport:
+            score += 0.50
+            reasons.append(f"Même sport ({c.sport})")
+
+        if c.type == target.type:
+            score += 0.20
+            reasons.append("Même type")
+
+        rating_diff = abs(c.averageRating - target.averageRating)
+        score += max(0.0, 0.20 * (1 - rating_diff / 5))
+
+        orders_diff = abs(c.totalOrders - target.totalOrders)
+        score += max(0.0, 0.10 * (1 - min(orders_diff, 100) / 100))
+
+        results.append(ScoredProduct(
+            id=c.id,
+            score=round(score, 4),
+            reason=", ".join(reasons) if reasons else "Produit similaire"
+        ))
+
+    results.sort(key=lambda x: x.score, reverse=True)
+    return results
+
+
+# ───── RECOMMENDATION ENDPOINTS ─────
+
+@app.post("/recommend", response_model=List[ScoredProduct])
+def recommend(req: RecommendRequest):
+    """
+    Retourne les topK produits les mieux scorés.
+    Appelé par Spring Product Service → page liste produits.
+    """
+    scored = _compute_scores(
+        req.products,
+        user_sport=req.userSport,
+        exclude_id=req.excludeId
+    )
+    return scored[:req.topK]
+
+
+@app.post("/similar", response_model=List[ScoredProduct])
+def similar(req: SimilarRequest):
+    """
+    Retourne les produits les plus similaires au produit cible.
+    Appelé par Spring → page détail produit.
+    """
+    scored = _compute_similar(req.targetProduct, req.candidates)
+    return scored[:req.topK]
