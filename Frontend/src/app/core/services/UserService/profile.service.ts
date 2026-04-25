@@ -14,6 +14,10 @@ export interface UserProfile {
   theme?: 'LIGHT' | 'DARK' | 'SYSTEM';
   profilePictureUrl?: string;
   avatar3dUrl?: string;
+  fitnessLevel?: string;
+  fitnessGoals?: string[];
+  weight?: number;
+  height?: number;
   roles: string[];
 }
 

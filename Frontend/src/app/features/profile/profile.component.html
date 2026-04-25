@@ -39,12 +39,40 @@
       </div>
     </div>
 
+    <!-- AI Inspiration Banner -->
+    <div class="ai-inspiration-container" *ngIf="sportInspiration || isLoadingInspiration">
+      <div class="ai-banner" [class.loading]="isLoadingInspiration">
+        <div class="ai-icon">
+          <i class="fas fa-magic"></i>
+        </div>
+        <div class="ai-content">
+          <div class="ai-header">
+            <span class="ai-tag">IA MATCHMAKERS</span>
+            <span class="ai-title">Inspiration du jour</span>
+          </div>
+          <p class="ai-quote" *ngIf="!isLoadingInspiration">
+            "{{ sportInspiration?.quote }}"
+          </p>
+          <div class="ai-skeleton" *ngIf="isLoadingInspiration">
+            <div class="line"></div>
+            <div class="line short"></div>
+          </div>
+        </div>
+        <div class="ai-decoration">
+          <i class="fas fa-bolt"></i>
+        </div>
+      </div>
+    </div>
+
     <nav class="profile-nav">
       <button [class.active]="activeTab === 'general'" (click)="setTab('general')">
         <i class="fas fa-user-edit"></i> Informations
       </button>
       <button [class.active]="activeTab === 'security'" (click)="setTab('security')">
         <i class="fas fa-shield-alt"></i> Sécurité
+      </button>
+      <button [class.active]="activeTab === 'fitness'" (click)="setTab('fitness')">
+        <i class="fas fa-robot"></i> Profil Sportif
       </button>
       <button [class.active]="activeTab === 'activity'" (click)="setTab('activity')">
         <i class="fas fa-running"></i> Mes Activités
@@ -165,6 +193,55 @@
       </div>
     </div>
 
+    <!-- TAB: FITNESS -->
+    <div class="tab-pane" *ngSwitchCase="'fitness'">
+      <div class="card">
+        <div class="card-header">
+          <h2>Configuration du Coach IA</h2>
+          <p>Aidez votre coach virtuel à préparer vos entraînements.</p>
+        </div>
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Niveau Sportif</label>
+              <select formControlName="fitnessLevel" class="custom-select">
+                <option value="BEGINNER">Débutant</option>
+                <option value="INTERMEDIATE">Intermédiaire</option>
+                <option value="ADVANCED">Avancé</option>
+                <option value="PRO">Professionnel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Poids (kg)</label>
+              <input type="number" formControlName="weight" placeholder="Ex: 75">
+            </div>
+            <div class="form-group">
+              <label>Taille (cm)</label>
+              <input type="number" formControlName="height" placeholder="Ex: 180">
+            </div>
+            
+            <div class="form-group full-width">
+              <label>Objectifs</label>
+              <div class="goals-grid">
+                <button type="button" 
+                        *ngFor="let goal of availableGoals" 
+                        class="goal-item"
+                        [class.active]="isGoalSelected(goal)"
+                        (click)="toggleGoal(goal)">
+                  {{ goal }}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save" [disabled]="isSaving || profileForm.pristine">
+              <i class="fas fa-magic"></i> Optimiser mon profil Coach
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- TAB: ACTIVITY -->
     <div class="tab-pane" *ngSwitchCase="'activity'">
       <div class="activity-grid">
@@ -199,8 +276,32 @@
         <div class="activity-section">
           <h3><i class="fas fa-trophy"></i> Mes Événements ({{ myEvents.length }})</h3>
           <div class="activity-list">
-            <div class="empty-activity">
+            <div class="empty-activity" *ngIf="myEvents.length === 0">
               Inscrivez-vous à des tournois pour les voir ici !
+            </div>
+          </div>
+        </div>
+
+        <!-- Reclamations -->
+        <div class="activity-section">
+          <h3><i class="fas fa-exclamation-circle"></i> Mes Réclamations ({{ myReclamations.length }})</h3>
+          <div class="activity-list">
+            <div class="activity-item reclamation-item" *ngFor="let rec of myReclamations">
+              <div class="item-icon" [class.status-resolved]="rec.status === 'RESOLVED'">
+                <i class="fas" [class.fa-check-circle]="rec.status === 'RESOLVED'" [class.fa-clock]="rec.status !== 'RESOLVED'"></i>
+              </div>
+              <div class="item-info">
+                <div class="flex justify-between items-center w-full">
+                  <h4>{{ rec.title }}</h4>
+                  <span class="badge" [ngClass]="rec.status === 'RESOLVED' ? 'badge-en_cours' : 'badge-annule'">
+                    {{ rec.status === 'RESOLVED' ? 'Résolu' : 'En attente' }}
+                  </span>
+                </div>
+                <p class="t-muted text-xs mt-4">{{ rec.createdAt | date:'shortDate' }} • {{ rec.type }}</p>
+              </div>
+            </div>
+            <div class="empty-activity" *ngIf="myReclamations.length === 0">
+              Vous n'avez soumis aucune réclamation.
             </div>
           </div>
         </div>

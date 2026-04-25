@@ -46,6 +46,10 @@ public class SportService {
             existing.setSportCategories(updated.getSportCategories());
         }
 
+        if(updated.getColor() != null){
+            existing.setColor(updated.getColor());
+        }
+
         return sportRepository.save(existing);
     }
     public void delete(String id) {

@@ -11,6 +11,7 @@ import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.comp
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 
 
 const routes: Routes = [
@@ -42,6 +43,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/social/social.module').then(m => m.SocialModule)
       },
       {
+        path: 'reclamations',
+        loadChildren: () => import('./features/reclamations/reclamations.module').then(m => m.ReclamationsModule)
+      },
+      {
         path: 'reservations',
         loadChildren: () => import('./features/reservations/reservations.module').then(m => m.ReservationsModule)
       },
@@ -70,6 +75,10 @@ const routes: Routes = [
       {
         path: 'profile',
         component: ProfileComponent
+      },
+      {
+        path: 'coach',
+        component: CoachDashboardComponent
       },
       // autres routes privées ici
     ]

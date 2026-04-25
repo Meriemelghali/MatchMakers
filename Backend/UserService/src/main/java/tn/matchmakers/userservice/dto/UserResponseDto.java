@@ -26,5 +26,9 @@ public class UserResponseDto {
     private String avatar3dUrl;
     private Sex sex;
     private String classId;
+    private String fitnessLevel;
+    private List<String> fitnessGoals;
+    private Double weight;
+    private Double height;
     private tn.matchmakers.userservice.entities.enums.ThemePreference theme;
 }

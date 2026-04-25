@@ -29,6 +29,131 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+/* AI INSPIRATION BANNER */
+.ai-inspiration-container {
+  margin-bottom: 2rem;
+  perspective: 1000px;
+}
+
+.ai-banner {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 20, 20, 0.9) 100%);
+  border: 1px solid rgba(232, 80, 10, 0.2);
+  border-radius: 24px;
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-banner:hover {
+  transform: translateY(-5px);
+  border-color: rgba(232, 80, 10, 0.4);
+  box-shadow: 0 20px 45px rgba(232, 80, 10, 0.1);
+}
+
+.ai-icon {
+  width: 54px;
+  height: 54px;
+  background: rgba(232, 80, 10, 0.1);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #E8500A;
+  box-shadow: 0 8px 16px rgba(232, 80, 10, 0.1);
+}
+
+.ai-content {
+  flex: 1;
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ai-tag {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #E8500A;
+  background: rgba(232, 80, 10, 0.1);
+  padding: 4px 10px;
+  border-radius: 100px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ai-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+.ai-quote {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+  letter-spacing: -0.01em;
+}
+
+.ai-decoration {
+  font-size: 3rem;
+  color: #E8500A;
+  opacity: 0.05;
+  position: absolute;
+  right: -10px;
+  bottom: -10px;
+  transform: rotate(-15deg);
+}
+
+/* SKELETON LOADING */
+.ai-skeleton .line {
+  height: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-skeleton .line.short {
+  width: 60%;
+}
+
+.ai-skeleton .line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  animation: shimer 1.5s infinite;
+}
+
+@keyframes shimer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .profile-container {
   max-width: 1000px;
   margin: 0 auto;
@@ -687,4 +812,113 @@ input:disabled {
 .btn-text:hover {
   transform: scale(1.05);
   color: #63b3ed;
+}
+
+
+/* FITNESS TAB STYLES */
+.custom-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.5em;
+  padding-right: 3rem;
+}
+
+.goals-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.goal-item {
+  background: #f8f9fa;
+  border: 1px solid #e5e7eb;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.goal-item:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.goal-item.active {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* Reclamation Items in Activity */
+.reclamation-item {
+  border-left: 3px solid #64748b;
+  transition: all 0.3s ease;
+  background: #ffffff !important; /* Force white background for the item itself */
+  width: 100%;
+}
+
+.reclamation-item .item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.reclamation-item .item-info div.flex {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+.reclamation-item:hover {
+  border-left-color: #E8500A;
+  background: #fef2eb !important;
+}
+
+.reclamation-item h4 {
+  color: #111827 !important; /* Noir profond */
+  font-weight: 700 !important;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%; /* Empêche de coller au badge si le titre est long */
+}
+
+.reclamation-item p {
+  color: #6b7280 !important; /* Gris moyen pour les metas */
+  font-weight: 500;
+}
+
+.status-resolved {
+  background: rgba(16, 185, 129, 0.1) !important;
+  color: #10B981 !important;
+}
+
+.reclamation-item .badge {
+  padding: 6px 12px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  border-radius: 8px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 16px; /* Espace minimum garanti */
+  white-space: nowrap;
+}
+
+.reclamation-item .badge-annule {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+}
+
+.reclamation-item .badge-en_cours {
+  background: #dcfce7 !important;
+  color: #10b981 !important;
 }

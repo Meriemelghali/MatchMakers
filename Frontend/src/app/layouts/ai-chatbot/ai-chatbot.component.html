@@ -1,0 +1,45 @@
+<div class="chatbot-container" [class.open]="isOpen">
+    <!-- Bubble Button -->
+    <button class="chat-bubble" (click)="toggleChat()">
+      <i class="fas" [class.fa-comments]="!isOpen" [class.fa-times]="isOpen"></i>
+      <span class="pulse" *ngIf="!isOpen"></span>
+    </button>
+  
+    <!-- Chat Window -->
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="coach-avatar">
+          <img src="assets/img/coach-ai.png" alt="Coach AI" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3940/3940403.png'">
+          <span class="online-status"></span>
+        </div>
+        <div class="coach-info">
+          <h3>MatchCoach</h3>
+          <span>Assistant Sportif IA</span>
+        </div>
+      </div>
+  
+      <div class="chat-messages" #scrollMe>
+        <div *ngFor="let msg of messages" class="message" [class.user]="msg.sender === 'user'" [class.coach]="msg.sender === 'coach'">
+          <div class="message-content">
+            {{ msg.text }}
+          </div>
+          <span class="message-time">{{ msg.time | date:'HH:mm' }}</span>
+        </div>
+  
+        <div class="message coach typing" *ngIf="isTyping">
+          <div class="message-content">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+  
+      <div class="chat-input">
+        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Posez une question au coach...">
+        <button (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>

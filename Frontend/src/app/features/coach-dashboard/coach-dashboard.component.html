@@ -1,0 +1,85 @@
+<div class="coach-dashboard-container">
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1>Mon Coach <span class="highlight">Personnel</span></h1>
+        <p>Votre programme sur mesure basé sur votre profil et vos objectifs.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="loadTrainingPlan()" [disabled]="isLoading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i> Actualiser
+        </button>
+      </div>
+    </header>
+  
+    <div class="dashboard-grid">
+      <!-- Left: Workout of the Day -->
+      <div class="main-card training-card" [class.loading]="isLoading">
+        <div class="card-loader" *ngIf="isLoading">
+          <div class="skeleton title"></div>
+          <div class="skeleton meta"></div>
+          <div class="skeleton-list">
+            <div class="skeleton item"></div>
+            <div class="skeleton item"></div>
+            <div class="skeleton item"></div>
+          </div>
+        </div>
+  
+        <ng-container *ngIf="!isLoading && trainingPlan">
+          <div class="plan-header">
+            <div class="plan-badge">ENTRAÎNEMENT DU JOUR</div>
+            <h2 class="plan-title">{{ trainingPlan.title }}</h2>
+            <div class="plan-meta">
+              <span class="meta-item"><i class="fas fa-bullseye"></i> {{ trainingPlan.focus }}</span>
+              <span class="meta-item" *ngIf="trainingPlan.from_llm"><i class="fas fa-magic"></i> Généré par IA</span>
+            </div>
+          </div>
+  
+          <section class="plan-section">
+            <h3 class="section-title"><i class="fas fa-fire"></i> Échauffement</h3>
+            <ul class="warmup-list">
+              <li *ngFor="let step of trainingPlan.warmup">{{ step }}</li>
+            </ul>
+          </section>
+  
+          <section class="plan-section">
+            <h3 class="section-title"><i class="fas fa-dumbbell"></i> Exercices</h3>
+            <div class="exercise-grid">
+              <div class="exercise-card" *ngFor="let ex of trainingPlan.exercises">
+                <div class="ex-info">
+                  <h4>{{ ex.name }}</h4>
+                  <p class="ex-tip">{{ ex.tip }}</p>
+                </div>
+                <div class="ex-stats">
+                  <div class="stat"><span>Séries</span><strong>{{ ex.sets }}</strong></div>
+                  <div class="stat"><span>Répétitions</span><strong>{{ ex.reps }}</strong></div>
+                  <div class="stat"><span>Repos</span><strong>{{ ex.rest }}</strong></div>
+                </div>
+              </div>
+            </div>
+          </section>
+  
+          <section class="plan-section">
+            <h3 class="section-title"><i class="fas fa-wind"></i> Récupération</h3>
+            <ul class="cooldown-list">
+              <li *ngFor="let step of trainingPlan.cooldown">{{ step }}</li>
+            </ul>
+          </section>
+        </ng-container>
+      </div>
+  
+      <!-- Right: Tips & Nutrition -->
+      <div class="side-cards">
+        <div class="side-card nutrition-card" *ngIf="!isLoading && trainingPlan">
+          <div class="side-card-icon"><i class="fas fa-apple-alt"></i></div>
+          <h3>Conseil Nutrition</h3>
+          <p>{{ trainingPlan.nutritionTip }}</p>
+        </div>
+  
+        <div class="side-card help-card">
+          <div class="side-card-icon"><i class="fas fa-robot"></i></div>
+          <h3>Besoin d'aide ?</h3>
+          <p>Utilisez l'assistant IA en bas à droite pour poser vos questions sur les exercices ou votre nutrition.</p>
+        </div>
+      </div>
+    </div>
+  </div>
