@@ -1,0 +1,86 @@
+<div class="page-container">
+  <div class="page-head">
+    <div class="page-head-meta">
+      <div class="page-head-eyebrow">
+        <i class="fas fa-headset"></i> Support & Assistance
+      </div>
+      <h1 class="page-head-title">Signaler un Problème</h1>
+      <p class="page-head-sub">
+        Besoin d'aide ? Notre assistant IA et notre équipe sont à votre écoute pour résoudre tout litige ou incident.
+      </p>
+    </div>
+  </div>
+
+  <div class="form-wrapper">
+    <div class="card card-premium">
+      <!-- AI Response Alert -->
+      <div *ngIf="aiResponse" class="alert alert-info mb-24 animate-slide-in">
+        <div class="alert-icon">🤖</div>
+        <div class="alert-content">
+          <h4 class="fw-700">Médiation Instantanée</h4>
+          <p>{{ aiResponse }}</p>
+        </div>
+      </div>
+
+      <!-- Error Alert -->
+      <div *ngIf="errorMessage" class="alert alert-err mb-24">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="reclamationForm" (ngSubmit)="onSubmit()" class="reclamation-form">
+        
+        <!-- Title -->
+        <div class="field mb-20">
+          <label class="field-label">Sujet de la réclamation</label>
+          <div class="input-wrapper">
+            <i class="fas fa-pen-alt input-icon"></i>
+            <input type="text" formControlName="title" class="field-input with-icon" 
+              placeholder="Ex: Comportement inapproprié, Problème de score...">
+          </div>
+        </div>
+
+        <!-- Match / Target User -->
+        <div class="form-grid mb-20">
+          <div class="field">
+            <label class="field-label">ID du Match <small>(Optionnel)</small></label>
+            <div class="input-wrapper">
+              <i class="fas fa-hashtag input-icon"></i>
+              <input type="text" formControlName="matchId" class="field-input with-icon" placeholder="Ex: M-9876">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Nom du Joueur / ID <small>(Optionnel)</small></label>
+            <div class="input-wrapper">
+              <i class="fas fa-user input-icon"></i>
+              <input type="text" formControlName="targetUserId" class="field-input with-icon" placeholder="Ex: John Doe">
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field mb-24">
+          <label class="field-label">Description détaillée</label>
+          <textarea formControlName="description" rows="5" class="field-input" 
+            placeholder="Expliquez-nous en détail ce qui s'est passé..."></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+          <button type="submit" [disabled]="reclamationForm.invalid || isSubmitting" class="btn btn-primary btn-lg w-full">
+            <div *ngIf="isSubmitting" class="spinner-sm mr-8"></div>
+            <i *ngIf="!isSubmitting" class="fas fa-paper-plane mr-8"></i>
+            <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer la Réclamation' }}</span>
+          </button>
+        </div>
+
+        <div class="form-footer mt-24">
+          <p class="t-muted text-center">
+            <i class="fas fa-info-circle"></i> Votre demande sera traitée sous 24h par notre équipe.
+          </p>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

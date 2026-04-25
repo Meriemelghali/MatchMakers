@@ -160,6 +160,12 @@ public class UserServiceImpl implements UserService {
         }
         user.setFavoriteSports(profileUpdateDto.getFavoriteSports());
         
+        // Fitness profile update
+        user.setFitnessLevel(profileUpdateDto.getFitnessLevel());
+        user.setFitnessGoals(profileUpdateDto.getFitnessGoals());
+        user.setWeight(profileUpdateDto.getWeight());
+        user.setHeight(profileUpdateDto.getHeight());
+        
         if (profileUpdateDto.getTheme() != null) {
             user.setTheme(profileUpdateDto.getTheme());
         }

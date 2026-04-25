@@ -429,3 +429,98 @@ async def match_summary(req: SummaryRequest):
     text, from_llm = await _call_gemini(prompt)
     latency = int((time.time() - t0) * 1000)
     return SummaryResponse(summary=text, from_llm=from_llm, latency_ms=latency)
+
+
+# ---------------------------------------------------------------------------
+# /sport-quote
+# ---------------------------------------------------------------------------
+
+class QuoteRequest(BaseModel):
+    sports: list[str]
+
+
+class QuoteResponse(BaseModel):
+    quote:      str
+    from_llm:   bool
+    latency_ms: int
+
+
+@app.post("/sport-quote", response_model=QuoteResponse)
+async def sport_quote(req: QuoteRequest):
+    t0 = time.time()
+    sports_str = ", ".join(req.sports) if req.sports else "sports en général"
+    prompt = (
+        f"Tu es un motivateur sportif pour la plateforme MatchMakers. "
+        f"L'utilisateur est fan de : {sports_str}. "
+        f"Donne une citation inspirante courte ou une info fascinante sur ces sports en français. "
+        f"Sois engageant et positif. Max 2 phrases. Pas de titres, pas de markdown."
+    )
+    text, from_llm = await _call_gemini(prompt)
+    latency = int((time.time() - t0) * 1000)
+    return QuoteResponse(quote=text, from_llm=from_llm, latency_ms=latency)
+
+# ---------------------------------------------------------------------------
+# /reclamation-analyze
+# ---------------------------------------------------------------------------
+
+class ReclamationRequest(BaseModel):
+    description: str
+
+class ReclamationAnalysisResponse(BaseModel):
+    type: str          # COMPORTEMENT, PAIEMENT, TECHNIQUE
+    urgence: str       # HAUTE, MOYENNE, BASSE
+    reponse_auto: str
+    from_llm: bool
+    latency_ms: int
+
+def _build_reclamation_prompt(description: str) -> str:
+    return "\n".join([
+        "Tu es l'assistant de support de MatchMakers. Analyse la réclamation suivante.",
+        f"Réclamation : \"{description}\"",
+        "",
+        "Détermine :",
+        "1. Le type exact parmi : COMPORTEMENT, PAIEMENT, TECHNIQUE.",
+        "2. L'urgence parmi : HAUTE, MOYENNE, BASSE. (HAUTE si insultes, agression verbale, violence).",
+        "3. Rédige une réponse automatique polie (1-2 phrases) pour le joueur rassurant que la demande est en cours.",
+        "",
+        "Réponds STRICTEMENT en JSON avec ce format exact :",
+        "{",
+        '  "type": "...",',
+        '  "urgence": "...",',
+        '  "reponse_auto": "..."',
+        "}"
+    ])
+
+@app.post("/reclamation-analyze", response_model=ReclamationAnalysisResponse)
+async def reclamation_analyze(req: ReclamationRequest):
+    t0 = time.time()
+    prompt = _build_reclamation_prompt(req.description)
+    text, from_llm = await _call_gemini(prompt)
+    latency = int((time.time() - t0) * 1000)
+
+    # Parsing du JSON
+    import json
+    clean_text = text.replace("```json", "").replace("```", "").strip()
+    try:
+        data = json.loads(clean_text)
+        r_type = data.get("type", "TECHNIQUE").upper()
+        if r_type not in ["COMPORTEMENT", "PAIEMENT", "TECHNIQUE"]:
+            r_type = "TECHNIQUE"
+            
+        urgence = data.get("urgence", "MOYENNE").upper()
+        if urgence not in ["HAUTE", "MOYENNE", "BASSE"]:
+            urgence = "MOYENNE"
+            
+        reponse_auto = data.get("reponse_auto", "Votre demande est en cours de traitement.")
+    except Exception as e:
+        r_type = "TECHNIQUE"
+        urgence = "MOYENNE"
+        reponse_auto = "Votre demande a bien été reçue. Nous la traitons dans les plus brefs délais."
+        
+    return ReclamationAnalysisResponse(
+        type=r_type,
+        urgence=urgence,
+        reponse_auto=reponse_auto,
+        from_llm=from_llm,
+        latency_ms=latency
+    )

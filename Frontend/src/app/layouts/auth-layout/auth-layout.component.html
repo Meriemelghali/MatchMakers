@@ -103,3 +103,29 @@
 <main class="main-content">
   <router-outlet></router-outlet>
 </main>
+
+<!-- AI Inspiration Notification -->
+<div class="ai-notification-overlay" *ngIf="showInspiration" [class.closing]="!showInspiration">
+  <div class="ai-notification-card">
+    <div class="ai-notif-header">
+      <div class="ai-notif-badge">
+        <i class="fas fa-magic"></i>
+        <span>IA MATCHMAKERS</span>
+      </div>
+      <button class="btn-close-notif" (click)="closeInspiration()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="ai-notif-body">
+      <h4 class="ai-notif-title">Le saviez-vous ?</h4>
+      <p class="ai-notif-quote">"{{ sportInspiration?.quote }}"</p>
+    </div>
+    <div class="ai-notif-footer">
+      <span class="ai-notif-hint">Basé sur vos sports favoris ✨</span>
+    </div>
+    <div class="ai-notif-progress"></div>
+  </div>
+</div>
+
+<!-- AI Chatbot Assistant -->
+<app-ai-chatbot></app-ai-chatbot>

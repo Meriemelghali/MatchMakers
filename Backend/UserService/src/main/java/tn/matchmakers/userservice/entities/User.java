@@ -71,6 +71,12 @@ public class User extends BaseEntity implements UserDetails {
     @Indexed
     private String classId;
 
+    // Fitness Profile
+    private String fitnessLevel = "BEGINNER"; // BEGINNER, INTERMEDIATE, ADVANCED, PRO
+    private List<String> fitnessGoals = new ArrayList<>();
+    private Double weight; // in kg
+    private Double height; // in cm
+
     // ─── Helpers
     public void addRole(Role role) {
         this.roles.add(role);
