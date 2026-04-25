@@ -12,6 +12,7 @@ import tn.matchmakers.rewardservice.enums.RewardType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @Builder
@@ -44,6 +45,23 @@ public class Reward {
     private String teamName;
 
     private String eventId;
+
+    @Builder.Default
+    private Integer level = 1;
+
+    @Builder.Default
+    private Integer progress = 0;
+
+    @Builder.Default
+    private Integer maxProgress = 100;
+
+    @Builder.Default
+    private Boolean evolutive = false;
+
+    private Map<String, Object> evolutionRules;
+
+    // Stores the visual design configuration (colors, ribbon, text, source image, transforms, etc.)
+    private Map<String, Object> design;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

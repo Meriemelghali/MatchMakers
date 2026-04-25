@@ -26,6 +26,10 @@ public class RewardServiceImpl implements RewardService {
     public RewardDto create(RewardCreateRequest request) {
         Reward reward = mapper.fromCreate(request);
         reward.setStatus(RewardStatus.ACTIVE);
+        if (reward.getLevel() == null) reward.setLevel(1);
+        if (reward.getProgress() == null) reward.setProgress(0);
+        if (reward.getMaxProgress() == null) reward.setMaxProgress(100);
+        if (reward.getEvolutive() == null) reward.setEvolutive(false);
         reward.setCreatedAt(LocalDateTime.now());
         reward.setUpdatedAt(LocalDateTime.now());
         Reward saved = repository.save(reward);
@@ -54,6 +58,11 @@ public class RewardServiceImpl implements RewardService {
         if (request.getTeamId() != null) reward.setTeamId(request.getTeamId());
         if (request.getTeamName() != null) reward.setTeamName(request.getTeamName());
         if (request.getEventId() != null) reward.setEventId(request.getEventId());
+
+        if (request.getEvolutive() != null) reward.setEvolutive(request.getEvolutive());
+        if (request.getMaxProgress() != null) reward.setMaxProgress(request.getMaxProgress());
+        if (request.getEvolutionRules() != null) reward.setEvolutionRules(request.getEvolutionRules());
+        if (request.getDesign() != null) reward.setDesign(request.getDesign());
 
         reward.setUpdatedAt(LocalDateTime.now());
         return mapper.toDto(repository.save(reward));
