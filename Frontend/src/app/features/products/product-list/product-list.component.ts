@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';  // ✅
 import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ProductService } from '../services/product.service';
-import { Product, ProductType } from '../models/product.model';
-
-@Component({
+import { RatingService } from '../services/rating.service';        // ✅ import ajouté
+import { Product, ProductType, Rating } from '../models/product.model'; // ✅
+import { RecommendationService } from '../services/recommendation.service';
+import { Recommendation } from '../models/recommendation.model';
+@Component({                                                       // ✅ décorateur
   selector: 'app-product-list',
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
@@ -16,6 +18,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   products: Product[] = [];
   filtered: Product[] = [];
+  recommendations: Recommendation[] = [];
   loading  = false;
   error    = '';
   deleting = false;
@@ -34,28 +37,35 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   constructor(
     private productService: ProductService,
-    private router: Router
+    private ratingService:  RatingService,  // ✅ correctement importé
+    private recommendationService: RecommendationService,  // ✅ correctement importé
+    private router:         Router
   ) {}
 
   ngOnInit() {
     this.checkRole();
     this.load();
+    this.loadRecommendations();  // ✅ Charger les recommandations
     [this.sportFilter, this.typeFilter, this.searchFilter].forEach(ctrl =>
       ctrl.valueChanges
         .pipe(debounceTime(250), distinctUntilChanged(), takeUntil(this.destroy$))
         .subscribe(() => this.applyFilter())
     );
   }
+  loadRecommendations() {
+  this.recommendationService.getTop(6).subscribe({
+    next: data => this.recommendations = data,
+    error: () => this.recommendations = []
+  });
+}
 
   ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
 
   checkRole() {
     try {
-      // ✅ Ton auth.service.ts sauvegarde sous 'accessToken'
       const token = localStorage.getItem('accessToken');
       if (!token) { this.isAdmin = false; return; }
 
-      // ✅ Option 1 — lire depuis userRole directement
       const userRole = localStorage.getItem('userRole');
       if (userRole) {
         this.isAdmin = userRole === 'ADMIN' ||
@@ -64,16 +74,11 @@ export class ProductListComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // ✅ Option 2 — décoder le JWT si userRole absent
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const roles: any = payload.roles
-                      || payload.role
-                      || payload.authorities
-                      || [];
+      const roles: any = payload.roles || payload.role || payload.authorities || [];
 
       this.isAdmin = Array.isArray(roles)
-        ? roles.some((r: string) =>
-            r === 'ADMIN' || r === 'ROLE_ADMIN' || r === 'Admin')
+        ? roles.some((r: string) => r === 'ADMIN' || r === 'ROLE_ADMIN' || r === 'Admin')
         : roles === 'ADMIN' || roles === 'ROLE_ADMIN';
 
     } catch (e) {
@@ -85,15 +90,31 @@ export class ProductListComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error   = '';
     this.productService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
-      next: data => {
+      next: (data: Product[]) => {
         this.products = data;
+
+        // ✅ Charger les notes pour chaque produit
+        this.products.forEach((p: Product) => {
+          if (p.id) {
+            this.ratingService.getAverage(p.id).subscribe({
+              next: (res: { average: number }) => {
+                p.averageRating = res.average;  // ✅ défini dans Product
+              },
+              error: () => {}
+            });
+            this.ratingService.getByProduct(p.id).subscribe({
+              next: (ratings: Rating[]) => {
+                p.ratingCount = ratings.length;  // ✅ défini dans Product
+              },
+              error: () => {}
+            });
+          }
+        });
+
         this.applyFilter();
         this.loading = false;
       },
-      error: () => {
-        this.error   = 'Erreur de chargement des produits';
-        this.loading = false;
-      }
+      error: () => { this.error = 'Erreur de chargement'; this.loading = false; }
     });
   }
 
@@ -142,7 +163,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => { this.deleting = false; },
-        error: (err) => {
+        error: (err: any) => {
           this.deleting = false;
           this.error    = 'Erreur lors de la suppression du produit';
           this.load();

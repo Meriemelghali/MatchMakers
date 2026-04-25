@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { OrderService } from '../services/order.service';
 import { Product, OrderType } from '../models/product.model';
+import { AvailabilityService, AvailabilityResponse } from '../services/availability.service';
 
 export const dateTimeRangeValidator: ValidatorFn =
   (group: AbstractControl): ValidationErrors | null => {
@@ -32,6 +33,8 @@ export class ProductOrderComponent implements OnInit {
   showPickup   = false;        
   OrderType    = OrderType;
   readonly DELIVERY_FEE = 7.0;
+  availability:        AvailabilityResponse | null = null;
+  checkingAvailability = false;
 
   get minDateTime(): string {
     const now = new Date();
@@ -53,7 +56,8 @@ export class ProductOrderComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private productService: ProductService,
-    private orderService: OrderService
+    private orderService: OrderService,
+       private availabilityService: AvailabilityService 
   ) {}
 
   ngOnInit() {
@@ -104,6 +108,47 @@ export class ProductOrderComponent implements OnInit {
       this.form.get('startDateTime')?.updateValueAndValidity();
       this.form.get('endDateTime')?.updateValueAndValidity();
     });
+
+    this.form.get('startDateTime')?.valueChanges.subscribe(() => {
+      this.availability = null;
+      this.checkAvailability();
+    });
+    this.form.get('endDateTime')?.valueChanges.subscribe(() => {
+      this.availability = null;
+      this.checkAvailability();
+    });
+    this.form.get('quantity')?.valueChanges.subscribe(() => {
+      this.availability = null;
+      this.checkAvailability();
+    });
+  }
+
+  // ✅ Vérifier la disponibilité
+  checkAvailability() {
+    const start = this.form.get('startDateTime')?.value;
+    const end   = this.form.get('endDateTime')?.value;
+    const qty   = this.form.get('quantity')?.value;
+
+    if (!start || !end || !this.isRental || this.dateTimeRangeError) return;
+
+    this.checkingAvailability = true;
+    this.availabilityService.checkRental(
+      this.product.id!, start, end, qty
+    ).subscribe({
+      next: (res) => {
+        this.availability        = res;
+        this.checkingAvailability = false;
+      },
+      error: () => { this.checkingAvailability = false; }
+    });
+  }
+
+  // ✅ Bloquer si indisponible
+  get canSubmit(): boolean {
+    if (!this.isRental) return !this.form.invalid;
+    return !this.form.invalid &&
+           !this.dateTimeRangeError &&
+           !!this.availability?.available;
   }
 
   get isRental() {

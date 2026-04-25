@@ -99,26 +99,42 @@ export class ProductFormComponent implements OnInit {
   }
 
   submit() {
-    if (this.form.invalid) return;
-    this.submitting = true;
-    this.error = '';
+  if (this.form.invalid) return;
+  this.submitting = true;
+  this.error = '';
 
-    const request = this.isEdit
-      ? this.productService.update(this.productId, this.form.value)
-      : this.productService.create(this.form.value);
+  const request = this.isEdit
+    ? this.productService.update(this.productId, this.form.value)
+    : this.productService.create(this.form.value);
 
-    request.subscribe({
-      next: () => {
-        this.submitting = false;
-        this.success = true;
-        setTimeout(() => this.router.navigate(['/products']), 1500);
-      },
-      error: (err: any) => {
-        this.submitting = false;
-        this.error = err.error?.message || 'Erreur lors de la sauvegarde';
-      }
-    });
+  request.subscribe({
+    next: () => {
+      this.submitting = false;
+      this.success    = true;
+      // ✅ Retour adapté selon la route
+      const fromBackoffice = this.router.url.includes('backoffice');
+      setTimeout(() => {
+        if (fromBackoffice) {
+          this.router.navigate(['/backoffice/products/admin']);
+        } else {
+          this.router.navigate(['/products']);
+        }
+      }, 1500);
+    },
+    error: (err: any) => {
+      this.submitting = false;
+      this.error = err.error?.message || 'Erreur lors de la sauvegarde';
+    }
+  });
+}
+
+cancel() {
+  // ✅ Retour adapté selon la route
+  const fromBackoffice = this.router.url.includes('backoffice');
+  if (fromBackoffice) {
+    this.router.navigate(['/backoffice/products/admin']);
+  } else {
+    this.router.navigate(['/products']);
   }
-
-  cancel() { this.router.navigate(['/products']); }
+}
 }

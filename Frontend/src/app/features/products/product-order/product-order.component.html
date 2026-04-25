@@ -138,6 +138,63 @@
           </div>
         </div>
 
+        <!-- ✅ Vérification disponibilité -->
+<div *ngIf="isRental && durationHours > 0" style="margin-top:12px">
+
+  <!-- Loading -->
+  <div *ngIf="checkingAvailability" class="card-inset"
+       style="display:flex;align-items:center;gap:8px">
+    <div class="spinner" style="width:16px;height:16px"></div>
+    <span style="font-size:13px;color:var(--color-text-secondary)">
+      Vérification de la disponibilité...
+    </span>
+  </div>
+
+  <!-- Disponible ✅ -->
+  <div *ngIf="availability?.available && !checkingAvailability"
+       class="card-inset"
+       style="background:#EAF3DE;border-color:#C0DD97">
+    <div style="display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#27500A"
+           stroke-width="2" width="16" height="16">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#27500A">
+          Disponible sur cette période
+        </div>
+        <div style="font-size:12px;color:#3B6D11;margin-top:2px">
+          {{ availability?.stockAvailable }} unité(s) disponible(s)
+          ({{ availability?.stockReserved }} déjà réservée(s))
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indisponible ❌ -->
+  <div *ngIf="availability && !availability.available && !checkingAvailability"
+       class="card-inset"
+       style="background:#FCEBEB;border-color:#F7C1C1">
+    <div style="display:flex;align-items:center;gap:8px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#791F1F"
+           stroke-width="2" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#791F1F">
+          Indisponible sur cette période
+        </div>
+        <div style="font-size:12px;color:#A32D2D;margin-top:2px">
+          {{ availability?.message }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
         <!-- Section 5 — Récapitulatif -->
         <div class="form-section" *ngIf="estimatedTotal > 0">
           <div class="form-section-title">Récapitulatif</div>

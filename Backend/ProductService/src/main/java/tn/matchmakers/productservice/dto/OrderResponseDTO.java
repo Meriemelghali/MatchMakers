@@ -4,6 +4,8 @@ import lombok.*;
 import tn.matchmakers.productservice.entity.OrderStatus;
 import tn.matchmakers.productservice.entity.OrderType;
 import java.time.LocalDateTime;
+import tn.matchmakers.productservice.entity.PaymentMethod;
+import tn.matchmakers.productservice.entity.PaymentStatus;
 
 @Getter
 @Setter
@@ -32,4 +34,6 @@ public class OrderResponseDTO {
     private String pickupLocation;
     private String pickupNote;
     private LocalDateTime pickupDateTime;
+    private PaymentMethod paymentMethod;
+private PaymentStatus paymentStatus;
 }

@@ -8,47 +8,51 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import tn.matchmakers.productservice.dto.PaymentResponseDTO;
 import tn.matchmakers.productservice.dto.OrderResponseDTO;
+import tn.matchmakers.productservice.dto.PaymentResponseDTO;
 import tn.matchmakers.productservice.entity.*;
 import tn.matchmakers.productservice.repository.OrderRepository;
+import tn.matchmakers.productservice.repository.ProductRepository;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class PaymentServiceImpl implements PaymentService {
 
-    private final OrderRepository orderRepository;
+    private final OrderRepository          orderRepository;
+    private final ProductRepository        productRepository;
     private final EmailNotificationService emailNotificationService;
-    private final CurrentUserService currentUserService;
+    private final CurrentUserService       currentUserService;
 
     @Value("${stripe.secret.key}")
     private String stripeSecretKey;
 
     @PostConstruct
-    public void init() {
-        Stripe.apiKey = stripeSecretKey;
-    }
+    public void init() { Stripe.apiKey = stripeSecretKey; }
 
-    // ✅ Créer un PaymentIntent Stripe
     @Override
     public PaymentResponseDTO createPaymentIntent(String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Commande introuvable"));
 
-        try {
-            // Stripe travaille en centimes
-            long amountInCents = (long) (order.getTotalPrice() * 100);
+        Product product = productRepository.findById(order.getProductId())
+                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
 
+        if (product.getStock() < order.getQuantity()) {
+            throw new RuntimeException("Stock insuffisant");
+        }
+
+        try {
+            long amountInCents = (long) (order.getTotalPrice() * 100);
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(amountInCents)
-                    .setCurrency("usd") // TND pas supporté par Stripe — on utilise USD en test
+                    .setCurrency("usd")
                     .setDescription("Commande #" + orderId)
                     .putMetadata("orderId", orderId)
                     .build();
 
             PaymentIntent paymentIntent = PaymentIntent.create(params);
-
-            // Sauvegarder le PaymentIntent ID
             order.setPaymentIntentId(paymentIntent.getId());
             order.setPaymentMethod(PaymentMethod.CARD);
             order.setPaymentStatus(PaymentStatus.PENDING);
@@ -67,7 +71,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    // ✅ Confirmer paiement après Stripe.js
     @Override
     public PaymentResponseDTO confirmPayment(String orderId, String paymentIntentId) {
         Order order = orderRepository.findById(orderId)
@@ -79,19 +82,17 @@ public class PaymentServiceImpl implements PaymentService {
             if ("succeeded".equals(paymentIntent.getStatus())) {
                 order.setPaymentStatus(PaymentStatus.PAID);
                 order.setStatus(OrderStatus.CONFIRMED);
+                decrementStock(order.getProductId(), order.getQuantity());
+
+                String userEmail    = currentUserService.getCurrentUserEmail();
+                String userFullName = currentUserService.getCurrentUserFullName();
+                emailNotificationService.sendPaymentConfirmed(
+                        userEmail, userFullName, convertOrderToDTO(order));
             } else {
                 order.setPaymentStatus(PaymentStatus.FAILED);
             }
 
             orderRepository.save(order);
-
-            // ✅ Email paiement confirmé — email du user connecté
-            if ("succeeded".equals(paymentIntent.getStatus())) {
-                String userEmail    = currentUserService.getCurrentUserEmail();
-                String userFullName = currentUserService.getCurrentUserFullName();
-                OrderResponseDTO orderDTO = convertOrderToDTO(order);
-                emailNotificationService.sendPaymentConfirmed(userEmail, userFullName, orderDTO);
-            }
 
             return PaymentResponseDTO.builder()
                     .orderId(orderId)
@@ -105,23 +106,66 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-    // ✅ Paiement Cash — confirmer directement
     @Override
     public PaymentResponseDTO cashPayment(String orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Commande introuvable"));
 
+        Product product = productRepository.findById(order.getProductId())
+                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
+
+        if (product.getStock() < order.getQuantity()) {
+            throw new RuntimeException("Stock insuffisant");
+        }
+
         order.setPaymentMethod(PaymentMethod.CASH);
         order.setPaymentStatus(PaymentStatus.PENDING);
-        order.setStatus(OrderStatus.CONFIRMED);
+        order.setStatus(OrderStatus.PENDING);
         orderRepository.save(order);
 
         return PaymentResponseDTO.builder()
                 .orderId(orderId)
-                .status("confirmed")
+                .status("pending_delivery")
                 .amount(order.getTotalPrice())
                 .currency("tnd")
                 .build();
+    }
+
+    @Override
+    public PaymentResponseDTO confirmDelivery(String orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Commande introuvable"));
+
+        if (order.getStatus() == OrderStatus.DELIVERED) {
+            throw new RuntimeException("Livraison déjà confirmée");
+        }
+
+        decrementStock(order.getProductId(), order.getQuantity());
+
+        order.setStatus(OrderStatus.DELIVERED);
+        order.setPaymentStatus(PaymentStatus.PAID);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
+
+        return PaymentResponseDTO.builder()
+                .orderId(orderId)
+                .status("delivered")
+                .amount(order.getTotalPrice())
+                .currency("tnd")
+                .build();
+    }
+
+    private void decrementStock(String productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Produit introuvable"));
+
+        int newStock = product.getStock() - quantity;
+        if (newStock < 0) throw new RuntimeException("Stock insuffisant");
+
+        product.setStock(newStock);
+        product.setAvailable(newStock > 0);
+        product.setUpdatedAt(LocalDateTime.now());
+        productRepository.save(product);
     }
 
     private OrderResponseDTO convertOrderToDTO(Order o) {

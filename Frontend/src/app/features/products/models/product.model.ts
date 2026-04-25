@@ -17,6 +17,8 @@ export interface Product {
   available?:        boolean;
   createdAt?:        string;
   updatedAt?:        string;
+  averageRating?:     number;  
+  ratingCount?:       number;
 }
 
 export enum OrderType {
@@ -72,4 +74,21 @@ export interface OrderResponse {
   updatedAt:   string;
 }
 
+export interface Rating {
+  id?:        string;
+  productId:  string;
+  userId:     string;
+  userName:   string;
+  stars:      number;
+  comment:    string;
+  createdAt?: string;
+}
+
+export interface RatingRequest {
+  productId: string;
+  userId:    string;
+  userName:  string;
+  stars:     number;
+  comment:   string;
+}
 

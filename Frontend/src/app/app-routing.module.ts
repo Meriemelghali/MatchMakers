@@ -9,6 +9,7 @@ import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-pass
 import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
+import { AdminOrdersComponent } from './features/products/admin-orders/admin-orders.component';
 
 
 const routes: Routes = [
@@ -87,7 +88,15 @@ const routes: Routes = [
       {
         path: '',
         loadChildren: () => import('./features/backoffice/backoffice.module').then(m => m.BackofficeModule)
-      }
+      },
+       {
+      path: 'products',
+      loadChildren: () =>
+        import('./features/products/products.module')
+        .then(m => m.ProductsModule)
+    },
+      { path: 'commande', component: AdminOrdersComponent }
+
     ]
   }
 ];
