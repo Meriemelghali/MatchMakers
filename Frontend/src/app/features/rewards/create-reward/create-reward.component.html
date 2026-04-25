@@ -16,6 +16,11 @@
           Associe des trophées, médailles et distinctions à tes joueurs ou équipes.
         </div>
       </div>
+      <div class="page-head-actions">
+        <button class="btn btn-ghost btn-sm" type="button" (click)="openAi()">
+          Assistant IA
+        </button>
+      </div>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
@@ -141,5 +146,71 @@
       </div>
 
     </form>
+
+    <div class="modal-backdrop" *ngIf="aiOpen" (click)="closeAi()">
+      <div class="modal rewards-ai-modal" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <div>
+            <div class="t-label">Assistant IA</div>
+            <div class="t-muted" style="font-size:12px;">
+              Suggestion apaisÃ©e (nom, description, points, raretÃ©) â€¢ aucune donnÃ©e sensible â€¢ pas d'ID utilisateur
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" type="button" (click)="closeAi()">Fermer</button>
+        </div>
+
+        <div class="t-muted" style="font-size:12px;" *ngIf="aiProvider || aiModel">
+          Provider: {{ aiProvider || '—' }} <span *ngIf="aiModel">â€¢ {{ aiModel }}</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Intention</label>
+          <input class="field-input" type="text" [(ngModel)]="aiGoal" name="aiGoal"
+                 placeholder="Ex: valoriser l'esprit d'Ã©quipe, la progression, le fair-play..." />
+          <div class="t-muted mt-8" style="font-size:12px;">
+            Utilise tes champs dÃ©jÃ  saisis (type, date, Ã©quipe, description) pour proposer une rÃ©compense cohÃ©rente.
+          </div>
+        </div>
+
+        <div class="divider mt-16"></div>
+
+        <div class="flex items-center gap-12">
+          <button class="btn btn-primary btn-sm" type="button" (click)="generateAi()" [disabled]="aiLoading">
+            <span *ngIf="!aiLoading">GÃ©nÃ©rer une suggestion</span>
+            <span *ngIf="aiLoading">GÃ©nÃ©ration...</span>
+          </button>
+          <div class="t-muted" style="font-size:12px;" *ngIf="aiMeta">{{ aiMeta }}</div>
+        </div>
+
+        <div class="alert alert-err mt-12" *ngIf="aiError">{{ aiError }}</div>
+
+        <div class="card-inset mt-16" *ngIf="aiSuggestion">
+          <div class="section-head">
+            <div class="section-title-bar">
+              <span>Proposition</span>
+            </div>
+            <span class="tag" *ngIf="aiSuggestion.rarity">{{ aiSuggestion.rarity }}</span>
+          </div>
+          <div class="t-display" style="font-size:18px;">{{ aiSuggestion.name }}</div>
+          <div class="t-body mt-8">{{ aiSuggestion.description }}</div>
+          <div class="t-muted mt-10" style="font-size:12px;">
+            <span class="t-dim">Points :</span> {{ aiSuggestion.points }}
+            <span *ngIf="aiSuggestion.awardedBy"> â€¢ <span class="t-dim">Awarded by :</span> {{ aiSuggestion.awardedBy }}</span>
+          </div>
+          <div class="t-muted mt-10" style="font-size:12px;" *ngIf="aiSuggestion.rationale">
+            <span class="t-dim">Pourquoi :</span> {{ aiSuggestion.rationale }}
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-16" *ngIf="aiSuggestion">
+          <button class="btn btn-ghost btn-sm" type="button" (click)="applyAi('FILL_EMPTY')">
+            ComplÃ©ter seulement
+          </button>
+          <button class="btn btn-primary btn-sm" type="button" (click)="applyAi('REPLACE')">
+            Appliquer
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
