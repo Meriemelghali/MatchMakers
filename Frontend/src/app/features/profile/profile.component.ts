@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -12,20 +12,13 @@ import { AIService, SportInspiration } from '../../core/services/UserService/ai.
 import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
 
-export interface AvatarSuggestion {
-  id: string;
-  name: string;
-  url: string;
-  previewUrl?: string;
-  sportCategory: string;
-}
 
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
   userProfile?: UserProfile;
@@ -48,13 +41,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   showAvatarCreator = false;
-  avatarCreatorUrl: SafeResourceUrl;
-  
-  // Suggestion System
-  suggestedAvatars: AvatarSuggestion[] = [];
-  isCustomMode = false; // Toggle between suggestions and full creator
-
-  private messageHandler = this.handleIframeMessage.bind(this);
 
   constructor(
     private fb: FormBuilder,
@@ -68,16 +54,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer
   ) {
     this.initForms();
-    this.avatarCreatorUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://demo.readyplayer.me/avatar?frameApi&clearCache=true');
   }
 
   ngOnInit(): void {
     this.loadInitialData();
-    window.addEventListener('message', this.messageHandler);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('message', this.messageHandler);
   }
 
   private initForms() {
@@ -263,40 +243,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- READY PLAYER ME AVATAR ---
+  // --- AVATAR ---
   openAvatarCreator() {
     this.showAvatarCreator = true;
-    this.isCustomMode = false;
-    this.generateAvatarSuggestions();
   }
 
   closeAvatarCreator() {
     this.showAvatarCreator = false;
-  }
-
-  generateAvatarSuggestions() {
-    const sports = this.userProfile?.favoriteSports || [];
-    const hasSports = sports.length > 0;
-    
-    // Modèles d'athlètes Ready Player Me réels et certifiés
-    const realModels = [
-      'https://models.readyplayer.me/648085f1c9fc6360c70e28b8.glb', // Athlète Masculin
-      'https://models.readyplayer.me/648085f5287f32997b60f589.glb', // Athlète Féminin
-      'https://models.readyplayer.me/648085fba71f3918a09b589a.glb', // Style Sportif 1
-      'https://models.readyplayer.me/6480860539121d5852504620.glb'  // Style Sportif 2
-    ];
-
-    // Créer 4 suggestions
-    this.suggestedAvatars = realModels.map((url, index) => {
-      // Rotation sur les sports favoris de l'utilisateur
-      const sportName = hasSports ? sports[index % sports.length] : 'Style';
-      return {
-        id: (index + 1).toString(),
-        name: `${sportName}`,
-        url: url, // On garde l'URL brute pour l'ID/Logique
-        sportCategory: sportName
-      };
-    });
   }
 
   getSafeUrl(url: string): SafeResourceUrl {
@@ -306,36 +259,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
   selectAvatar(url: string) {
     this.profileForm.patchValue({ avatar3dUrl: url });
     this.profileForm.markAsDirty();
+
     if (this.userProfile) {
       this.userProfile.avatar3dUrl = url;
     }
-    this.toastService.success("Modèle suggéré appliqué ! N'oubliez pas d'enregistrer.");
-    this.closeAvatarCreator();
-  }
 
-  switchToCustomMode() {
-    this.isCustomMode = true;
-  }
-
-  handleIframeMessage(event: MessageEvent) {
-    if (!event.origin.includes('.readyplayer.me') && event.origin !== 'https://readyplayer.me') {
-      return;
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.profileService.updateProfile(userId, this.profileForm.getRawValue()).subscribe({
+        next: () => {
+          this.toastService.success('Avatar 3D sauvegardé avec succès !');
+          this.closeAvatarCreator();
+        },
+        error: () => this.toastService.error('Erreur de sauvegarde')
+      });
+    } else {
+      this.closeAvatarCreator();
     }
-
-    try {
-      const json = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-      if (json?.source !== 'readyplayerme') return;
-
-      if (json.eventName === 'v1.avatar.exported') {
-        const avatarUrl = json.data.url;
-        this.profileForm.patchValue({ avatar3dUrl: avatarUrl });
-        this.profileForm.markAsDirty();
-        if (this.userProfile) {
-          this.userProfile.avatar3dUrl = avatarUrl;
-        }
-        this.closeAvatarCreator();
-        this.toastService.success("Avatar 3D récupéré avec succès ! N'oubliez pas d'enregistrer.");
-      }
-    } catch (e) { }
   }
 }
