@@ -258,7 +258,7 @@
             </button>
             <button type="button"
                     class="btn btn-primary btn-lg"
-                    [disabled]="submitting || form.invalid || dateTimeRangeError"
+                    [disabled]="submitting || !canSubmit"
                     (click)="submit()">
               <span *ngIf="!submitting">
                 {{ isRental ? '⏱️ Confirmer la location' : '🛒 Continuer vers la livraison' }}

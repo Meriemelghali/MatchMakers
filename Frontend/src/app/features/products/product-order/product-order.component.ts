@@ -144,12 +144,20 @@ export class ProductOrderComponent implements OnInit {
   }
 
   // ✅ Bloquer si indisponible
-  get canSubmit(): boolean {
-    if (!this.isRental) return !this.form.invalid;
-    return !this.form.invalid &&
-           !this.dateTimeRangeError &&
-           !!this.availability?.available;
+get canSubmit(): boolean {
+  if (this.submitting) return false;
+  if (this.form.invalid) return false;
+  if (this.dateTimeRangeError) return false;
+
+  if (this.isRental) {
+    // ✅ Bloquer si vérification en cours OU indisponible OU pas encore vérifié
+    if (this.checkingAvailability) return false;
+    if (!this.availability) return false;          // pas encore vérifié
+    if (!this.availability.available) return false; // indisponible
   }
+
+  return true;
+}
 
   get isRental() {
     return this.form?.get('orderType')?.value === OrderType.RENTAL;
@@ -223,9 +231,9 @@ export class ProductOrderComponent implements OnInit {
 
   // ── Popup retrait (LOCATION) ─────────────────────────────
   openPickupPopup() {
-    if (this.form.invalid) return;
-    this.showPickup = true;
-  }
+  if (!this.canSubmit) return;   // ← bloque si indispo aussi
+  this.showPickup = true;
+}
 
   closePickupPopup() { this.showPickup = false; }
 
