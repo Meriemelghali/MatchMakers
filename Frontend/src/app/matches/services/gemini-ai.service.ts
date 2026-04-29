@@ -40,6 +40,26 @@ export interface SummaryResponse {
   latency_ms: number;
 }
 
+// ── Voice Commentary ───────────────────────────────────────────────────────
+
+export interface VoiceCommentaryRequest {
+  event_type:   string;
+  minute?:      number;
+  player?:      string;
+  team_name?:   string;
+  score_team1?: number;
+  score_team2?: number;
+  match_team1?: string;
+  match_team2?: string;
+}
+
+export interface VoiceCommentaryResponse {
+  commentary:      string;
+  from_llm:        boolean;
+  audio_base64?:   string;
+  audio_available: boolean;
+}
+
 // ── Service ────────────────────────────────────────────────────────────────
 
 @Injectable({ providedIn: 'root' })
@@ -72,6 +92,11 @@ export class GeminiAiService {
       candidates: candidates.map(c => this.toTeamInfo(c)),
     };
     return this.http.post<MatchmakingResponse>(`${this.base}/matchmaking`, body);
+  }
+
+  /** Ask Gemini for a one-sentence live voice commentary for a match event. */
+  generateVoiceCommentary(req: VoiceCommentaryRequest): Observable<VoiceCommentaryResponse> {
+    return this.http.post<VoiceCommentaryResponse>(`${this.base}/voice-commentary`, req);
   }
 
   /**
