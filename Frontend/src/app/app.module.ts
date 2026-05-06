@@ -37,7 +37,7 @@ import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashbo
     AiChatbotComponent,
     CoachDashboardComponent
   ],
-  
+
   imports: [
     BrowserModule,
     AppRoutingModule,

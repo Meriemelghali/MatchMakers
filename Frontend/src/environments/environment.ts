@@ -13,6 +13,7 @@ export const environment = {
   rewardServiceUrl: 'http://localhost:8086/rewards/api/rewards',
   // Free/local LLM service (no API key). See /PythonAI for the FastAPI + Ollama service.
   // Use 127.0.0.1 to avoid IPv6 localhost (::1) issues on some Windows setups.
+  productServiceUrl: 'http://localhost:8092/products/api/products',
   aiServiceUrl: 'http://127.0.0.1:8001',
   // Gemini AI service – matchmaking & match summary. See /GeminiAI for the FastAPI service.
   geminiAiServiceUrl: 'http://127.0.0.1:8002',
