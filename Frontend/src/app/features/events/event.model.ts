@@ -1,6 +1,9 @@
 export interface EventType {
   id: string;
   typeName: string;
+  icon?: string;
+  description?: string;
+  defaultRules?: string[];
   isCompetition: boolean;
   requiresTeams: boolean;
   requiresMatches: boolean;
@@ -34,6 +37,13 @@ export interface Event {
   isCompetition?: boolean;
   competitionId?: string;
   competitionName?: string;
+  participantIds?: string[];
+  
+  // Route fields
+  startPoint?: string;
+  endPoint?: string;
+  distances?: number[];
+  routePath?: { lat: number, lng: number }[];
 }
 export interface CreateEventRequest {
   name: string;
@@ -50,6 +60,13 @@ export interface CreateEventRequest {
   maxTeam?: number;
   format?: CompetitionFormat;
   teamIds?: string[];
+  participantIds?: string[];
+
+  // Route fields
+  startPoint?: string;
+  endPoint?: string;
+  distances?: number[];
+  routePath?: { lat: number, lng: number }[];
 }
 export interface UpdateEventRequest {
   name?: string;
@@ -60,9 +77,16 @@ export interface UpdateEventRequest {
   terrainId?: string;
   statutEvent?: StatutEvent;
   teamIds?: string[];
+  participantIds?: string[];
   competitionName?: string;
   maxTeam?: number;
   format?: CompetitionFormat;
+
+  // Route fields
+  startPoint?: string;
+  endPoint?: string;
+  distances?: number[];
+  routePath?: { lat: number, lng: number }[];
 }
 export enum StatutEvent {
   PLANNED = 'PLANNED',

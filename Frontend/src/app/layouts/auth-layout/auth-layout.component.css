@@ -137,6 +137,106 @@
     font-family: var(--font-display); font-weight: 700;
     font-size: 14px; color: #fff;
 }
+/* AI NOTIFICATION */
+.ai-notification-overlay {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.ai-notification-card {
+  width: 350px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(232, 80, 10, 0.3);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(232, 80, 10, 0.1);
+  animation: notifSlideIn 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ai-notif-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(232, 80, 10, 0.15);
+  padding: 4px 10px;
+  border-radius: 100px;
+  color: #E8500A;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.btn-close-notif {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s;
+}
+
+.btn-close-notif:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.ai-notif-body {
+  margin-bottom: 12px;
+}
+
+.ai-notif-title {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.ai-notif-quote {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+.ai-notif-footer {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ai-notif-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #E8500A;
+  width: 100%;
+  animation: notifProgress 15s linear forwards;
+}
+
+@keyframes notifSlideIn {
+  from { opacity: 0; transform: translateX(50px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes notifProgress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 .online-dot {
     position: absolute; bottom: 2px; right: 2px;
     width: 10px; height: 10px; border-radius: 50%;

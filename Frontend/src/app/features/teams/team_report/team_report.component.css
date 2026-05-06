@@ -3,24 +3,68 @@
 }
 
 @media print {
-  .no-print {
-    display: none !important;
+  @page {
+    size: A4;
+    margin: 12mm;
   }
 
-  .page {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
     background: #fff !important;
     color: #111 !important;
   }
 
-  .card,
-  .card-inset,
-  .tbl-wrap {
+  .team-report .no-print {
+    display: none !important;
+  }
+
+  .team-report.page {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .team-report .card,
+  .team-report .card-inset,
+  .team-report .tbl-wrap {
     box-shadow: none !important;
     border: 1px solid #ddd !important;
   }
 
-  .tbl th,
-  .tbl td {
+  .team-report .tbl-wrap {
+    overflow: visible !important;
+  }
+
+  .team-report table {
+    width: 100% !important;
+  }
+
+  .team-report thead {
+    display: table-header-group;
+  }
+
+  .team-report tfoot {
+    display: table-footer-group;
+  }
+
+  .team-report tr,
+  .team-report td,
+  .team-report th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .team-report a,
+  .team-report .btn {
+    color: #111 !important;
+    text-decoration: none !important;
+  }
+
+  .team-report .tbl th,
+  .team-report .tbl td {
     color: #111 !important;
   }
 }

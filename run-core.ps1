@@ -12,6 +12,7 @@ New-Item -ItemType Directory -Force -Path $logs | Out-Null
 $m2 = Join-Path $root ".m2"
 $tmp = Join-Path $root ".tmp"
 $pipCache = Join-Path $root ".pip-cache"
+$env:MAVEN_USER_HOME = $m2
 New-Item -ItemType Directory -Force -Path $tmp, $pipCache | Out-Null
 
 function Get-PortPids([int]$port) {
@@ -47,7 +48,7 @@ function Stop-PortIfSafe([int]$port) {
 function Start-Svc([string]$name, [string]$dir) {
   $out = Join-Path $logs "$name.log"
   "Starting $name ... log: $out" | Out-Host
-  $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run *>> `"$out`""
+  $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run *>> `"$out`""
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd | Out-Null
 }
 
@@ -91,13 +92,34 @@ function Start-PythonAi() {
   Remove-Item -Force $out -ErrorAction SilentlyContinue
   Remove-Item -Force $err -ErrorAction SilentlyContinue
 
+  # Load optional env file (ignored by git). See PythonAI/.env.example
+  $envFile = Join-Path $dir ".env"
+  if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+      $line = [string]$_
+      if ($null -eq $line) { $line = "" }
+      $line = $line.Trim()
+      if (-not $line -or $line.StartsWith('#')) { return }
+      $eq = $line.IndexOf('=')
+      if ($eq -lt 1) { return }
+      $key = $line.Substring(0, $eq).Trim()
+      $val = $line.Substring($eq + 1).Trim()
+      if (($val.StartsWith('"') -and $val.EndsWith('"')) -or ($val.StartsWith("'") -and $val.EndsWith("'"))) {
+        $val = $val.Substring(1, $val.Length - 2)
+      }
+      if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+    }
+  }
+
   # Ensure dependencies are installed once (avoid writing to restricted user temp).
-  $sentinel = Join-Path $dir ".venv\\.deps_ok"
+  $req = Join-Path $dir "requirements.txt"
+  $reqHash = if (Test-Path $req) { (Get-FileHash $req -Algorithm SHA256).Hash.Substring(0, 12) } else { "none" }
+  $sentinel = Join-Path $dir (".venv\\.deps_ok_{0}" -f $reqHash)
   if (-not (Test-Path $sentinel)) {
     $env:TEMP = $tmp
     $env:TMP = $tmp
     $env:PIP_CACHE_DIR = $pipCache
-    & $venvPy -m pip install --disable-pip-version-check -r (Join-Path $dir "requirements.txt") *>> $out
+    & $venvPy -m pip install --disable-pip-version-check -r $req *>> $out
     New-Item -ItemType File -Force -Path $sentinel | Out-Null
   }
 
