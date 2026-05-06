@@ -1,0 +1,106 @@
+/* Reclamation Form — Premium Dark Portal Theme */
+
+.page-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-wrapper {
+  margin-top: 32px;
+}
+
+/* Premium Card (Glassmorphism) */
+.card-premium {
+  background: rgba(28, 35, 48, 0.4) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
+  padding: 40px !important;
+}
+
+/* Input with Icons */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-3);
+  font-size: 14px;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+
+.field-input.with-icon {
+  padding-left: 40px;
+}
+
+.field-input:focus + .input-icon {
+  color: var(--brand);
+}
+
+/* Alert Styling Overrides */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+
+.alert-info {
+  background: rgba(75, 124, 243, 0.08);
+  border-color: rgba(75, 124, 243, 0.2);
+  color: #7BA7FF;
+}
+
+.alert-icon {
+  font-size: 24px;
+}
+
+/* Animations */
+.animate-slide-in {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Spinner */
+.spinner-sm {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .card-premium {
+    padding: 24px !important;
+  }
+  
+  .page-container {
+    padding: 20px 16px;
+  }
+}

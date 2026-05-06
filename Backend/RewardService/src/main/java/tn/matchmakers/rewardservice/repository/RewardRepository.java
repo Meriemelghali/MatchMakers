@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface RewardRepository extends MongoRepository<Reward, String> {
 
-    List<Reward> findByPlayerId(String playerId);
+    List<Reward> findByUserId(String userId);
 
     List<Reward> findByTeamId(String teamId);
 }

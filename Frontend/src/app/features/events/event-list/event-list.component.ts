@@ -7,6 +7,7 @@ import { Event, StatutEvent } from '../event.model';
 import { Match } from '../../../matches/models/match.model';
 import { TeamService } from '../../teams/services/team.service';
 import { AuthService } from '../../../core/services/AuthService/auth.service';
+import { UserManagementService, User } from '../../../core/services/UserService/user-management.service';
 
 @Component({
   selector: 'app-event-list',
@@ -25,9 +26,12 @@ export class EventListComponent implements OnInit, OnDestroy {
   selectedStatut = '';
   selectedType = '';
   editingStatusId: string | null = null; // Used for identifying which event's menu is open
+  selectedEventForModal: Event | null = null;
 
   matchesByEvent: Record<string, Match[]> = {};
   teamNames: Record<string, string> = {}; // id -> name map
+  userNames: Record<string, string> = {}; // userId -> fullName map
+  private missingTeamIds = new Set<string>(); // set of IDs that returned 404
 
   statutOptions = [
     { label: 'Planned', value: StatutEvent.PLANNED },
@@ -40,13 +44,15 @@ export class EventListComponent implements OnInit, OnDestroy {
     private eventService: EventService,
     private matchService: MatchService,
     private teamService: TeamService,
-    private authService: AuthService
+    private authService: AuthService,
+    private userService: UserManagementService
   ) {}
 
   ngOnInit(): void {
     this.updateTime();
     this.timer = setInterval(() => this.updateTime(), 1000);
     this.loadTeams();
+    this.loadUsers();
     this.loadEvents();
     
     // Close menu when clicking outside
@@ -72,10 +78,32 @@ export class EventListComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadUsers(): void {
+    this.userService.getAllUsers().subscribe({
+      next: (users) => {
+        users.forEach(u => {
+          this.userNames[u.id] = `${u.firstName} ${u.lastName}`.trim();
+        });
+      },
+      error: () => console.warn('Erreur lors du chargement des utilisateurs')
+    });
+  }
+
+  getUserName(id: string): string {
+    return this.userNames[id] || id;
+  }
+
   getTeamName(id: string): string {
     if (!id) return 'Unknown';
     if (this.teamNames[id]) return this.teamNames[id];
+    if (this.missingTeamIds.has(id)) return id; // Already checked and not found
     
+    // Ignore obviously fake or placeholder IDs
+    if (id.startsWith('fake-') || id === 'unknown' || id.length < 5) {
+      this.missingTeamIds.add(id);
+      return id;
+    }
+
     // If name is not in cache, fetch it individually
     this.fetchMissingTeamName(id);
     return id; // temporary fallback to ID
@@ -83,7 +111,7 @@ export class EventListComponent implements OnInit, OnDestroy {
 
   private fetchMissingTeamName(id: string): void {
     // Basic check to avoid redundant calls for same ID
-    if ((this as any).loadingTeams?.[id]) return;
+    if ((this as any).loadingTeams?.[id] || this.missingTeamIds.has(id)) return;
     if (!(this as any).loadingTeams) (this as any).loadingTeams = {};
     (this as any).loadingTeams[id] = true;
 
@@ -91,11 +119,16 @@ export class EventListComponent implements OnInit, OnDestroy {
       next: (team) => {
         if (team && team.name) {
           this.teamNames[id] = team.name;
+        } else {
+          this.missingTeamIds.add(id);
         }
         delete (this as any).loadingTeams[id];
       },
-      error: () => {
-        // Mark as error to prevent further attempts?
+      error: (err) => {
+        // If 404, mark as missing to prevent further attempts
+        if (err.status === 404) {
+          this.missingTeamIds.add(id);
+        }
         this.teamNames[id] = id; 
         delete (this as any).loadingTeams[id];
       }
@@ -249,5 +282,66 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.editingStatusId = null;
       }
     });
+  }
+
+  get isSportif(): boolean {
+    const role = this.authService.getUserRole();
+    return role?.toUpperCase() === 'SPORTIF';
+  }
+
+  canJoin(event: Event): boolean {
+    if (!this.isSportif || event.isCompetition) return false;
+    const userId = this.authService.getUserId();
+    if (!userId) return false;
+    return !event.participantIds?.includes(userId);
+  }
+
+  canLeave(event: Event): boolean {
+    if (!this.isSportif || event.isCompetition) return false;
+    const userId = this.authService.getUserId();
+    if (!userId) return false;
+    return !!event.participantIds?.includes(userId);
+  }
+
+  joinEvent(eventId: string, e: MouseEvent): void {
+    e.stopPropagation();
+    this.isLoading = true;
+    this.eventService.joinEvent(eventId).subscribe({
+      next: (updatedEvent) => {
+        this.loadEvents(); // Reload everything to ensure sync
+        if (this.selectedEventForModal?.id === eventId) {
+          this.selectedEventForModal = updatedEvent;
+        }
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Erreur lors de la participation.');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  leaveEvent(eventId: string, e: MouseEvent): void {
+    e.stopPropagation();
+    this.isLoading = true;
+    this.eventService.leaveEvent(eventId).subscribe({
+      next: (updatedEvent) => {
+        this.loadEvents();
+        if (this.selectedEventForModal?.id === eventId) {
+          this.selectedEventForModal = updatedEvent;
+        }
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Erreur lors de l\'annulation.');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  openModal(event: Event): void {
+    this.selectedEventForModal = event;
+  }
+
+  closeModal(): void {
+    this.selectedEventForModal = null;
   }
 }

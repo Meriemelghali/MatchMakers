@@ -10,11 +10,15 @@ import { ResetPasswordComponent } from './core/Auth/reset-password/reset-passwor
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
 import { AdminOrdersComponent } from './features/products/admin-orders/admin-orders.component';
+import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
+import { ProfileComponent } from './features/profile/profile.component';
+import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 
 
 const routes: Routes = [
   //par défaut
   { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'role-selection', component: RoleSelectionComponent, canActivate: [authGuard] },
   {
     path: '',
     component: PublicLayoutComponent,
@@ -38,6 +42,10 @@ const routes: Routes = [
       {
         path: 'social',
         loadChildren: () => import('./features/social/social.module').then(m => m.SocialModule)
+      },
+      {
+        path: 'reclamations',
+        loadChildren: () => import('./features/reclamations/reclamations.module').then(m => m.ReclamationsModule)
       },
       {
         path: 'reservations',
@@ -69,7 +77,15 @@ const routes: Routes = [
       path: 'products',
       loadChildren: () =>
         import('./features/products/products.module').then(m => m.ProductsModule)
-    }
+    },
+      {
+        path: 'profile',
+        component: ProfileComponent
+      },
+      {
+        path: 'coach',
+        component: CoachDashboardComponent
+      },
       // autres routes privées ici
     ]
   },

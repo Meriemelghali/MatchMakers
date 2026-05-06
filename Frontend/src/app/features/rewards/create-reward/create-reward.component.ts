@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RewardRarity, RewardService, RewardType } from '../services/reward.service';
+import { AuthService } from '../../../core/services/AuthService/auth.service';
 
 @Component({
   selector: 'app-create-reward',
@@ -34,8 +35,7 @@ export class CreateRewardComponent {
     rarity: [null as RewardRarity | null],
     imageUrl: [''],
     awardedBy: [''],
-    playerId: [''],
-    playerName: [''],
+    username: [''],
     teamId: [''],
     teamName: [''],
     eventId: ['']
@@ -44,8 +44,18 @@ export class CreateRewardComponent {
   constructor(
     private fb: FormBuilder,
     private rewardService: RewardService,
-    private router: Router
+    private router: Router,
+    private auth: AuthService
   ) { }
+
+  private displayName(): string {
+    const firstName = (localStorage.getItem('firstName') ?? '').trim();
+    const lastName = (localStorage.getItem('lastName') ?? '').trim();
+    const full = `${firstName} ${lastName}`.trim();
+    if (full) return full;
+    const email = (localStorage.getItem('userEmail') ?? '').trim();
+    return email || 'User';
+  }
 
   private normalizePayload(raw: any): any {
     const pointsRaw = raw.points;
@@ -61,8 +71,7 @@ export class CreateRewardComponent {
       imageUrl: (raw.imageUrl ?? '').trim() || undefined,
       awardedBy: (raw.awardedBy ?? '').trim() || undefined,
       description: (raw.description ?? '').trim() || undefined,
-      playerId: (raw.playerId ?? '').trim() || undefined,
-      playerName: (raw.playerName ?? '').trim() || undefined,
+      username: (raw.username ?? '').trim() || undefined,
       teamId: (raw.teamId ?? '').trim() || undefined,
       teamName: (raw.teamName ?? '').trim() || undefined,
       eventId: (raw.eventId ?? '').trim() || undefined
@@ -79,7 +88,18 @@ export class CreateRewardComponent {
     this.error = '';
     this.success = false;
 
-    const body = this.normalizePayload(this.form.getRawValue());
+    const userId = this.auth.getUserId();
+    if (!userId) {
+      this.loading = false;
+      this.error = 'Connecte-toi pour creer une recompense.';
+      return;
+    }
+
+    this.form.patchValue({
+      username: this.displayName()
+    });
+
+    const body = { ...this.normalizePayload(this.form.getRawValue()), userId };
     this.rewardService.createReward(body).subscribe({
       next: reward => {
         this.loading = false;

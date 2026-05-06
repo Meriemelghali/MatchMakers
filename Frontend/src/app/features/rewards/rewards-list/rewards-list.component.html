@@ -19,12 +19,6 @@
       <div class="filter-sep"></div>
 
       <div class="field" style="max-width:180px;">
-        <label class="field-label">Joueur (ID)</label>
-        <input class="field-input field-input-sm" [(ngModel)]="playerId" (ngModelChange)="applyFilters()"
-               placeholder="playerId..." />
-      </div>
-
-      <div class="field" style="max-width:180px;">
         <label class="field-label">Équipe (ID)</label>
         <input class="field-input field-input-sm" [(ngModel)]="teamId" (ngModelChange)="applyFilters()"
                placeholder="teamId..." />
@@ -130,7 +124,7 @@
         </div>
         <div class="t-display" style="font-size:18px;">{{ r.name }}</div>
         <div class="t-body mt-8">
-          <span class="t-dim">Joueur :</span> {{ r.playerName || 'N/A' }}<br />
+          <span class="t-dim">Utilisateur :</span> {{ r.username || 'N/A' }}<br />
           <span class="t-dim">Équipe :</span> {{ r.teamName || 'N/A' }}
           <div class="t-muted mt-8" style="font-size:12px;">
             <span *ngIf="r.rarity">{{ r.rarity }}</span>

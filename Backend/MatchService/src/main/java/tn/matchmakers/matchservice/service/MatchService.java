@@ -36,4 +36,5 @@ public interface MatchService {
     List<MatchEventDTO> obtenirEvenements(String matchId);
 
     MatchDTO supprimerEvenement(String matchId, String eventId);
+    List<MatchDTO> obtenirHistoriqueEquipes(String eq1, String eq2);
 }

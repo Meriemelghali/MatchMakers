@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { ThemeService, ThemeType } from '../ThemeService/theme.service';
 
 export interface LoginRequest {
   email: string;
@@ -10,11 +11,16 @@ export interface LoginRequest {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  accessTokenExpiresAt: string;
-  refreshTokenExpiresAt: string;
+  accessExpiresAt: string;
+  refreshExpiresAt: string;
   email: string;
   roles: string[];
   permissions: string[];
+  theme?: string;
+  requiresMfaChoice?: boolean;
+  requires2FA?: boolean;
+  twoFactorType?: string;
+  qrCodeImageBase64?: string;
 }
 
 
@@ -23,12 +29,28 @@ export interface AuthResponse {
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8081/users/auth'; 
+  private apiUrl = 'http://localhost:8081/users/auth';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private themeService: ThemeService
+  ) { }
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, request);
+  }
+
+  // --- 2FA Endpoints ---
+  setup2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/setup-2fa`, payload);
+  }
+
+  verifySetup2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-setup-2fa`, payload);
+  }
+
+  verify2Fa(payload: any): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/verify-2fa`, payload);
   }
 
   // Sauvegarder le token dans localStorage
@@ -36,17 +58,40 @@ export class AuthService {
     localStorage.setItem('accessToken', response.accessToken);
     localStorage.setItem('refreshToken', response.refreshToken);
     localStorage.setItem('userEmail', response.email);
-    // Rôle depuis le tableau roles
-    const role = response.roles?.length > 0 ? response.roles[0] : 'Admin';
-    localStorage.setItem('userRole', role);
+    // Stocker tous les rôles pour le choix ultérieur
+    const roles = response.roles || [];
+    localStorage.setItem('availableRoles', JSON.stringify(roles));
 
     // Décode le JWT pour récupérer firstName + lastName + ID
     try {
       const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
+      localStorage.setItem('userEmail', payload.email || response.email || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
-    } catch(e) {}
+    } catch (e) { }
+
+    if (response.theme) {
+      this.themeService.setTheme(response.theme as ThemeType, true);
+    }
+  }
+
+  saveTokensAndRedirect(response: AuthResponse, router: import('@angular/router').Router) {
+    this.saveTokens(response);
+    const roles = response.roles || [];
+    
+    if (roles.length > 1) {
+      router.navigate(['/role-selection']);
+    } else {
+      const role = roles.length === 1 ? roles[0] : 'SPORTIF';
+      localStorage.setItem('userRole', role);
+      
+      if (role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'ROLE_ADMIN') {
+        router.navigate(['/admin-choice']);
+      } else {
+        router.navigate(['/events']);
+      }
+    }
   }
 
   getUserId(): string | null {
@@ -58,6 +103,7 @@ export class AuthService {
   }
 
   logout() {
+    this.themeService.setTheme('DARK', false);
     localStorage.clear();
   }
 

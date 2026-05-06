@@ -1,0 +1,318 @@
+/* ── Wrapper ──────────────────────────────────────────────────────────────── */
+
+.viewer-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-s);
+  background: #1a1f28;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Canvas ───────────────────────────────────────────────────────────────── */
+
+.viewer-canvas {
+  display: block;
+  width: 100%;
+  height: 300px;
+}
+
+.viewer-canvas--tall {
+  height: 420px;
+}
+
+/* ── Top overlays ─────────────────────────────────────────────────────────── */
+
+.viewer-tl,
+.viewer-tr {
+  position: absolute;
+  top: 12px;
+  pointer-events: none;
+}
+.viewer-tl { left: 12px; }
+.viewer-tr { right: 12px; }
+
+.sport-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(232, 80, 10, 0.13);
+  border: 1px solid rgba(232, 80, 10, 0.32);
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand, #e8500a);
+}
+
+.hover-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  background: rgba(0, 0, 0, 0.42);
+  padding: 3px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  transition: color 0.2s;
+}
+.hover-tip--visible {
+  color: var(--text-2);
+}
+
+/* ── Read-only preview bar ────────────────────────────────────────────────── */
+
+.preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(14, 18, 27, 0.88);
+  border-top: 1px solid var(--border-s);
+  backdrop-filter: blur(10px);
+  gap: 12px;
+}
+
+.preview-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.preview-item--center {
+  flex: 1;
+  justify-content: center;
+  color: var(--text-3);
+}
+
+.preview-item--right {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.preview-light-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-s);
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.preview-light-pip--on {
+  background: #ffdc32;
+  box-shadow: 0 0 6px 2px rgba(255, 220, 50, 0.55);
+}
+
+.preview-3d-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  background: rgba(232, 80, 10, 0.1);
+  border: 1px solid rgba(232, 80, 10, 0.25);
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand, #e8500a);
+}
+
+/* ── Creator Bar ──────────────────────────────────────────────────────────── */
+
+.creator-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  background: rgba(14, 18, 27, 0.92);
+  border-top: 1px solid var(--border-s);
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
+}
+
+.creator-sep {
+  width: 1px;
+  background: var(--border-s);
+  align-self: stretch;
+  margin: 0 16px;
+  opacity: 0.5;
+}
+
+.creator-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+}
+
+.creator-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.creator-val {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.val-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Surface swatches ─────────────────────────────────────────────────────── */
+
+.swatches {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+  padding: 0;
+  outline: none;
+}
+
+.swatch:hover {
+  transform: scale(1.2);
+}
+
+.swatch--on {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--brand, #e8500a);
+  transform: scale(1.15);
+}
+
+/* ── Bleacher stepper ─────────────────────────────────────────────────────── */
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border-s);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, border-color 0.12s;
+  padding: 0;
+}
+
+.step-btn:hover:not(:disabled) {
+  background: rgba(232, 80, 10, 0.15);
+  border-color: var(--brand, #e8500a);
+  color: var(--brand, #e8500a);
+}
+
+.step-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.step-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-s);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.step-dot--on {
+  background: var(--brand, #e8500a);
+  transform: scale(1.25);
+}
+
+/* ── Lighting toggle ──────────────────────────────────────────────────────── */
+
+.light-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-s);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-3);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  align-self: flex-start;
+}
+
+.light-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-2);
+}
+
+.light-toggle--on {
+  background: rgba(255, 220, 50, 0.1);
+  border-color: rgba(255, 220, 50, 0.4);
+  color: #ffdc32;
+}
+
+.light-toggle--on:hover {
+  background: rgba(255, 220, 50, 0.16);
+}
+
+.light-pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-s);
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.light-toggle--on .light-pip {
+  background: #ffdc32;
+  box-shadow: 0 0 6px 2px rgba(255, 220, 50, 0.6);
+}

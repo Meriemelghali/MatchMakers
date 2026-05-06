@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpBackend, HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
 import { MatchService } from '../../../matches/services/match.service';
 import { Match } from '../../../matches/models/match.model';
@@ -80,6 +80,7 @@ export class LeaderboardComponent implements OnInit {
   llmLoading = false;
   llmError = '';
   llmMeta = '';
+  llmContext = '';
 
   simTeam = '';
   simWins = 0;
@@ -91,13 +92,16 @@ export class LeaderboardComponent implements OnInit {
 
   private teamsByName = new Map<string, Team>();
   private teamsByKey = new Map<string, Team>();
+  private aiHttp: HttpClient;
 
   constructor(
     private matchService: MatchService,
     private rewardService: RewardService,
     private teamService: TeamService,
-    private http: HttpClient
-  ) { }
+    httpBackend: HttpBackend
+  ) {
+    this.aiHttp = new HttpClient(httpBackend);
+  }
 
   ngOnInit(): void {
     this.load();
@@ -181,15 +185,17 @@ export class LeaderboardComponent implements OnInit {
     this.llmError = '';
     this.llmAnswer = '';
     this.llmMeta = '';
+    this.llmContext = this.buildContextSnapshot();
 
     const base = environment.aiServiceUrl as string | undefined;
     const url = base && base.trim().length ? `${base.replace(/\/$/, '')}/leaderboard` : `${environment.matchServiceUrl}/ai/leaderboard`;
     const body = {
       question: q,
-      context: this.buildContextSnapshot()
+      context: this.llmContext
     };
 
-    this.http.post<AiApiResponse>(url, body).subscribe({
+    // Security: bypass interceptors so we don't leak Authorization tokens to PythonAI.
+    this.aiHttp.post<AiApiResponse>(url, body).subscribe({
       next: (resp) => {
         this.llmAnswer = (resp?.answer ?? '').trim();
         const from = (resp as any)?.fromLlm ?? (resp as any)?.from_llm ?? false;
@@ -200,7 +206,7 @@ export class LeaderboardComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.llmError = 'IA indisponible. Lance le service Python (port 8001) + Ollama (11434), ou utilise le fallback.';
+        this.llmError = 'IA indisponible. Lance le service PythonAI (port 8001) avec OpenRouter (API key) ou Ollama, ou utilise le fallback.';
         this.llmLoading = false;
       }
     });
@@ -212,26 +218,53 @@ export class LeaderboardComponent implements OnInit {
 
   private buildContextSnapshot(): string {
     const lines: string[] = [];
+    lines.push('# MatchMakers - Contexte Classement');
+    lines.push('');
     lines.push(`Periode: ${this.period}`);
+    lines.push(`Genere: ${new Date().toISOString()}`);
     if (this.spotlights?.length) {
-      lines.push('Spotlights:');
+      lines.push('');
+      lines.push('## Spotlights');
       for (const s of this.spotlights) {
         lines.push(`- ${s.title}: ${s.subtitle} (${s.value})`);
       }
     }
     if (this.topTeams?.length) {
-      lines.push('Top equipes:');
+      lines.push('');
+      lines.push('## Top Equipes');
+      lines.push('| Rang | Equipe | Pts | MJ | V | N | D | BP | BC | GD |');
+      lines.push('|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|');
       for (const t of this.topTeams.slice(0, 8)) {
-        lines.push(`- #${t.rank} ${t.name}: ${t.points} pts, MJ ${t.played}, GD ${t.goalDiff} (BP ${t.goalsFor}/BC ${t.goalsAgainst})`);
+        lines.push(`| ${t.rank} | ${t.name} | ${t.points} | ${t.played} | ${t.wins} | ${t.draws} | ${t.losses} | ${t.goalsFor} | ${t.goalsAgainst} | ${t.goalDiff} |`);
       }
     }
     if (this.topPlayers?.length) {
-      lines.push('Top joueurs:');
+      lines.push('');
+      lines.push('## Top Utilisateurs');
+      lines.push('| Rang | Utilisateur | Equipe | Pts | Recompenses |');
+      lines.push('|---:|---|---|---:|---:|');
+      for (const p of this.topPlayers.slice(0, 6)) {
+        lines.push(`| ${p.rank} | ${p.name} | ${p.team ?? '-'} | ${p.points} | ${p.rewards} |`);
+      }
+      if (false) {
       for (const p of this.topPlayers.slice(0, 6)) {
         lines.push(`- #${p.rank} ${p.name} (${p.team ?? '—'}): ${p.points} pts, ${p.rewards} recompense(s)`);
       }
+      }
     }
     return lines.join('\n');
+  }
+
+  copyContext(): void {
+    const text = (this.llmContext || this.buildContextSnapshot() || '').trim();
+    if (!text) return;
+    navigator.clipboard?.writeText(text).catch(() => { });
+  }
+
+  copyAnswer(): void {
+    const text = (this.llmAnswer ?? '').trim();
+    if (!text) return;
+    navigator.clipboard?.writeText(text).catch(() => { });
   }
 
   private buildTeamOptions(): string[] {
@@ -478,7 +511,7 @@ export class LeaderboardComponent implements OnInit {
       const d = this.parseDate(r.dateAwarded);
       if (!this.inRange(d, start, null)) continue;
 
-      const name = (r.playerName ?? '').trim();
+      const name = ((r.username ?? '').trim() || (r.userId ?? '').trim());
       if (!name) continue;
 
       if (!map.has(name)) {

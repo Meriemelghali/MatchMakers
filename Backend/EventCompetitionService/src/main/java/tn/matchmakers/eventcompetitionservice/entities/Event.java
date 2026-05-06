@@ -41,4 +41,16 @@ public class Event extends BaseEntity {
 
     @Builder.Default
     private List<String> teamIds = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> participantIds = new ArrayList<>();
+
+    // ── route-based events ──
+    private String startPoint;
+    private String endPoint;
+    
+    @Builder.Default
+    private List<Double> distances = new ArrayList<>();
+
+    private List<Map<String, Double>> routePath;
 }

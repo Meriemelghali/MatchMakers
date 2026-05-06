@@ -13,5 +13,7 @@ public interface UserService {
     void deleteUser(String id);
     UserResponseDto createUser(UserCreateDto userCreateDto);
     UserResponseDto assignRoleToUser(String userId, String roleName);
-
+    UserResponseDto updateProfile(String userId, tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto);
+    void changePassword(String userId, tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto);
+    void notifyUsersForNewEvent(tn.matchmakers.userservice.dto.EventNotificationDto dto);
 }

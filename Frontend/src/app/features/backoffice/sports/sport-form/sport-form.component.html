@@ -1,0 +1,105 @@
+<div class="user-list-container">
+  <div class="list-header">
+    <div class="header-main">
+      <h1>{{ isEditMode ? 'Modifier le Sport' : 'Nouveau Sport' }}</h1>
+      <p class="subtitle">{{ isEditMode ? 'Mettez à jour les informations du sport' : 'Ajoutez un nouveau sport disponible pour les événements' }}</p>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div *ngIf="isLoading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Chargement des données...</p>
+    </div>
+
+    <form (ngSubmit)="saveSport()" *ngIf="!isLoading">
+      <div class="form-sections">
+        <!-- Section: Informations Générales -->
+        <div class="form-section">
+          <div class="section-header">
+            <i class="fas fa-running"></i>
+            <h3>Informations Générales</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="nameSport">Nom du Sport</label>
+              <input type="text" id="nameSport" [(ngModel)]="sport.nameSport" name="nameSport" 
+                     placeholder="Ex: Football, Tennis, Basketball..." required
+                     [class.error]="!sport.nameSport && formSubmitted">
+            </div>
+            
+            <div class="form-group">
+              <label for="minPlayers">Nombre minimum de joueurs</label>
+              <input type="number" id="minPlayers" [(ngModel)]="sport.minPlayers" name="minPlayers" 
+                     min="1" required
+                     [class.error]="(sport.minPlayers < 1) && formSubmitted">
+              <small>Le nombre minimum requis pour jouer (ex: 2 pour le tennis).</small>
+            </div>
+
+            <div class="form-group">
+              <label for="maxPlayers">Nombre maximum de joueurs</label>
+              <input type="number" id="maxPlayers" [(ngModel)]="sport.maxPlayers" name="maxPlayers" 
+                     [min]="sport.minPlayers" required
+                     [class.error]="(sport.maxPlayers < sport.minPlayers) && formSubmitted">
+              <small>La capacité maximale (ex: 22 pour un match de foot 11v11).</small>
+            </div>
+
+            <div class="form-group">
+              <label for="color">Couleur du Tag</label>
+              <div class="color-picker-container">
+                <div class="presets-grid">
+                  <div *ngFor="let c of presetColors" 
+                       class="color-preset" 
+                       [style.backgroundColor]="c"
+                       [class.active]="sport.color === c"
+                       (click)="sport.color = c">
+                    <i class="fas fa-check" *ngIf="sport.color === c"></i>
+                  </div>
+                </div>
+                <div class="color-input-wrapper">
+                  <input type="color" id="color" [(ngModel)]="sport.color" name="color" class="color-picker">
+                  <input type="text" [(ngModel)]="sport.color" name="colorText" placeholder="#HEX" class="color-text">
+                </div>
+              </div>
+              <small>Choisissez une couleur prédéfinie ou une couleur personnalisée.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Catégories -->
+        <div class="form-section">
+          <div class="section-header">
+            <i class="fas fa-tags"></i>
+            <h3>Catégories du Sport</h3>
+          </div>
+          <p class="section-subtitle">Associez ce sport à une ou plusieurs catégories pour faciliter la recherche.</p>
+          
+          <div class="categories-selection-grid">
+            <div *ngFor="let cat of allCategories" 
+                 class="selection-chip" 
+                 [class.selected]="isCategorySelected(cat.id)"
+                 (click)="toggleCategory(cat)">
+              <i class="fas" [class.fa-plus]="!isCategorySelected(cat.id)" [class.fa-check]="isCategorySelected(cat.id)"></i>
+              {{ cat.nameSportC }}
+            </div>
+            
+            <div *ngIf="allCategories.length === 0" class="no-categories-message">
+              <i class="fas fa-info-circle"></i>
+              Aucune catégorie disponible. Veuillez d'abord créer des catégories.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isSaving">
+          <i class="fas" [class.fa-save]="!isSaving" [class.fa-spinner]="isSaving" [class.fa-spin]="isSaving"></i>
+          {{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Ajouter le sport') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
