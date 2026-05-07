@@ -13,37 +13,54 @@
   <div class="chat-layout">
     <!-- Sidebar -->
     <div class="chat-sidebar card p-0">
-      
+
       <div class="chat-sidebar-header">
         <h3 class="t-title t-orange" style="font-size: 16px;">Utilisateurs</h3>
       </div>
+
+      <div class="t-muted p-3" *ngIf="loadingUsers">Chargement des utilisateurs...</div>
+
       <div class="chat-list" style="max-height: 250px;">
-        <div class="chat-list-item" 
-             *ngFor="let u of otherUsers" 
-             (click)="selectMockUser(u)"
-             [class.active]="selectedUser?.id === u.id">
-          <div class="chat-avatar">{{ u.avatar }}</div>
+        <div class="chat-list-item" *ngFor="let u of otherUsers" (click)="selectUser(u)"
+          [class.active]="selectedUser?.idUser === u.idUser">
+          <div class="chat-avatar">{{ getAvatar(u.idUser) }}</div>
           <div class="chat-list-info">
-            <div class="chat-list-name">{{ u.name }}</div>
+            <div class="chat-list-name">{{ getUserName(u.idUser) }}</div>
             <div class="t-label t-muted" style="letter-spacing: normal;">Cliquez pour parler</div>
           </div>
         </div>
       </div>
-      
+
       <div class="chat-sidebar-header" style="border-top: 1px solid var(--border);">
         <h3 class="t-title t-orange" style="font-size: 16px;">Conversations Récentes</h3>
       </div>
       <div class="t-muted p-3" *ngIf="loadingConversations">Chargement...</div>
       <div class="t-muted p-3" *ngIf="!loadingConversations && conversations.length === 0">Aucune conversation.</div>
       <div class="chat-list">
-        <div class="chat-list-item" 
-             *ngFor="let conv of conversations"
-             (click)="selectConversation(conv)"
-             [class.active]="activeConversation?.idConversation === conv.idConversation">
+        <div class="chat-list-item" *ngFor="let conv of conversations" (click)="selectConversation(conv)"
+          [class.active]="activeConversation?.idConversation === conv.idConversation">
           <div class="chat-avatar" style="background: var(--layer-3);">{{ getConversationAvatar(conv) }}</div>
-          <div class="chat-list-info">
+          <div class="chat-list-info" *ngIf="conversationToDeleteId !== conv.idConversation">
             <div class="chat-list-name">{{ getConversationName(conv) }}</div>
             <div class="t-label t-muted" style="letter-spacing: normal;">Conversation active</div>
+          </div>
+          <button class="btn-icon t-red" style="border:none; background:transparent;"
+            *ngIf="isParticipant(conv) && conversationToDeleteId !== conv.idConversation"
+            (click)="deleteConversation(conv, $event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+
+          <!-- Inline Confirm for Conversation -->
+          <div *ngIf="conversationToDeleteId === conv.idConversation"
+            class="chat-list-info flex items-center gap-8 px-2">
+            <span class="t-label t-red" style="text-transform: none; font-size: 11px;">Supprimer ?</span>
+            <div class="flex gap-4">
+              <button class="confirm-btn-mini" (click)="deleteConversation(conv, $event, true)">Oui</button>
+              <button class="cancel-btn-mini" (click)="cancelDeleteConversation($event)">Non</button>
+            </div>
           </div>
         </div>
       </div>
@@ -53,62 +70,133 @@
     <!-- Main Chat Window -->
     <div class="chat-main card p-0">
       <ng-container *ngIf="selectedUser || activeConversation; else noChat">
-        
+
         <!-- Chat Header -->
         <div class="chat-header">
           <div class="chat-avatar" style="width: 40px; height: 40px; font-size: 16px;">
-            {{ activeConversation ? getConversationAvatar(activeConversation) : selectedUser?.avatar }}
+            {{ activeConversation ? getConversationAvatar(activeConversation) : getAvatar(selectedUser?.idUser) }}
           </div>
           <div>
-            <div class="t-title">{{ activeConversation ? getConversationName(activeConversation) : selectedUser?.name }}</div>
+            <div class="t-title">
+              {{ activeConversation ? getConversationName(activeConversation) : getUserName(selectedUser?.idUser) }}
+            </div>
             <div class="t-label" style="color: var(--green);">En ligne</div>
           </div>
         </div>
 
         <!-- Chat Messages -->
-        <div class="chat-messages" id="chat-messages-container">
-          <div *ngIf="loadingMessages" class="t-muted text-center py-4">Chargement des messages...</div>
+        <div class="chat-messages" id="chat-messages-container" [class.blur-content]="isTranscribing">
           
-          <div *ngIf="!loadingMessages && messages.length === 0" class="t-muted text-center py-4" style="font-style: italic;">
-            Soyez le premier à dire bonjour !
+          <!-- Transcription Processing State (Full View) -->
+          <div class="transcription-loading-state" *ngIf="isTranscribing">
+            <div class="ai-processing-visual">
+              <div class="ai-ring"></div>
+              <div class="ai-ring"></div>
+              <div class="ai-ring"></div>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </div>
+            <h3 class="t-title" style="margin-top: 24px;">Traitement de votre message...</h3>
+            <p class="t-muted">L'intelligence artificielle convertit votre voix en texte.</p>
           </div>
 
-          <div class="message-wrapper" 
-               *ngFor="let msg of messages"
-               [ngClass]="msg.idUser === currentUser.id ? 'message-sent' : 'message-received'">
-            
-            <div class="chat-avatar message-avatar" *ngIf="msg.idUser !== currentUser.id">
-              {{ getAvatar(msg.idUser) }}
+          <ng-container *ngIf="!isTranscribing">
+            <div *ngIf="loadingMessages" class="t-muted text-center py-4">Chargement des messages...</div>
+  
+            <div *ngIf="!loadingMessages && messages.length === 0" class="t-muted text-center py-4"
+              style="font-style: italic;">
+              Soyez le premier à dire bonjour !
             </div>
-
-            <div class="message-bubble">
-              <div class="message-content">{{ msg.content }}</div>
-              <div class="message-time">
-                {{ msg.send_at ? (msg.send_at | date:'shortTime') : 'À l\'instant' }}
+  
+            <div class="message-wrapper" *ngFor="let msg of messages"
+              [ngClass]="isSentByMe(msg) ? 'message-sent' : 'message-received'">
+  
+              <div class="chat-avatar message-avatar" *ngIf="!isSentByMe(msg)">
+                {{ getAvatar(msg.idUser) }}
+              </div>
+  
+              <div class="message-bubble" [class.confirming-delete]="messageToDeleteId === msg.idMessage">
+                <ng-container *ngIf="messageToDeleteId !== msg.idMessage">
+                  <div class="message-content">{{ msg.content }}</div>
+                  <div class="message-time">
+                    {{ msg.send_at ? (msg.send_at | date:'shortTime') : 'À l\'instant' }}
+                    <span *ngIf="isSentByMe(msg)" class="delete-msg-trigger" (click)="deleteMessage(msg)"
+                      style="margin-left:8px;" title="Supprimer">✕</span>
+                  </div>
+                </ng-container>
+  
+                <div *ngIf="messageToDeleteId === msg.idMessage" class="delete-confirmation-inline">
+                  <span>Supprimer ?</span>
+                  <div class="flex gap-8">
+                    <button class="confirm-btn-mini" (click)="deleteMessage(msg, true)">Oui</button>
+                    <button class="cancel-btn-mini" (click)="cancelDeleteMessage()">Non</button>
+                  </div>
+                </div>
               </div>
             </div>
-            
-          </div>
+          </ng-container>
         </div>
 
-        <!-- Chat Input -->
+        <!-- Chat Input Area (Swaps between Input and Transcription Loading) -->
         <div class="chat-input-area">
-          <input type="text" class="field-input" placeholder="Écrivez un message..." 
-                 [(ngModel)]="newMessageContent" 
-                 (keyup.enter)="sendMessage()">
-          <button class="btn btn-primary btn-sq" style="width: 42px; height: 42px;" [disabled]="!newMessageContent.trim()" (click)="sendMessage()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
+          
+          <!-- State 1: transcription in progress -->
+          <div class="transcription-status-bar" *ngIf="isTranscribing">
+            <div class="loading-wave-mini">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span class="t-label" style="text-transform: none; color: var(--brand); font-weight: 600;">
+              L'IA rédige votre message...
+            </span>
+          </div>
+
+          <!-- State 2: Normal input -->
+          <ng-container *ngIf="!isTranscribing">
+            <!-- Voice Visualizer (During Recording) -->
+            <div class="voice-visualizer" *ngIf="isRecording">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+
+            <textarea class="field-input auto-grow" placeholder="Écrivez ou dictez un message..." 
+              [(ngModel)]="newMessageContent"
+              rows="1"
+              (keydown.enter)="$event.preventDefault(); sendMessage()"
+              style="resize: none; padding-top: 10px;"></textarea>
+
+            <button class="btn btn-sq mic-btn" style="width: 42px; height: 42px;" 
+              [class.mic-recording]="isRecording"
+              (click)="toggleRecording()"
+              [title]="isRecording ? 'Arrêter l\'enregistrement' : 'Dicter un message'">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+                <path d="M5 10a7 7 0 0 0 14 0"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+                <line x1="8" y1="22" x2="16" y2="22"></line>
+              </svg>
+            </button>
+
+            <button class="btn btn-primary btn-sq" style="width: 42px; height: 42px;"
+              [disabled]="!newMessageContent.trim()" (click)="sendMessage()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </ng-container>
         </div>
 
       </ng-container>
 
       <ng-template #noChat>
         <div class="no-chat-selected">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>
           <div class="t-title" style="margin-top: 16px;">Vos Discussions</div>

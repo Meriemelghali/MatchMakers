@@ -44,6 +44,49 @@ export interface BaseSport {
   maxPlayers?: number;
 }
 
+export interface ReservationStats {
+  totalReservations: number;
+  confirmedReservations: number;
+  pendingReservations: number;
+  cancelledReservations: number;
+  reservationsBySport: { [key: string]: number };
+  reservationsByStatus: { [key: string]: number };
+}
+
+export interface TerrainRecommendation {
+  terrain_id: string;
+  score: number;
+  raisons: string[];
+  details: {
+    score_meteo: number;
+    score_charge: number;
+    score_calendrier: number;
+    score_heure: number;
+    score_note: number;
+  };
+}
+
+export interface RecommendationResponse {
+  recommandations: TerrainRecommendation[];
+}
+
+export interface EvaluationResponse {
+  score: number;
+  verdict: string;
+  raisons: string[];
+  details: any;
+}
+
+export interface BestSlot {
+  date_heure: string;
+  score: number;
+  raisons: string[];
+}
+
+export interface BestSlotsResponse {
+  slots: BestSlot[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -54,14 +97,14 @@ export class ReservationService {
 
   constructor(private http: HttpClient) { }
 
-  /** GET /terrain → List<TerrainDTO> (plain array, not paginated) */
+  /** GET /terrain/ → List<TerrainDTO> */
   getTerrains(): Observable<BaseTerrain[]> {
-    return this.http.get<BaseTerrain[]>(this.terrainUrl);
+    return this.http.get<BaseTerrain[]>(`${this.terrainUrl}/`);
   }
 
-  /** GET /api/sports → List<Sport> (plain array, not paginated) */
+  /** GET /api/sports → List<Sport> */
   getSports(): Observable<BaseSport[]> {
-    return this.http.get<BaseSport[]>(this.sportUrl);
+    return this.http.get<BaseSport[]>(`${this.sportUrl}/api/sports`);
   }
 
   getReservations(): Observable<Reservation[]> {
@@ -72,6 +115,10 @@ export class ReservationService {
 
   getReservationById(id: string): Observable<Reservation> {
     return this.http.get<Reservation>(`${this.apiUrl}/${id}`);
+  }
+
+  getReservationStats(userId: string): Observable<ReservationStats> {
+    return this.http.get<ReservationStats>(`${this.apiUrl}/user/${userId}/stats`);
   }
 
   createReservation(reservation: Omit<Reservation, 'idReservation'>): Observable<Reservation> {
@@ -91,5 +138,20 @@ export class ReservationService {
 
   deleteReservation(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getRecommendations(dateTime: string): Observable<RecommendationResponse> {
+    const baseUrl = this.apiUrl.replace('/api/reservations', '');
+    return this.http.get<RecommendationResponse>(`${baseUrl}/api/recommendations?dateTime=${dateTime}`);
+  }
+
+  evaluateChoice(terrain: any, dateTime: string): Observable<EvaluationResponse> {
+    const baseUrl = this.apiUrl.replace('/api/reservations', '');
+    return this.http.post<EvaluationResponse>(`${baseUrl}/api/evaluate`, { terrain, date_heure: dateTime });
+  }
+
+  getBestSlots(terrain: any, baseDate: string): Observable<BestSlotsResponse> {
+    const baseUrl = this.apiUrl.replace('/api/reservations', '');
+    return this.http.post<BestSlotsResponse>(`${baseUrl}/api/best-slots`, { terrain, base_date: baseDate });
   }
 }

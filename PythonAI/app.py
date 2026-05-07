@@ -1,11 +1,27 @@
-﻿import os
+import os
 import time
 from typing import Optional
 
 import httpx
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+# For AI Recommendation
+from recommendation.scoring import calculate_final_score
+
+try:
+    from detoxify import Detoxify
+    import pandas as pd
+    TOXICITY_MODEL_NAME = os.getenv("TOXICITY_MODEL", "multilingual")
+    TOXICITY_DEVICE = os.getenv("TOXICITY_DEVICE", "cpu")
+    TOXICITY_THRESHOLD = float(os.getenv("TOXICITY_THRESHOLD", "0.5"))
+    print(f"Loading Toxicity model '{TOXICITY_MODEL_NAME}'...")
+    toxicity_model = Detoxify(TOXICITY_MODEL_NAME, device=TOXICITY_DEVICE)
+    print("Toxicity model loaded successfully.")
+except Exception as e:
+    print(f"Error loading toxicity model: {e}")
+    toxicity_model = None
 
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -26,7 +42,47 @@ class LeaderboardResponse(BaseModel):
     latency_ms: int
 
 
-app = FastAPI(title="MatchMakers Python AI (Ollama)", version="0.1.0")
+# Toxicity Detection Models
+class ToxicityRequest(BaseModel):
+    text: str
+
+class ToxicityResponse(BaseModel):
+    is_toxic: bool
+    scores: dict
+    verdict: str
+
+
+class RecommendationRequest(BaseModel):
+    date_heure: str
+    terrains: list
+
+
+class RecommendationResponse(BaseModel):
+    recommandations: list
+
+
+class EvaluationRequest(BaseModel):
+    date_heure: str
+    terrain: dict
+
+
+class EvaluationResponse(BaseModel):
+    score: float
+    verdict: str
+    raisons: list
+    details: dict
+
+
+class BestSlotsRequest(BaseModel):
+    base_date: str # YYYY-MM-DD
+    terrain: dict
+
+
+class BestSlotsResponse(BaseModel):
+    slots: list # List of {date_heure, score, raisons}
+
+
+app = FastAPI(title="MatchMakers Python AI", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,7 +95,12 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"ok": True, "ollama_url": OLLAMA_URL, "default_model": OLLAMA_MODEL}
+    return {
+        "ok": True, 
+        "ollama_url": OLLAMA_URL, 
+        "default_model": OLLAMA_MODEL,
+        "toxicity_model": TOXICITY_MODEL_NAME if toxicity_model else "not_loaded"
+    }
 
 
 def _build_prompt(req: LeaderboardRequest) -> str:
@@ -101,3 +162,63 @@ async def leaderboard(req: LeaderboardRequest):
     )
 
 
+# --- Toxicity Detection Endpoint ---
+
+def get_verdict(scores, threshold):
+    global_score = max(scores.values())
+    if global_score >= 0.8:
+        return "CRITICAL"
+    elif global_score >= threshold:
+        return "TOXIC"
+    elif global_score >= threshold * 0.6:
+        return "AMBIGUOUS"
+    else:
+        return "SAFE"
+
+@app.post("/analyze", response_model=ToxicityResponse)
+async def analyze_text(request: ToxicityRequest):
+    if toxicity_model is None:
+        raise HTTPException(status_code=503, detail="Toxicity model is not loaded.")
+    
+    if not request.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty.")
+
+    try:
+        # Wrap in a list for predict
+        results = toxicity_model.predict([request.text])
+        # predict returns a dict of lists
+        scores = {k: float(v[0]) for k, v in results.items()}
+        
+        global_score = max(scores.values())
+        is_toxic = global_score >= TOXICITY_THRESHOLD
+        verdict = get_verdict(scores, TOXICITY_THRESHOLD)
+
+        return ToxicityResponse(
+            is_toxic=is_toxic,
+            scores=scores,
+            verdict=verdict
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- Recommendation Endpoint ---
+
+@app.post("/recommend", response_model=RecommendationResponse)
+async def recommend_terrains(req: RecommendationRequest):
+    try:
+        recommandations = []
+        for t in req.terrains:
+            result = calculate_final_score(t, req.date_heure)
+            recommandations.append({
+                "terrain_id": t.get('id', t.get('_id')),
+                "score": result['score'],
+                "raisons": result['raisons'],
+                "details": result['details']
+            })
+            
+        recommandations.sort(key=lambda x: x['score'], reverse=True)
+        return {"recommandations": recommandations}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

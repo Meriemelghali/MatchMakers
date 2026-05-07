@@ -24,17 +24,18 @@ export class ReservationFormComponent implements OnInit {
   ];
 
   formData = {
-    startTimeR: '',
+    startTimeR: new Date().toISOString().substring(0, 16),
     statutR: 'RESERVED',
     sportId: '',
     terrainId: '',
-    idUser: '69c00a957c847937bd945001'
+    idUser: localStorage.getItem('userId') || ''
   };
 
   loadingData = true;
   loadError = false;
   loading = false;
   error = false;
+  dateInPast = false;
 
   constructor(
     private reservationService: ReservationService,
@@ -92,7 +93,12 @@ export class ReservationFormComponent implements OnInit {
   onSubmit(): void {
     if (!this.formData.startTimeR || !this.formData.terrainId || !this.formData.sportId) return;
 
+    this.dateInPast = false;
     const start = new Date(this.formData.startTimeR);
+    if (start.getTime() < Date.now()) {
+      this.dateInPast = true;
+      return;
+    }
     const end = new Date(start.getTime() + 60 * 60 * 1000); // +1 hour
 
     const payload: any = {

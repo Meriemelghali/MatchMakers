@@ -12,6 +12,28 @@
 
   <div class="divider"></div>
 
+  <!-- Dashboard Stats -->
+  <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;" *ngIf="stats">
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Total Réservations</div>
+      <div class="t-title" style="font-size: 24px; color: var(--brand);">{{ stats.totalReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Confirmées</div>
+      <div class="t-title" style="font-size: 24px; color: var(--green);">{{ stats.confirmedReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">En attente</div>
+      <div class="t-title" style="font-size: 24px; color: var(--orange);">{{ stats.pendingReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Annulées</div>
+      <div class="t-title" style="font-size: 24px; color: var(--red);">{{ stats.cancelledReservations }}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <div *ngIf="loading" class="t-muted">Chargement...</div>
   <div *ngIf="error" class="t-red" style="color: var(--red);">Erreur lors du chargement des réservations.</div>
 
@@ -35,13 +57,13 @@
         </div>
         <div>
           <span class="badge" [ngClass]="{
-      'badge-pending': res.statutR === 'PENDING',
-      'badge-reserved': res.statutR === 'RESERVED',
-      'badge-confirmed': res.statutR === 'CONFIRMED',
-      'badge-annule': res.statutR === 'CANCELLED',
-      'badge-completed': res.statutR === 'COMPLETED'
-    }">
-            {{ res.statutR }}
+    'badge-pending':   res.statutR === 'PENDING',
+    'badge-reserved':  res.statutR === 'RESERVED',
+    'badge-confirmed': res.statutR === 'CONFIRMED',
+    'badge-annule':    res.statutR === 'CANCELLED',
+    'badge-completed': res.statutR === 'COMPLETED'
+  }">
+            {{ statutLabels[res.statutR] || res.statutR }}
           </span>
         </div>
       </div>
@@ -83,14 +105,16 @@
           *ngIf="res.statutR !== 'CANCELLED'" (click)="cancel(res)">
           Annuler
         </button>
-        <button class="btn btn-icon btn-outline-danger btn-sm"
-          (click)="deleteReservation(res.idReservation)" title="Supprimer définitivement">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button class="btn btn-icon btn-outline-danger " (click)="deleteReservation(res.idReservation)"
+          title="Supprimer définitivement">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
         </button>
-        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted" style="font-size: 0.85rem; font-style: italic; align-self: center; margin-right: auto;">
+        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted"
+          style="font-size: 0.85rem; font-style: italic; align-self: center; margin-right: auto;">
           Réservation annulée
         </div>
       </div>

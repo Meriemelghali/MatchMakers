@@ -23,7 +23,7 @@ export interface AuthResponse {
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8081/users/auth'; 
+  private apiUrl = 'http://localhost:8081/users/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -45,7 +45,8 @@ export class AuthService {
       const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
-    } catch(e) {}
+      localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
+    } catch (e) { }
   }
 
   logout() {

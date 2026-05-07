@@ -17,5 +17,5 @@ public class ConversationRequestDto {
     @NotNull(message = "Conversation type is required")
     private ConType conversationT;
 
-    private List<Long> userIds;
+    private List<String> userIds;
 }

@@ -23,6 +23,13 @@
       Erreur lors du chargement des options. Veuillez vérifier la connexion aux services.
     </div>
 
+    <!-- AI Recommendations -->
+    <app-recommendation-list 
+      *ngIf="!isEdit"
+      [selectedDateTime]="formData.startTimeR"
+      (terrainSelected)="formData.terrainId = $event">
+    </app-recommendation-list>
+
     <!-- Form -->
     <form (ngSubmit)="onSubmit()" #resForm="ngForm" *ngIf="!loadingData && !loadError" class="flex flex-col gap-24">
       
@@ -39,6 +46,12 @@
                   {{ terrainLabel(terrain) }}
                 </option>
               </select>
+
+              <app-selection-evaluator 
+                [terrainId]="formData.terrainId"
+                [dateTime]="formData.startTimeR"
+                [allTerrains]="terrains">
+              </app-selection-evaluator>
             </div>
 
             <div class="field">
@@ -73,6 +86,10 @@
             La durée par défaut de la session est fixée à 1 heure.
           </div>
         </div>
+      </div>
+
+      <div *ngIf="dateInPast" class="alert alert-err">
+        La date de réservation doit être égale ou supérieure à la date actuelle.
       </div>
 
       <div *ngIf="error" class="alert alert-err">
