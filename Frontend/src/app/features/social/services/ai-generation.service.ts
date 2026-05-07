@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class AiGenerationService {
 
   private getHeaders() {
     return {
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${environment.PostGenerationApiKey}`,
       'HTTP-Referer': 'http://localhost:4200',
       'X-OpenRouter-Title': 'MatchMakers',
       'Content-Type': 'application/json'
