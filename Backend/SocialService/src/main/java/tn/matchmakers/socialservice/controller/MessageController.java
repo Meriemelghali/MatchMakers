@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @CrossOrigin("*")
 @RestController
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class MessageController {
 
     private final MessageService messageService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Operation(summary = "Récupérer tous les messages")
     @ApiResponses(value = {
@@ -56,8 +59,10 @@ public class MessageController {
     })
     @PostMapping
     public ResponseEntity<MessageResponseDto> createMessage(@Valid @RequestBody MessageRequestDto message) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(messageService.createMessage(message));
+        MessageResponseDto response = messageService.createMessage(message);
+        // Broadcast the message to the conversation topic
+        messagingTemplate.convertAndSend("/topic/messages/" + response.getIdConversation(), response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Mettre à jour un message")
@@ -81,7 +86,13 @@ public class MessageController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMessage(
             @Parameter(description = "ID du message") @PathVariable String id) {
+        MessageResponseDto message = messageService.getMessageById(id);
         messageService.deleteMessage(id);
+        
+        // Broadcast deletion event as an object
+        messagingTemplate.convertAndSend("/topic/messages/" + message.getIdConversation() + "/delete", Map.of("idMessage", id));
+        System.out.println("DEBUG: Broadcasted message deletion " + id + " to conversation " + message.getIdConversation());
+        
         return ResponseEntity.noContent().build();
     }
 }

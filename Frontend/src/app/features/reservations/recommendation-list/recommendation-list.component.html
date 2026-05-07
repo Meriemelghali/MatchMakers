@@ -1,0 +1,71 @@
+<div class="recommendation-header mb-16">
+  <div class="flex items-center gap-12">
+    <div class="ai-icon-pulse">
+      <i class="fas fa-robot"></i>
+    </div>
+    <div>
+      <h3 class="t-title" style="font-size: 16px;">Assistant Intelligent</h3>
+      <p class="t-dim" style="font-size: 12px;">Analyse en temps réel du créneau</p>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="recommendation-scroll-container">
+  <div class="skeleton-card" *ngFor="let i of [1,2]"></div>
+</div>
+
+<div *ngIf="!loading">
+  <!-- POSITIVE RECS -->
+  <div class="section-label mb-12" *ngIf="positiveRecs.length > 0">
+    <i class="fas fa-thumbs-up mr-8 t-success"></i> Meilleures options
+  </div>
+  
+  <div class="recommendation-scroll-container">
+    <div *ngFor="let rec of (showAll ? positiveRecs : positiveRecs.slice(0, 2)); let i = index" 
+         class="recommendation-item animate-card"
+         (click)="onSelectTerrain(rec.terrain_id)">
+      
+      <div class="rec-score-ring" [style.color]="getScoreColor(rec.score)">
+        <svg viewBox="0 0 36 36" class="circular-chart">
+          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+          <path class="circle" [style.stroke-dasharray]="(rec.score * 100) + ', 100'"
+                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+        </svg>
+        <span class="score-text">{{ (rec.score * 100) | number:'1.0-0' }}</span>
+      </div>
+
+      <div class="rec-body">
+        <div class="rec-title">{{ getTerrainName(rec.terrain_id) }}</div>
+        <div class="rec-city">{{ getTerrainCity(rec.terrain_id) }}</div>
+        <div class="rec-raisons mt-8">
+          <span *ngFor="let raison of rec.raisons" class="rec-reason-tag">{{ raison }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHOW MORE BUTTON -->
+  <button class="btn btn-ghost btn-sm w-full mb-16" *ngIf="positiveRecs.length > 2" (click)="toggleShowAll()">
+    {{ showAll ? 'Voir moins' : 'Voir ' + (positiveRecs.length - 2) + ' autres suggestions' }}
+  </button>
+
+  <!-- NEGATIVE RECS (CRÉNEAUX À ÉVITER) -->
+  <div class="section-label mb-12 t-err" *ngIf="negativeRecs.length > 0">
+    <i class="fas fa-exclamation-triangle mr-8"></i> Créneaux déconseillés
+  </div>
+  
+  <div class="recommendation-scroll-container">
+    <div *ngFor="let rec of negativeRecs" class="recommendation-item item-danger" (click)="onSelectTerrain(rec.terrain_id)">
+      <div class="rec-score-ring t-err">
+        <span class="score-text">{{ (rec.score * 100) | number:'1.0-0' }}%</span>
+      </div>
+      <div class="rec-body">
+        <div class="rec-title">{{ getTerrainName(rec.terrain_id) }}</div>
+        <div class="rec-raisons mt-4">
+          <span class="t-err" style="font-size: 10px; font-weight: 600;">{{ rec.raisons[0] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

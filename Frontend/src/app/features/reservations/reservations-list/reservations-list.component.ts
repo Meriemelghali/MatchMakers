@@ -11,8 +11,11 @@ export class ReservationsListComponent implements OnInit {
   reservations: Reservation[] = [];
   terrains: BaseTerrain[] = [];
   sports: BaseSport[] = [];
+  stats: any = null;
   loading = true;
   error = false;
+
+  private readonly staticUserId = localStorage.getItem('userId') || '';
 
   constructor(private reservationService: ReservationService) { }
 
@@ -20,17 +23,27 @@ export class ReservationsListComponent implements OnInit {
     this.fetchReservations();
   }
 
+  statutLabels: Record<string, string> = {
+    'PENDING': 'En attente',
+    'RESERVED': 'Réservé',
+    'CONFIRMED': 'Confirmé',
+    'CANCELLED': 'Annulé',
+    'COMPLETED': 'Terminé',
+    'NO_SHOW': 'Non présenté'
+  };
   fetchReservations(): void {
     this.loading = true;
     forkJoin({
       reservations: this.reservationService.getReservations(),
       terrains: this.reservationService.getTerrains(),
-      sports: this.reservationService.getSports()
+      sports: this.reservationService.getSports(),
+      stats: this.reservationService.getReservationStats(this.staticUserId)
     }).subscribe({
       next: (data) => {
         this.reservations = data.reservations;
         this.terrains = data.terrains;
         this.sports = data.sports;
+        this.stats = data.stats;
         this.loading = false;
       },
       error: (err) => {
