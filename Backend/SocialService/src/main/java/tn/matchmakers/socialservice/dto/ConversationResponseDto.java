@@ -15,6 +15,6 @@ import java.util.List;
 public class ConversationResponseDto {
     private String idConversation;
     private ConType conversationT;
-    private List<Long> userIds;
+    private List<String> userIds;
     private List<MessageResponseDto> messages;
 }

@@ -23,7 +23,7 @@ public class Conversation {
     @NotNull(message = "Conversation type is required")
     private ConType conversationT;
 
-    private List<Long> userIds;
+    private List<String> userIds;
 
     /**
      * Messages liés via {@link Message#conversation} (enfant → parent). Chargés via requête pour les DTO.
