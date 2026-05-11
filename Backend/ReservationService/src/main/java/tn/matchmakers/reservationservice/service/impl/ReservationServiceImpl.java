@@ -48,6 +48,10 @@ public class ReservationServiceImpl implements ReservationService {
             throw new RuntimeException("Le terrain est déjà réservé pour ce créneau horaire.");
         }
 
+        if (!isUserAvailableForSport(reservation.getIdUser(), reservation.getSportId(), reservation.getStartTimeR(), reservation.getEndTimeR(), null)) {
+            throw new RuntimeException("Vous avez déjà une réservation pour cette discipline sportive dans le même créneau horaire.");
+        }
+
         Reservation entity = fromRequestDto(reservation);
         entity.setId(null);
         return toResponseDto(reservationRepository.save(entity));
@@ -59,6 +63,10 @@ public class ReservationServiceImpl implements ReservationService {
         
         if (!isTerrainAvailable(reservation.getTerrainId(), reservation.getStartTimeR(), reservation.getEndTimeR(), id)) {
             throw new RuntimeException("Le terrain est déjà réservé pour ce créneau horaire.");
+        }
+
+        if (!isUserAvailableForSport(reservation.getIdUser(), reservation.getSportId(), reservation.getStartTimeR(), reservation.getEndTimeR(), id)) {
+            throw new RuntimeException("Vous avez déjà une réservation pour cette discipline sportive dans le même créneau horaire.");
         }
 
         Reservation existingReservation = findByIdOrThrow(id);
@@ -114,6 +122,16 @@ public class ReservationServiceImpl implements ReservationService {
         
         return existing.stream()
             .filter(r -> r.getStatutR() != StatutReservation.CANCELLED)
+            .filter(r -> excludeReservationId == null || !r.getId().equals(excludeReservationId))
+            .noneMatch(r -> start.isBefore(r.getEndTimeR()) && end.isAfter(r.getStartTimeR()));
+    }
+
+    private boolean isUserAvailableForSport(String userId, String sportId, java.time.LocalDateTime start, java.time.LocalDateTime end, String excludeReservationId) {
+        List<Reservation> userReservations = reservationRepository.findByIdUser(userId);
+        
+        return userReservations.stream()
+            .filter(r -> r.getStatutR() != StatutReservation.CANCELLED)
+            .filter(r -> r.getSportId().equals(sportId))
             .filter(r -> excludeReservationId == null || !r.getId().equals(excludeReservationId))
             .noneMatch(r -> start.isBefore(r.getEndTimeR()) && end.isAfter(r.getStartTimeR()));
     }

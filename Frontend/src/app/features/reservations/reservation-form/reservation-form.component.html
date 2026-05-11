@@ -23,12 +23,26 @@
       Erreur lors du chargement des options. Veuillez vérifier la connexion aux services.
     </div>
 
-    <!-- AI Recommendations -->
-    <app-recommendation-list 
-      *ngIf="!isEdit"
-      [selectedDateTime]="formData.startTimeR"
-      (terrainSelected)="formData.terrainId = $event">
-    </app-recommendation-list>
+
+    <!-- Smart Calendar Toggle -->
+    <div *ngIf="!isEdit && formData.sportId && formData.terrainId" class="mb-16">
+      <button type="button" class="btn btn-ghost btn-sm" (click)="toggleCalendar()" style="width: 100%; border: 1px dashed rgba(99,102,241,0.35); color: #818cf8; font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px;">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        {{ showCalendar ? 'Masquer le calendrier de disponibilités' : '🗓️ Voir la heatmap de disponibilités IA' }}
+      </button>
+
+      <!-- Smart Calendar Component -->
+      <app-smart-calendar
+        *ngIf="showCalendar"
+        [sportType]="getSelectedSportName()"
+        [terrainId]="formData.terrainId"
+        [allTerrains]="terrains"
+        (slotSelected)="onCalendarSlotSelected($event)"
+        style="display: block; margin-top: 12px;">
+      </app-smart-calendar>
+    </div>
 
     <!-- Form -->
     <form (ngSubmit)="onSubmit()" #resForm="ngForm" *ngIf="!loadingData && !loadError" class="flex flex-col gap-24">
@@ -67,13 +81,16 @@
 
           <div class="form-grid">
             <div class="field">
-              <label class="field-label" for="startTime">Date et Heure *</label>
-              <input type="datetime-local" id="startTime" name="startTime" class="field-input" [(ngModel)]="formData.startTimeR" required>
+              <label class="field-label">Date et Heure *</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="date" name="formDate" class="field-input" [(ngModel)]="formDate" required style="flex: 2;">
+                <input type="time" name="formTime" class="field-input" [(ngModel)]="formTime" required style="flex: 1;" lang="fr-FR">
+              </div>
             </div>
 
             <div class="field">
               <label class="field-label" for="statutR">Statut Initial *</label>
-              <select id="statutR" name="statutR" class="field-input" [(ngModel)]="formData.statutR" required>
+              <select id="statutR" name="statutR" class="field-input" [(ngModel)]="formData.statutR" required [disabled]="!isEdit">
                 <option *ngFor="let s of statuts" [value]="s.value">
                   {{ s.label }}
                 </option>
@@ -93,7 +110,7 @@
       </div>
 
       <div *ngIf="error" class="alert alert-err">
-        Erreur lors de l'enregistrement. Veuillez vérifier les disponibilités du terrain.
+        {{ errorMessage }}
       </div>
 
       <div class="flex gap-16 justify-end">

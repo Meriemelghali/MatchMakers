@@ -8,13 +8,12 @@ import { environment } from 'src/environments/environment';
 })
 export class AiGenerationService {
   private apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-  private apiKey = 'YOUR_API_KEY_HERE';
   private model = 'qwen/qwen3-235b-a22b-2507';
   private preprompt = 'Tu es un expert en communication pour MatchMakers, une plateforme de sport. Ta mission est de rédiger des posts inspirants, courts et engageants pour la communauté. Voici le sujet du post : ';
 
   private getHeaders() {
     return {
-      'Authorization': `Bearer ${environment.PostGenerationApiKey}`,
+      'Authorization': `Bearer ${environment.postgenerationkey}`,
       'HTTP-Referer': 'http://localhost:4200',
       'X-OpenRouter-Title': 'MatchMakers',
       'Content-Type': 'application/json'

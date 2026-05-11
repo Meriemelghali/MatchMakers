@@ -13,6 +13,6 @@ export const environment = {
   // Free/local LLM service (no API key). See /PythonAI for the FastAPI + Ollama service.
   // Use 127.0.0.1 to avoid IPv6 localhost (::1) issues on some Windows setups.
   aiServiceUrl: 'http://127.0.0.1:8001',
-  openRouterApiKey: 'your_api_key_here', // User should replace this
+  postgenerationkey: '', // User should replace this
   openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions'
 };
