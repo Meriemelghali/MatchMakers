@@ -15,6 +15,11 @@ export class ReservationsListComponent implements OnInit {
   loading = true;
   error = false;
 
+  currentPage = 0;
+  pageSize = 5;
+  totalElements = 0;
+  totalPages = 0;
+
   private readonly staticUserId = localStorage.getItem('userId') || '';
 
   constructor(private reservationService: ReservationService) { }
@@ -31,27 +36,48 @@ export class ReservationsListComponent implements OnInit {
     'COMPLETED': 'Terminé',
     'NO_SHOW': 'Non présenté'
   };
+
   fetchReservations(): void {
     this.loading = true;
+    console.log('--- FETCHING RESERVATIONS ---');
+    console.log('Requested Page:', this.currentPage);
+    console.log('Requested Size:', this.pageSize);
+    
     forkJoin({
-      reservations: this.reservationService.getReservations(),
+      resPage: this.reservationService.getReservations(this.currentPage, this.pageSize),
       terrains: this.reservationService.getTerrains(),
       sports: this.reservationService.getSports(),
       stats: this.reservationService.getReservationStats(this.staticUserId)
     }).subscribe({
-      next: (data) => {
-        this.reservations = data.reservations;
+      next: (data: any) => {
+        console.log('Backend Response Page:', data.resPage);
+        this.reservations = data.resPage.content || [];
+        this.totalElements = data.resPage.totalElements || 0;
+        this.totalPages = data.resPage.totalPages || 0;
+        
+        console.log('List of Reservations (after sorting by backend):');
+        this.reservations.forEach((r, i) => {
+          console.log(`[${i}] ID: ${r.idReservation} | Time: ${r.startTimeR}`);
+        });
+
         this.terrains = data.terrains;
         this.sports = data.sports;
         this.stats = data.stats;
         this.loading = false;
       },
       error: (err) => {
-        console.error(err);
+        console.error('Fetch Error:', err);
         this.error = true;
         this.loading = false;
       }
     });
+  }
+
+  onPageChange(newPage: number): void {
+    if (newPage >= 0 && newPage < this.totalPages) {
+      this.currentPage = newPage;
+      this.fetchReservations();
+    }
   }
 
   getTerrainName(id: string): string {

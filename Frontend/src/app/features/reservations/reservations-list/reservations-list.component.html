@@ -121,4 +121,41 @@
 
     </div>
   </div>
+
+  <!-- Pagination -->
+  <div class="flex justify-between items-center mt-32 mb-48" *ngIf="totalPages > 1">
+    <div class="t-muted" style="font-size: 14px;">
+      Affichage de {{ reservations.length }} sur {{ totalElements }} réservations
+    </div>
+    <div class="flex gap-8">
+      <button 
+        class="btn btn-ghost btn-sm" 
+        [disabled]="currentPage === 0" 
+        (click)="onPageChange(currentPage - 1)">
+        &larr; Précédent
+      </button>
+      
+      <div class="flex gap-4 items-center">
+        <button 
+          *ngFor="let p of [].constructor(totalPages); let i = index"
+          class="btn btn-sm"
+          [ngClass]="i === currentPage ? 'btn-primary' : 'btn-ghost'"
+          (click)="onPageChange(i)">
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="btn btn-ghost btn-sm" 
+        [disabled]="currentPage === totalPages - 1" 
+        (click)="onPageChange(currentPage + 1)">
+        Suivant &rarr;
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && reservations.length === 0" class="card p-5 text-center mt-32">
+    <div class="t-muted">Aucune réservation trouvée.</div>
+    <button class="btn btn-primary mt-16" routerLink="/reservations/create">Faire ma première réservation</button>
+  </div>
 </div>

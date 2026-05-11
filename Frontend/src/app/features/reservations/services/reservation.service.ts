@@ -31,9 +31,17 @@ export interface BaseTerrain {
   adresse?: string;
   ville?: string;
   typeSport?: string;
+  typeSurface?: string;
   prixParHeure?: number;
   statut?: string;
   capacite?: number;
+  eclairage?: boolean;
+  vestiaires?: boolean;
+  parking?: boolean;
+  tribunes?: boolean;
+  bar?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 /** Matches Sport entity from SportService */
@@ -53,22 +61,6 @@ export interface ReservationStats {
   reservationsByStatus: { [key: string]: number };
 }
 
-export interface TerrainRecommendation {
-  terrain_id: string;
-  score: number;
-  raisons: string[];
-  details: {
-    score_meteo: number;
-    score_charge: number;
-    score_calendrier: number;
-    score_heure: number;
-    score_note: number;
-  };
-}
-
-export interface RecommendationResponse {
-  recommandations: TerrainRecommendation[];
-}
 
 export interface EvaluationResponse {
   score: number;
@@ -80,11 +72,30 @@ export interface EvaluationResponse {
 export interface BestSlot {
   date_heure: string;
   score: number;
+  verdict: string;
   raisons: string[];
 }
 
 export interface BestSlotsResponse {
   slots: BestSlot[];
+}
+
+/** NOUVEAU: Heatmap types */
+export interface HeatmapSlot {
+  date: string;
+  hour: number;
+  score: number;
+  available: boolean;
+  verdict: string;
+}
+
+export interface HeatmapEntry {
+  terrain_id: string;
+  slots: HeatmapSlot[];
+}
+
+export interface HeatmapResponse {
+  heatmap: HeatmapEntry[];
 }
 
 @Injectable({
@@ -107,10 +118,8 @@ export class ReservationService {
     return this.http.get<BaseSport[]>(`${this.sportUrl}/api/sports`);
   }
 
-  getReservations(): Observable<Reservation[]> {
-    return this.http.get<{ content: Reservation[] }>(this.apiUrl).pipe(
-      map(response => response.content || [])
-    );
+  getReservations(page: number = 0, size: number = 5): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}&sort=startTimeR,desc`);
   }
 
   getReservationById(id: string): Observable<Reservation> {
@@ -140,10 +149,6 @@ export class ReservationService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  getRecommendations(dateTime: string): Observable<RecommendationResponse> {
-    const baseUrl = this.apiUrl.replace('/api/reservations', '');
-    return this.http.get<RecommendationResponse>(`${baseUrl}/api/recommendations?dateTime=${dateTime}`);
-  }
 
   evaluateChoice(terrain: any, dateTime: string): Observable<EvaluationResponse> {
     const baseUrl = this.apiUrl.replace('/api/reservations', '');
@@ -154,4 +159,22 @@ export class ReservationService {
     const baseUrl = this.apiUrl.replace('/api/reservations', '');
     return this.http.post<BestSlotsResponse>(`${baseUrl}/api/best-slots`, { terrain, base_date: baseDate });
   }
+
+  /** NOUVEAU: Heatmap de disponibilités multi-terrain */
+  getHeatmap(params: {
+    startDate: string;
+    days?: number;
+    sportType?: string;
+    userId?: string;
+    terrainIds?: string[];
+  }): Observable<HeatmapResponse> {
+    const baseUrl = this.apiUrl.replace('/api/reservations', '');
+    let httpParams: any = { startDate: params.startDate };
+    if (params.days)       httpParams['days']       = params.days;
+    if (params.sportType)  httpParams['sportType']  = params.sportType;
+    if (params.userId)     httpParams['userId']     = params.userId;
+    if (params.terrainIds?.length) httpParams['terrainIds'] = params.terrainIds;
+    return this.http.get<HeatmapResponse>(`${baseUrl}/api/recommendations/heatmap`, { params: httpParams });
+  }
 }
+
