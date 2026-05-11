@@ -42,6 +42,10 @@ public class ReservationServiceImpl implements ReservationService {
         Terrain terrain = terrainRepository.findById(req.getTerrainId())
                 .orElseThrow(() -> new NoSuchElementException("Terrain introuvable: " + req.getTerrainId()));
 
+        if (!verifierDisponibiliteUtilisateurSport(req.getOrganisateurId(), terrain.getTypeSport(), req.getDateDebut(), req.getDateFin(), null)) {
+            throw new IllegalStateException("Vous avez déjà une réservation pour cette discipline sportive dans le même créneau horaire.");
+        }
+
         BigDecimal prix = calculerPrix(terrain.getPrixParHeure(), req.getDateDebut(), req.getDateFin());
 
         Reservation reservation = Reservation.builder()
@@ -105,6 +109,25 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public boolean verifierDisponibilite(String terrainId, LocalDateTime debut, LocalDateTime fin) {
         return reservationRepository.findOverlappingReservations(terrainId, debut, fin).isEmpty();
+    }
+
+    private boolean verifierDisponibiliteUtilisateurSport(Long organisateurId, tn.matchmakers.terrainservice.enums.SportType sportType, LocalDateTime debut, LocalDateTime fin, String excludeReservationId) {
+        List<Reservation> userReservations = reservationRepository.findByOrganisateurId(organisateurId);
+
+        for (Reservation r : userReservations) {
+            if (r.getStatut() == ReservationStatus.ANNULEE) continue;
+            if (excludeReservationId != null && r.getId().equals(excludeReservationId)) continue;
+
+            // Check time overlap
+            if (debut.isBefore(r.getDateFin()) && fin.isAfter(r.getDateDebut())) {
+                // Check if it's the same sport
+                Terrain t = terrainRepository.findById(r.getTerrainId()).orElse(null);
+                if (t != null && t.getTypeSport() == sportType) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // ---- Private helpers ---------------------------------------------------

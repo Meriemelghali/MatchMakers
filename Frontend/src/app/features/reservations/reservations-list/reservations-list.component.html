@@ -12,6 +12,28 @@
 
   <div class="divider"></div>
 
+  <!-- Dashboard Stats -->
+  <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 32px;" *ngIf="stats">
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Total Réservations</div>
+      <div class="t-title" style="font-size: 24px; color: var(--brand);">{{ stats.totalReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Confirmées</div>
+      <div class="t-title" style="font-size: 24px; color: var(--green);">{{ stats.confirmedReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">En attente</div>
+      <div class="t-title" style="font-size: 24px; color: var(--orange);">{{ stats.pendingReservations }}</div>
+    </div>
+    <div class="card p-3 text-center">
+      <div class="t-label t-muted">Annulées</div>
+      <div class="t-title" style="font-size: 24px; color: var(--red);">{{ stats.cancelledReservations }}</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <div *ngIf="loading" class="t-muted">Chargement...</div>
   <div *ngIf="error" class="t-red" style="color: var(--red);">Erreur lors du chargement des réservations.</div>
 
@@ -35,13 +57,13 @@
         </div>
         <div>
           <span class="badge" [ngClass]="{
-      'badge-pending': res.statutR === 'PENDING',
-      'badge-reserved': res.statutR === 'RESERVED',
-      'badge-confirmed': res.statutR === 'CONFIRMED',
-      'badge-annule': res.statutR === 'CANCELLED',
-      'badge-completed': res.statutR === 'COMPLETED'
-    }">
-            {{ res.statutR }}
+    'badge-pending':   res.statutR === 'PENDING',
+    'badge-reserved':  res.statutR === 'RESERVED',
+    'badge-confirmed': res.statutR === 'CONFIRMED',
+    'badge-annule':    res.statutR === 'CANCELLED',
+    'badge-completed': res.statutR === 'COMPLETED'
+  }">
+            {{ statutLabels[res.statutR] || res.statutR }}
           </span>
         </div>
       </div>
@@ -81,13 +103,59 @@
         </button>
         <button class="btn btn-danger" style="padding: 6px 16px; font-size: 0.85rem;"
           *ngIf="res.statutR !== 'CANCELLED'" (click)="cancel(res)">
-          Annuler la réservation
+          Annuler
         </button>
-        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted" style="font-size: 0.85rem; font-style: italic;">
+        <button class="btn btn-icon btn-outline-danger " (click)="deleteReservation(res.idReservation)"
+          title="Supprimer définitivement">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
+        <div *ngIf="res.statutR === 'CANCELLED'" class="t-muted"
+          style="font-size: 0.85rem; font-style: italic; align-self: center; margin-right: auto;">
           Réservation annulée
         </div>
       </div>
 
     </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex justify-between items-center mt-32 mb-48" *ngIf="totalPages > 1">
+    <div class="t-muted" style="font-size: 14px;">
+      Affichage de {{ reservations.length }} sur {{ totalElements }} réservations
+    </div>
+    <div class="flex gap-8">
+      <button 
+        class="btn btn-ghost btn-sm" 
+        [disabled]="currentPage === 0" 
+        (click)="onPageChange(currentPage - 1)">
+        &larr; Précédent
+      </button>
+      
+      <div class="flex gap-4 items-center">
+        <button 
+          *ngFor="let p of [].constructor(totalPages); let i = index"
+          class="btn btn-sm"
+          [ngClass]="i === currentPage ? 'btn-primary' : 'btn-ghost'"
+          (click)="onPageChange(i)">
+          {{ i + 1 }}
+        </button>
+      </div>
+
+      <button 
+        class="btn btn-ghost btn-sm" 
+        [disabled]="currentPage === totalPages - 1" 
+        (click)="onPageChange(currentPage + 1)">
+        Suivant &rarr;
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && reservations.length === 0" class="card p-5 text-center mt-32">
+    <div class="t-muted">Aucune réservation trouvée.</div>
+    <button class="btn btn-primary mt-16" routerLink="/reservations/create">Faire ma première réservation</button>
   </div>
 </div>

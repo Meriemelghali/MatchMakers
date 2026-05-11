@@ -366,6 +366,24 @@ textarea {
   color: #fff;
 }
 
+.btn-outline-danger {
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+
+.btn-outline-danger:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--r-sm);
+}
+
 .btn-lg {
   height: 42px;
   padding: 0 22px;

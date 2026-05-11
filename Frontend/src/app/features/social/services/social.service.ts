@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 
 export interface SocialComment {
   idComment?: string;
@@ -11,7 +12,14 @@ export interface SocialComment {
   postCreated_at?: string;
   isDeleted?: boolean;
 }
-
+export interface SocialUser {
+  idUser: string;
+  username?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profilePictureUrl?: string;
+}
 export interface SocialReaction {
   idReaction?: string;
   content: string; // reaction type: LIKE, LOVE, HAHA, WOW, SAD
@@ -22,13 +30,27 @@ export interface SocialReaction {
 
 export interface SocialPost {
   id?: string;           // mapped from idPost
-  author?: string;       // display name (optional, not from backend)
   content: string;
   createdAt?: string;    // mapped from postCreated_at
   idUser: string;
   isDeleted?: boolean;
   comments?: SocialComment[];   // mapped from commentaires
   reactions?: SocialReaction[];
+}
+
+export interface SocialConversation {
+  idConversation?: string;
+  conversationT: 'PRIVATE' | 'TEAM' | 'EVENT' | 'COMPETITION';
+  userIds: (string | number)[];
+  messages?: SocialMessage[];
+}
+
+export interface SocialMessage {
+  idMessage?: string;
+  content: string;
+  send_at?: string;
+  idUser: string;
+  idConversation: string;
 }
 
 /** Shape of a single page-item returned by GET /api/posts?expand=true */
@@ -46,10 +68,14 @@ interface PostApiResponse {
   providedIn: 'root'
 })
 export class SocialService {
-  private baseApiUrl = 'http://localhost:8090/social/api';
+  private usersUrl = environment.userServiceUrl + '/users';
+  private baseApiUrl = environment.socialServiceUrl;
   private postsUrl = this.baseApiUrl + '/posts';
   private commentsUrl = this.baseApiUrl + '/commentaires';
   private reactionsUrl = this.baseApiUrl + '/reactions';
+  private conversationsUrl = this.baseApiUrl + '/conversations';
+  private messagesUrl = this.baseApiUrl + '/messages';
+  private toxicityUrl = 'http://localhost:8001/analyze'; 
 
   constructor(private http: HttpClient) { }
 
@@ -110,5 +136,55 @@ export class SocialService {
       comments: (p.commentaires || []).filter(c => !c.isDeleted),
       reactions: p.reactions || []
     };
+  }
+
+  // --- TOXICITY ---
+
+  checkToxicity(text: string): Observable<any> {
+    return this.http.post<any>(this.toxicityUrl, { text });
+  }
+
+  // --- CONVERSATIONS ---
+
+  getConversations(): Observable<SocialConversation[]> {
+    return this.http.get<{ content: SocialConversation[] }>(`${this.conversationsUrl}?size=500`).pipe(
+      map(response => response.content || [])
+    );
+  }
+
+  getConversationsByUser(userId: string): Observable<SocialConversation[]> {
+    return this.http.get<{ content: SocialConversation[] }>(`${this.conversationsUrl}/user/${userId}`).pipe(
+      map(response => response.content || [])
+    );
+  }
+
+  getConversation(id: string): Observable<SocialConversation> {
+    return this.http.get<SocialConversation>(`${this.conversationsUrl}/${id}`);
+  }
+
+  createConversation(conv: { conversationT: string, userIds: (string | number)[] }): Observable<SocialConversation> {
+    return this.http.post<SocialConversation>(this.conversationsUrl, conv);
+  }
+
+  deleteConversation(id: string): Observable<any> {
+    return this.http.delete(`${this.conversationsUrl}/${id}`);
+  }
+
+  // --- MESSAGES ---
+
+  createMessage(msg: { content: string, idConversation: string, idUser: string }): Observable<SocialMessage> {
+    return this.http.post<SocialMessage>(this.messagesUrl, msg);
+  }
+
+  deleteMessage(id: string): Observable<any> {
+    return this.http.delete(`${this.messagesUrl}/${id}`);
+  }
+
+  // --- USERS ---
+
+  getUsers(): Observable<SocialUser[]> {
+    return this.http.get<{ content: SocialUser[] }>(this.usersUrl).pipe(
+      map(response => response.content || [])
+    );
   }
 }
