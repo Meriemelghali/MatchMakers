@@ -23,6 +23,7 @@ public class Sport {
 
     private Long minPlayers;
     private Long maxPlayers;
+    private String color;
 
     @DBRef
     private List<SportCategory> sportCategories;

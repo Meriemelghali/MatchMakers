@@ -29,6 +29,8 @@ public interface EventService {
     List<MatchDto> getMatchesForCompetition(String competitionId);
     EventResponseDto joinTeam(String eventId, String teamId, String token);
     EventResponseDto leaveTeam(String eventId, String teamId, String token);
+    EventResponseDto joinEvent(String eventId, String token);
+    EventResponseDto leaveEvent(String eventId, String token);
 
     // ─── Localisation
     List<Event> getByLocation(String city);

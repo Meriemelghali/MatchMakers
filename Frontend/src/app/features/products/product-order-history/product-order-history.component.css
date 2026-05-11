@@ -1,0 +1,139 @@
+/* Overlay popup */
+.delivery-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* Modal */
+.delivery-modal {
+  background: var(--color-background-primary);
+  border: 2px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3), 
+    0 0 1px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s ease-out;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-top: 4px solid var(--color-primary, #ff6b35);
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.delivery-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  flex-shrink: 0;
+}
+
+.delivery-modal-header div:first-child {
+  flex: 1;
+}
+
+.delivery-modal-body {
+  padding: 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Custom scrollbar for modal body */
+.delivery-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.delivery-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.delivery-modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-border-secondary);
+  border-radius: 4px;
+}
+
+.delivery-modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-tertiary);
+}
+
+.delivery-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border-tertiary);
+  background: var(--color-background-secondary);
+  flex-shrink: 0;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .delivery-modal {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .delivery-modal-header {
+    padding: 20px 16px 16px;
+  }
+
+  .delivery-modal-body {
+    padding: 20px 16px;
+  }
+
+  .delivery-modal-footer {
+    padding: 14px 16px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .delivery-modal-footer button {
+    flex: 1;
+    min-width: 100px;
+  }
+}

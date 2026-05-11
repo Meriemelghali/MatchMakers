@@ -1,11 +1,7 @@
 <!-- Mobile Header (Hidden on Desktop) -->
 <div class="mob-header">
   <a routerLink="/" class="mob-brand">
-    <svg width="24" height="24" viewBox="0 0 36 36" fill="none">
-      <rect width="36" height="36" rx="8" fill="#E8500A" />
-      <path d="M9 25 L14 11 L18 20 L22 11 L27 25" stroke="white" stroke-width="2.8" stroke-linecap="round"
-        stroke-linejoin="round" fill="none" />
-    </svg>
+    <img src="assets/logo.png" alt="Logo" width="32" height="32" style="border-radius: 8px;">
     <div class="mob-brand-text"><span>Match</span><span style="color:var(--brand)">Makers</span></div>
   </a>
   <button class="mob-burger" (click)="navOpen = !navOpen" aria-label="Menu">
@@ -17,17 +13,15 @@
 <nav class="sidebar" [class.sidebar-open]="navOpen">
   <div class="sidebar-inner">
 
-    <!-- Brand -->
-    <a routerLink="/" class="sidebar-brand">
-      <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
-        <rect width="36" height="36" rx="8" fill="#E8500A" />
-        <path d="M9 25 L14 11 L18 20 L22 11 L27 25" stroke="white" stroke-width="2.8" stroke-linecap="round"
-          stroke-linejoin="round" fill="none" />
-      </svg>
-      <div class="sidebar-brand-text">
-        <span class="sidebar-brand-name">Match</span><span class="sidebar-brand-accent">Makers</span>
+    <!-- Brand (Non-clickable) -->
+    <div class="sidebar-brand">
+      <div class="sidebar-logo-container">
+        <img src="assets/logo.png" alt="Logo" width="30" height="30" style="border-radius: 6px;">
       </div>
-    </a>
+      <div class="sidebar-brand-text">
+        <span class="brand-name">MATCH<b>MAKERS</b></span>
+      </div>
+    </div>
 
     <!-- Links -->
     <div class="sidebar-links">
@@ -65,13 +59,21 @@
     <!-- Dropdown -->
     <div class="profile-dropdown" *ngIf="profileOpen" [style.bottom]="getDropdownBottom()">
 
-      <div class="dd-item avail-result">
+      <div class="dd-item avail-result" routerLink="/profile" (click)="profileOpen = false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
         Mon Profil
+      </div>
+
+      <div class="dd-item" *ngIf="isAdmin" (click)="goToBackoffice()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        Aller au Backoffice
       </div>
 
       <div class="dd-sep"></div>
@@ -101,3 +103,29 @@
 <main class="main-content">
   <router-outlet></router-outlet>
 </main>
+
+<!-- AI Inspiration Notification -->
+<div class="ai-notification-overlay" *ngIf="showInspiration" [class.closing]="!showInspiration">
+  <div class="ai-notification-card">
+    <div class="ai-notif-header">
+      <div class="ai-notif-badge">
+        <i class="fas fa-magic"></i>
+        <span>IA MATCHMAKERS</span>
+      </div>
+      <button class="btn-close-notif" (click)="closeInspiration()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="ai-notif-body">
+      <h4 class="ai-notif-title">Le saviez-vous ?</h4>
+      <p class="ai-notif-quote">"{{ sportInspiration?.quote }}"</p>
+    </div>
+    <div class="ai-notif-footer">
+      <span class="ai-notif-hint">Basé sur vos sports favoris ✨</span>
+    </div>
+    <div class="ai-notif-progress"></div>
+  </div>
+</div>
+
+<!-- AI Chatbot Assistant -->
+<app-ai-chatbot></app-ai-chatbot>

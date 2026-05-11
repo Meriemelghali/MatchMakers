@@ -24,7 +24,11 @@ export class RegisterComponent {
 
   onRegister(form: NgForm): void {
     if (form.invalid) {
-      this.errorMessage = 'Veuillez remplir tous les champs.';
+      if (form.controls['email']?.errors?.['pattern']) {
+        this.errorMessage = "Le format de l'adresse email est invalide.";
+      } else {
+        this.errorMessage = 'Veuillez remplir correctement tous les champs.';
+      }
       return;
     }
 

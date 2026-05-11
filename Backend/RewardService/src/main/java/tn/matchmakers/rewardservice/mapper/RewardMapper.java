@@ -16,6 +16,10 @@ public interface RewardMapper {
     List<RewardDto> toDtoList(List<Reward> rewards);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "status", constant = "ACTIVE")
+    @Mapping(target = "revokedReason", ignore = true)
     Reward fromCreate(RewardCreateRequest request);
 }
 

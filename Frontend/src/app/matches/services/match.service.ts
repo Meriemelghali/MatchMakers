@@ -61,4 +61,9 @@ export class MatchService {
     filterByTerrain(terrainId: string): Observable<Match[]> {
         return this.http.get<Match[]>(`${this.base}/terrain/${terrainId}`);
     }
+
+    getTeamHistory(eq1: string, eq2: string): Observable<Match[]> {
+        const params = new HttpParams().set('eq1', eq1).set('eq2', eq2);
+        return this.http.get<Match[]>(`${this.base}/historique`, { params });
+    }
 }

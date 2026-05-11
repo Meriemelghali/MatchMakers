@@ -111,7 +111,7 @@
       <div class="card">
         <div class="section-head">
           <div class="section-title-bar">
-            <span>Top joueurs</span>
+            <span>Top utilisateurs</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Joueur</th>
+                <th>Utilisateur</th>
                 <th>Equipe</th>
                 <th>Points</th>
                 <th>Recompenses</th>
@@ -260,6 +260,12 @@
             <button class="btn btn-secondary btn-sm" type="button" (click)="askLlm()" [disabled]="llmLoading">
               <span *ngIf="!llmLoading">Demander</span>
               <span *ngIf="llmLoading">Analyse...</span>
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="copyContext()" [disabled]="llmLoading">
+              Copier contexte
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="copyAnswer()" [disabled]="llmLoading || !llmAnswer">
+              Copier reponse
             </button>
             <button class="btn btn-ghost btn-sm" type="button"
               (click)="llmPreset('Explique en 5 points pourquoi la meilleure equipe est #1 et quel risque elle doit surveiller.')"

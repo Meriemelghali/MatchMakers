@@ -12,7 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import tn.matchmakers.userservice.entities.enums.AccountStatus;
 import tn.matchmakers.userservice.entities.enums.Sex;
 import tn.matchmakers.userservice.entities.enums.ThemePreference;
-import tn.matchmakers.userservice.entities.Role;
+import tn.matchmakers.userservice.entities.enums.TwoFactorType;
+
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -42,6 +43,8 @@ public class User extends BaseEntity implements UserDetails {
     private String phoneNumber;
 
     private String profilePictureUrl;
+    private String avatar3dUrl;
+    private List<String> favoriteSports = new ArrayList<>();
 
     private ThemePreference theme = ThemePreference.LIGHT;
 
@@ -56,8 +59,23 @@ public class User extends BaseEntity implements UserDetails {
     private List<DeviceInfo> trustedDevices = new ArrayList<>();
     private Integer tokenVersion = 0;
 
+    // 2FA Fields
+    private TwoFactorType twoFactorType = TwoFactorType.NONE;
+    private String totpSecret;
+    private String twoFactorCode;
+    private LocalDateTime twoFactorCodeExpiry;
+
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordTokenExpiry;
+
     @Indexed
     private String classId;
+
+    // Fitness Profile
+    private String fitnessLevel = "BEGINNER"; // BEGINNER, INTERMEDIATE, ADVANCED, PRO
+    private List<String> fitnessGoals = new ArrayList<>();
+    private Double weight; // in kg
+    private Double height; // in cm
 
     // ─── Helpers
     public void addRole(Role role) {

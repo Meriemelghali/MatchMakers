@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/clubs")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:4200"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200"})
 public class ClubController {
     private final ClubService clubService;
 
@@ -54,6 +54,11 @@ public class ClubController {
     @GetMapping("/owner/{ownerId}")
     public ResponseEntity<List<Club>> getByOwner(@PathVariable String ownerId) {
         return ResponseEntity.ok(clubService.getByOwner(ownerId));
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Club>> getByUser(@PathVariable String userId) {
+        return this.getByOwner(userId);
     }
     @PostMapping
     public ResponseEntity<ClubResponseDto> create(

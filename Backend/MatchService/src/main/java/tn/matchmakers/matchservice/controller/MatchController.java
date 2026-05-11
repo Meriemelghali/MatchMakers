@@ -98,4 +98,9 @@ public class MatchController {
             @PathVariable String eventId) {
         return ResponseEntity.ok(matchService.supprimerEvenement(matchId, eventId));
     }
+
+    @GetMapping("/historique")
+    public ResponseEntity<List<MatchDTO>> obtenirHistorique(@RequestParam String eq1, @RequestParam String eq2) {
+        return ResponseEntity.ok(matchService.obtenirHistoriqueEquipes(eq1, eq2));
+    }
 }
