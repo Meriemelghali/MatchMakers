@@ -9,8 +9,8 @@
         <img src="assets/logo.png" alt="MatchMakers Logo" class="logo" />
       </div>
 
-      <!-- Formulaire -->
-      <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)">
+      <!-- ÉTAPE 1 : Formulaire de login classique -->
+      <form *ngIf="!isMfaChoiceStep && !isMfaVerifyStep" #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)">
         
         <div class="input-group">
           <label>Email</label>
@@ -31,12 +31,16 @@
           <div class="input-wrapper">
             <span class="icon">🔒</span>
             <input 
-              type="password" 
+              [type]="showPassword ? 'text' : 'password'" 
               name="password" 
               ngModel 
               required 
               placeholder="••••••••" 
             />
+            <span class="toggle-eye" (click)="togglePassword()">
+              <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </span>
           </div>
         </div>
 
@@ -44,7 +48,7 @@
           <label class="remember">
             <input type="checkbox" /> Se souvenir de moi
           </label>
-          <a href="#" class="forgot">Mot de passe oublié?</a>
+          <a routerLink="/forgot-password" class="forgot">Mot de passe oublié?</a>
         </div>
 
         <button type="submit" [disabled]="loading" class="btn-login">
@@ -56,8 +60,70 @@
         <p class="register-link">
           Pas encore de compte? <a routerLink="/register">Créer un compte</a>
         </p>
-
       </form>
+
+      <!-- ÉTAPE 2 : Choix du mode de double authentification -->
+      <div *ngIf="isMfaChoiceStep" class="mfa-choice-container">
+        <h2>Sécurisation de l'accès</h2>
+        <p class="subtitle">Choisissez comment recevoir votre code de sécurité :</p>
+        
+        <div class="mfa-options">
+          <div class="mfa-option-card" (click)="selectMfaMethod('EMAIL')">
+            <div class="mfa-icon">✉️</div>
+            <div class="mfa-text">
+              <h3>Code par Email</h3>
+              <p>Envoyé à votre adresse enregistrée</p>
+            </div>
+          </div>
+
+          <div class="mfa-option-card" (click)="selectMfaMethod('AUTH_APP')">
+            <div class="mfa-icon">📱</div>
+            <div class="mfa-text">
+              <h3>Application Authenticator</h3>
+              <p>Google Authenticator ou Authy</p>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+        <button (click)="backToLogin()" class="btn-back">← Retour</button>
+      </div>
+
+      <!-- ÉTAPE 3 : Vérification du code -->
+      <div *ngIf="isMfaVerifyStep" class="mfa-container">
+        <h2>Vérification</h2>
+        <p class="subtitle" *ngIf="twoFactorType === 'EMAIL'">
+          Un code a été envoyé à <b>{{ email }}</b>.
+        </p>
+        <p class="subtitle" *ngIf="twoFactorType === 'AUTH_APP' && !qrCodeImage">
+          Entrez le code généré par votre application.
+        </p>
+        <p class="subtitle" *ngIf="twoFactorType === 'AUTH_APP' && qrCodeImage">
+          Scannez ce QR Code avec votre application (premier setup) :
+        </p>
+
+        <div class="qr-code-wrapper" *ngIf="qrCodeImage">
+           <img [src]="qrCodeImage" alt="QR Code" />
+        </div>
+
+        <div class="input-group">
+          <input 
+            type="text" 
+            [(ngModel)]="mfaCode" 
+            placeholder="••••••" 
+            maxlength="6" 
+            class="mfa-code-input" 
+          />
+        </div>
+
+        <button (click)="onVerifyMfa()" [disabled]="loading" class="btn-login">
+          {{ loading ? 'Vérification...' : 'Valider le code' }}
+        </button>
+
+        <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+
+        <button (click)="backToChoice()" class="btn-back">← Choisir une autre méthode</button>
+      </div>
     </div>
   </div>
 

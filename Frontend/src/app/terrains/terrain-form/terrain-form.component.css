@@ -1,1 +1,258 @@
-/* TerrainFormComponent styles */
+/* ── Map Picker ──────────────────────────────────────────────────────────── */
+
+.map-container {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 10px;
+  border: 1px solid var(--border-s);
+  overflow: hidden;
+  margin-top: 8px;
+  background: #1a1f28;
+  z-index: 0;
+}
+
+/* Inset border overlay for rounded corners */
+.map-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--border-s);
+  z-index: 10;
+}
+
+/* Make google-map fill the container */
+.map-container google-map,
+.map-container google-map > div {
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.map-coords-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  background: rgba(232, 80, 10, 0.08);
+  border: 1px solid rgba(232, 80, 10, 0.2);
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.map-hint {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-3);
+}
+
+/* ── Map Search Bar ──────────────────────────────────────────────────────── */
+
+.map-search-wrap {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  margin-bottom: 6px;
+  background: var(--layer-2, #1e2433);
+  border: 1px solid var(--border-s);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.map-search-wrap:focus-within {
+  border-color: var(--brand, #e8500a);
+}
+
+.map-search-icon {
+  flex-shrink: 0;
+  margin-left: 11px;
+  color: var(--text-3);
+  pointer-events: none;
+}
+
+.map-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 9px 10px;
+  font-size: 13px;
+  color: var(--text-1);
+  font-family: var(--font-body, inherit);
+}
+
+.map-search-input::placeholder {
+  color: var(--text-3);
+}
+
+.map-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: color 0.15s;
+}
+
+.map-search-clear:hover { color: var(--text-1); }
+
+.map-search-spinner {
+  width: 14px;
+  height: 14px;
+  margin-right: 11px;
+  flex-shrink: 0;
+  border: 2px solid rgba(232, 80, 10, 0.2);
+  border-top-color: var(--brand, #e8500a);
+  border-radius: 50%;
+  animation: map-spin 0.7s linear infinite;
+}
+
+@keyframes map-spin { to { transform: rotate(360deg); } }
+
+/* ── Venue Results Panel ─────────────────────────────────────────────────── */
+
+.venue-panel {
+  margin-top: 10px;
+  border: 1px solid var(--border-s);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--layer-1, #161b24);
+}
+
+.venue-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-2);
+  background: var(--layer-2, #1e2433);
+  border-bottom: 1px solid var(--border-s);
+}
+
+.venue-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.venue-list::-webkit-scrollbar       { width: 4px; }
+.venue-list::-webkit-scrollbar-track { background: transparent; }
+.venue-list::-webkit-scrollbar-thumb { background: var(--border-s); border-radius: 2px; }
+
+.venue-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-s);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.venue-item:last-child { border-bottom: none; }
+.venue-item:hover      { background: var(--layer-2, #1e2433); }
+
+.venue-item--active       { background: rgba(232, 80, 10, 0.06); }
+.venue-item--active:hover { background: rgba(232, 80, 10, 0.1); }
+
+.venue-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand, #e8500a);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.venue-item-body { flex: 1; min-width: 0; }
+
+.venue-item-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.venue-item-addr {
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.venue-use-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(232, 80, 10, 0.35);
+  background: rgba(232, 80, 10, 0.1);
+  color: var(--brand, #e8500a);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.venue-use-btn:hover {
+  background: rgba(232, 80, 10, 0.18);
+  border-color: rgba(232, 80, 10, 0.55);
+}
+
+/* ── Map action buttons ──────────────────────────────────────────────────── */
+
+.map-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(232, 80, 10, 0.3);
+  background: rgba(232, 80, 10, 0.08);
+  color: var(--brand, #e8500a);
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.map-action-btn:hover:not(:disabled) {
+  background: rgba(232, 80, 10, 0.15);
+  border-color: rgba(232, 80, 10, 0.5);
+}
+
+.map-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.map-action-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-3);
+}
+
+.map-action-btn--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-2);
+}

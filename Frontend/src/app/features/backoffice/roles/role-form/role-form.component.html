@@ -1,0 +1,80 @@
+<div class="user-list-container">
+  <div class="list-header">
+    <div class="header-main">
+      <h1>{{ isEditMode ? 'Modifier le Rôle' : 'Nouveau Rôle' }}</h1>
+      <p class="subtitle">{{ isEditMode ? 'Mettez à jour les informations et permissions du rôle' : 'Définissez un nouveau rôle et ses permissions associées' }}</p>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div *ngIf="isLoading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Chargement des données...</p>
+    </div>
+
+    <form (ngSubmit)="saveRole()" *ngIf="!isLoading">
+      <div class="form-sections">
+        <!-- Section: Informations Générales -->
+        <div class="form-section">
+          <div class="section-header">
+            <i class="fas fa-info-circle"></i>
+            <h3>Informations Générales</h3>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="name">Nom du Rôle</label>
+              <input type="text" id="name" [(ngModel)]="role.name" name="name" 
+                     placeholder="Ex: MODERATOR" required
+                     [class.error]="!role.name && formSubmitted">
+              <small>Le nom sera converti en majuscules automatiquement.</small>
+            </div>
+            <div class="form-group full-width">
+              <label for="description">Description</label>
+              <textarea id="description" [(ngModel)]="role.description" name="description" 
+                        placeholder="Décrivez les responsabilités de ce rôle..." rows="3"
+                        [class.error]="!role.description && formSubmitted"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Permissions -->
+        <div class="form-section">
+          <div class="section-header">
+            <i class="fas fa-key"></i>
+            <h3>Permissions Associées</h3>
+          </div>
+          <p class="section-subtitle">Sélectionnez les permissions que ce rôle possèdera.</p>
+          
+          <div class="permissions-grid">
+            <div *ngFor="let perm of availablePermissions" 
+                 class="permission-item" 
+                 [class.selected]="isPermissionSelected(perm.id!)"
+                 (click)="togglePermission(perm.id!)">
+              <div class="checkbox-custom">
+                <i class="fas fa-check" *ngIf="isPermissionSelected(perm.id!)"></i>
+              </div>
+              <div class="perm-info">
+                <span class="perm-name">{{ perm.name }}</span>
+                <span class="perm-desc">{{ perm.description }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="availablePermissions.length === 0" class="empty-permissions">
+            Aucune permission disponible dans le système.
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="isSaving">
+          Annuler
+        </button>
+        <button type="submit" class="btn-submit" [disabled]="isSaving">
+          <i class="fas" [class.fa-save]="!isSaving" [class.fa-spinner]="isSaving" [class.fa-spin]="isSaving"></i>
+          {{ isSaving ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Créer le rôle') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -9,3 +9,8 @@ requests
 xgboost
 scikit-learn
 numpy
+scikit-learn
+pandas
+numpy
+openai==2.26.0
+
