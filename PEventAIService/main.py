@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
 import json
+import random
 
 # Load environment variables
 load_dotenv()
@@ -64,6 +65,9 @@ class EventPredictionRequest(BaseModel):
     sport: str
     eventType: str
     participants: List[str]
+
+class QuoteRequest(BaseModel):
+    sports: List[str]
 
 # Fallback values if API key is not present or fails
 def get_fallback_suggestion(type_name: str) -> dict:
@@ -402,6 +406,60 @@ async def predict_event_outcome(request: EventPredictionRequest):
             "winner": "Analyse en cours",
             "confidence": 50,
             "analysis": "L'analyse prédictive pour cet ensemble de participants est temporairement indisponible."
+        }
+
+@app.post("/api/ai/sport-quote")
+async def sport_quote(request: QuoteRequest):
+    if not GEMINI_API_KEY:
+        return {
+            "quote": "Le sport est le dépassement de soi. Restez passionné !",
+            "from_llm": False
+        }
+        
+    try:
+        import random
+        # Switch to gemini-1.5-flash for better stability/quota
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        sports_str = ", ".join(request.sports) if request.sports else "sports en général"
+        
+        prompt = f"""
+        Tu es un expert en culture sportive pour la plateforme MatchMakers.
+        L'utilisateur est fan de : {sports_str}.
+        
+        Ta mission : Donne soit un "Fun Fact" sportif fascinant (anecdote incroyable, record insolite, comparaison physique impressionnante), soit une citation motivante.
+        Exemple de Fun Fact : "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?"
+        
+        Règles :
+        - Langue : Français
+        - Style : Captivant, éducatif et court
+        - Longueur : Max 2 phrases
+        - Pas de titres, pas de markdown, commence direct par le texte.
+        """
+        
+        response = model.generate_content(prompt)
+        return {
+            "quote": response.text.strip(),
+            "from_llm": True
+        }
+    except Exception as e:
+        print(f"Error getting sport quote (Quota/API): {str(e)}")
+        fallbacks = [
+            "Savais-tu que le golf est le seul sport à avoir été pratiqué sur la Lune (en 1971) ?",
+            "Le sifflet d'arbitre n'a été utilisé pour la première fois qu'en 1878. Avant, ils utilisaient des mouchoirs !",
+            "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?",
+            "Le basket-ball a été inventé en utilisant un panier de pêches comme panier !",
+            "Une balle de tennis peut atteindre 263 km/h lors d'un service record !",
+            "Le premier match de football retransmis à la télévision a eu lieu en 1937.",
+            "Savais-tu qu'au saut en hauteur, on utilisait la technique du 'ventral' avant l'invention du Fosbury-flop ?",
+            "Le record du monde du marathon est de 2h 00min 35s. C'est presque 21km/h de moyenne !",
+            "Michael Jordan a été coupé de son équipe de basket de lycée avant de devenir une légende.",
+            "Le tennis de table (Ping-pong) a été inventé en Angleterre comme un passe-temps après le dîner.",
+            "Savais-tu que les premiers Jeux Olympiques modernes ont eu lieu à Athènes en 1896 ?",
+            "Le maillot jaune du Tour de France a été créé en 1919 pour que le leader soit plus visible."
+        ]
+        return {
+            "quote": random.choice(fallbacks),
+            "from_llm": False
         }
 
 if __name__ == "__main__":

@@ -1,5 +1,16 @@
 fastapi==0.115.6
 uvicorn==0.30.6
 httpx==0.27.2
+detoxify
+pandas
+torch
+pydantic
+requests
+xgboost
+scikit-learn
+numpy
+scikit-learn
+pandas
+numpy
 openai==2.26.0
 

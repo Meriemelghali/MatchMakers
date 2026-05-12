@@ -8,6 +8,9 @@ import { SportService } from '../../features/sports/services/sport.service';
 import { Sport } from '../../features/sports/sport.model';
 import { ThemeService, ThemeType } from '../../core/services/ThemeService/theme.service';
 import { ToastService, ToastMessage } from '../../core/services/toast.service';
+import { AIService, SportInspiration } from '../../core/services/UserService/ai.service';
+import { ReclamationService } from '../../core/services/reclamation.service';
+import { Reclamation } from '../../core/models/reclamation.model';
 
 export interface AvatarSuggestion {
   id: string;
@@ -28,6 +31,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   passwordForm!: FormGroup;
   userProfile?: UserProfile;
   activeTab = 'general';
+  sportInspiration?: SportInspiration;
+  isLoadingInspiration = false;
   
   availableSports: Sport[] = [];
   
@@ -35,6 +40,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   myTeams: any[] = [];
   myClubs: any[] = [];
   myEvents: any[] = [];
+  myReclamations: Reclamation[] = [];
+  availableGoals: string[] = ['Perdre du poids', 'Prendre de la masse', 'Améliorer mon cardio', 'Souplesse', 'Préparation compétition', 'Remise en forme'];
+  selectedSports: string[] = [];
   
   toast?: ToastMessage;
   
@@ -56,6 +64,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private sportService: SportService,
     private toastService: ToastService,
     private themeService: ThemeService,
+    private aiService: AIService,
+    private reclamationService: ReclamationService,
     private sanitizer: DomSanitizer
   ) {
     this.initForms();
@@ -82,6 +92,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       email: [{ value: '', disabled: true }],
       bio: [''],
       phoneNumber: [''],
+      fitnessLevel: ['BEGINNER'],
+      weight: [null],
+      height: [null],
+      fitnessGoals: [[]],
       favoriteSports: [[]],
       theme: ['DARK'],
       avatar3dUrl: ['']
@@ -120,6 +134,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
         
         this.loadActivities(userId);
+        this.loadInspiration(userId);
         this.isLoading = false;
       },
       error: (err) => {
@@ -144,6 +159,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.profileService.getUserTeams(userId).subscribe((teams: any[]) => this.myTeams = teams);
     this.profileService.getUserClubs(userId).subscribe((clubs: any[]) => this.myClubs = clubs);
     this.profileService.getUserEvents(userId).subscribe((events: any[]) => this.myEvents = events);
+    this.reclamationService.getReclamationsByUserId(userId).subscribe((recs: Reclamation[]) => this.myReclamations = recs);
   }
 
   updateProfile() {
@@ -166,7 +182,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
+  toggleGoal(goal: string) {
+    const goals = this.profileForm.get('fitnessGoals')?.value as string[];
+    if (goals.includes(goal)) {
+      this.profileForm.patchValue({ fitnessGoals: goals.filter(g => g !== goal) });
+    } else {
+      this.profileForm.patchValue({ fitnessGoals: [...goals, goal] });
+    }
+    this.profileForm.markAsDirty();
+  }
 
+  isGoalSelected(goal: string): boolean {
+    return (this.profileForm.get('fitnessGoals')?.value as string[]).includes(goal);
+  }
   changePassword() {
     if (this.passwordForm.invalid) return;
 
@@ -220,6 +248,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   isThemeSelected(theme: string): boolean {
     return this.profileForm.get('theme')?.value === theme;
+  }
+
+  loadInspiration(userId: string) {
+    this.isLoadingInspiration = true;
+    this.aiService.getSportInspiration(userId).subscribe({
+      next: (data) => {
+        this.sportInspiration = data;
+        this.isLoadingInspiration = false;
+      },
+      error: (err) => {
+        console.error('Error loading AI inspiration', err);
+        this.isLoadingInspiration = false;
+      }
+    });
   }
 
   // --- READY PLAYER ME AVATAR ---

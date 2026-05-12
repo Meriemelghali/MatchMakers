@@ -7,11 +7,13 @@ import { SocialRoutingModule } from './social-routing.module';
 
 import { SocialListComponent } from './social-list/social-list.component';
 import { SocialFormComponent } from './social-form/social-form.component';
+import { SocialChatComponent } from './social-chat/social-chat.component';
 
 @NgModule({
   declarations: [
     SocialListComponent,
-    SocialFormComponent
+    SocialFormComponent,
+    SocialChatComponent
   ],
   imports: [
     CommonModule,

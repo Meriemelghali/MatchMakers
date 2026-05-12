@@ -3,18 +3,20 @@ import { RouterModule, Routes } from '@angular/router';
 import { PublicLayoutComponent } from './layouts/public-layout/public-layout.component';
 import { LoginComponent } from './core/Auth/login/login.component';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
-import { authGuard } from './core/guards/auth.guard';  
+import { authGuard } from './core/guards/auth.guard';
 import { RegisterComponent } from './core/Auth/register/register.component';
 import { ForgotPasswordComponent } from './core/Auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './core/Auth/reset-password/reset-password.component';
 import { AdminChoiceComponent } from './core/Auth/admin-choice/admin-choice.component';
 import { BackofficeLayoutComponent } from './layouts/backoffice-layout/backoffice-layout.component';
+import { AdminOrdersComponent } from './features/products/admin-orders/admin-orders.component';
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 
 
 const routes: Routes = [
-  //par défaut 
+  //par défaut
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'role-selection', component: RoleSelectionComponent, canActivate: [authGuard] },
   {
@@ -42,6 +44,10 @@ const routes: Routes = [
         loadChildren: () => import('./features/social/social.module').then(m => m.SocialModule)
       },
       {
+        path: 'reclamations',
+        loadChildren: () => import('./features/reclamations/reclamations.module').then(m => m.ReclamationsModule)
+      },
+      {
         path: 'reservations',
         loadChildren: () => import('./features/reservations/reservations.module').then(m => m.ReservationsModule)
       },
@@ -67,9 +73,18 @@ const routes: Routes = [
         path: 'leaderboard',
         loadChildren: () => import('./features/leaderboard/leaderboard.module').then(m => m.LeaderboardModule)
       },
+    {
+      path: 'products',
+      loadChildren: () =>
+        import('./features/products/products.module').then(m => m.ProductsModule)
+    },
       {
         path: 'profile',
         component: ProfileComponent
+      },
+      {
+        path: 'coach',
+        component: CoachDashboardComponent
       },
       // autres routes privées ici
     ]
@@ -89,7 +104,15 @@ const routes: Routes = [
       {
         path: '',
         loadChildren: () => import('./features/backoffice/backoffice.module').then(m => m.BackofficeModule)
-      }
+      },
+       {
+      path: 'products',
+      loadChildren: () =>
+        import('./features/products/products.module')
+        .then(m => m.ProductsModule)
+    },
+      { path: 'commande', component: AdminOrdersComponent }
+
     ]
   }
 ];

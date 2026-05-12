@@ -16,5 +16,9 @@ public class ProfileUpdateDto {
     private String phoneNumber;
     private String avatar3dUrl;
     private java.util.List<String> favoriteSports;
+    private String fitnessLevel;
+    private java.util.List<String> fitnessGoals;
+    private Double weight;
+    private Double height;
     private tn.matchmakers.userservice.entities.enums.ThemePreference theme;
 }

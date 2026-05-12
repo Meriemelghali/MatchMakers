@@ -67,6 +67,8 @@ export class AuthService {
       const payload = JSON.parse(atob(response.accessToken.split('.')[1]));
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
+      localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
+    } catch (e) { }
       localStorage.setItem('userEmail', payload.email || response.email || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
     } catch (e) { }

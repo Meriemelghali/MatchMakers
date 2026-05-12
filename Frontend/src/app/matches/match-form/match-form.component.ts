@@ -7,6 +7,7 @@ import { MatchService } from '../services/match.service';
 import { TerrainService } from '../../terrains/services/terrain.service';
 import { TeamService, Team } from '../../features/teams/services/team.service';
 import { GeminiAiService, MatchmakingSuggestion } from '../services/gemini-ai.service';
+import { WeatherService, WeatherForecast } from '../services/weather.service';
 import { MatchType } from '../models/match.model';
 import { Terrain } from '../../terrains/models/terrain.model';
 
@@ -34,6 +35,11 @@ export class MatchFormComponent implements OnInit, OnDestroy {
     matchmakingSuggestions: MatchmakingSuggestion[] = [];
     matchmakingAnalysis  = '';
 
+    // Weather Guard state
+    weatherForecast: WeatherForecast | null = null;
+    weatherLoading  = false;
+    weatherNoGps    = false;
+
     types: MatchType[] = ['AMICAL', 'CHAMPIONNAT', 'COUPE', 'TOURNOI'];
 
     constructor(
@@ -43,7 +49,8 @@ export class MatchFormComponent implements OnInit, OnDestroy {
         private matchService: MatchService,
         private terrainService: TerrainService,
         private teamService: TeamService,
-        private geminiAi: GeminiAiService
+        private geminiAi: GeminiAiService,
+        private weatherService: WeatherService
     ) { }
 
     ngOnInit() {
@@ -64,7 +71,12 @@ export class MatchFormComponent implements OnInit, OnDestroy {
         this.isEdit = !!this.matchId;
 
         this.terrainService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
-            next: (ts) => this.terrains = ts.filter(t => t.statut === 'DISPONIBLE'),
+            next: (ts) => {
+                this.terrains = ts.filter(t => t.statut === 'DISPONIBLE');
+                // Re-fetch weather now that terrain list is available
+                // (fixes race condition when user picked terrain before list loaded)
+                this.fetchWeather();
+            },
             error: () => console.error('Erreur chargement terrains')
         });
 
@@ -72,6 +84,10 @@ export class MatchFormComponent implements OnInit, OnDestroy {
             next: (ts) => this.teams = ts,
             error: () => console.error('Erreur chargement équipes')
         });
+
+        // Weather Guard: re-fetch whenever terrain or date changes
+        this.form.get('terrainId')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.fetchWeather());
+        this.form.get('dateDebut')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.fetchWeather());
 
         if (this.isEdit) {
             this.loading = true;
@@ -90,6 +106,35 @@ export class MatchFormComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() { this.destroy$.next(); this.destroy$.complete(); }
+
+    fetchWeather() {
+        const terrainId: string | null = this.form.value.terrainId;
+        const dateDebut: string        = this.form.value.dateDebut;
+
+        // Reset all weather state
+        this.weatherForecast = null;
+        this.weatherNoGps    = false;
+
+        if (!terrainId || !dateDebut) return;
+
+        const terrain = this.terrains.find(t => t.id === terrainId);
+        if (!terrain) return;
+
+        // Terrain exists but has no GPS coordinates
+        if (!terrain.latitude || !terrain.longitude) {
+            this.weatherNoGps = true;
+            return;
+        }
+
+        this.weatherLoading = true;
+        this.weatherService
+            .getForecast(terrain.latitude, terrain.longitude, dateDebut, terrain.typeSurface)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next:  f  => { this.weatherForecast = f; this.weatherLoading = false; },
+                error: () => { this.weatherLoading = false; }
+            });
+    }
 
     get f() { return this.form.controls; }
 
