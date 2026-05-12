@@ -17,6 +17,7 @@ $m2 = Join-Path $root ".m2"
 $tmp = Join-Path $root ".tmp"
 $pipCache = Join-Path $root ".pip-cache"
 New-Item -ItemType Directory -Force -Path $m2, $tmp, $pipCache | Out-Null
+$env:MAVEN_USER_HOME = $m2
 
 function Get-MavenCmd() {
   $dists = Join-Path $m2 "wrapper\\dists"
@@ -77,9 +78,9 @@ function Start-Svc([string]$name, [string]$dir) {
   "Starting $name ... log: $out" | Out-Host
   $mvn = Get-MavenCmd
   if ($mvn) {
-    $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; & `"$mvn`" -f pom.xml spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run"
   } else {
-    $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run"
   }
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
@@ -150,8 +151,36 @@ function Start-PythonAi() {
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
 
+function Start-EventTypeAi() {
+  $dir = Join-Path $root "PEventAIService"
+  if (-not (Test-Path $dir)) { return }
+
+  $out = Join-Path $logs "PEventAI.log"
+  $err = Join-Path $logs "PEventAI.err.log"
+  Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
+  "Starting PEventAIService ... log: $out" | Out-Host
+
+  $venvPy = Join-Path $dir ".venv\\Scripts\\python.exe"
+  if (-not (Test-Path $venvPy)) {
+    powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
+  }
+
+  $sentinel = Join-Path $dir ".venv\\.deps_ok"
+  if (-not (Test-Path $sentinel)) {
+    $env:TEMP = $tmp
+    $env:TMP = $tmp
+    $env:PIP_CACHE_DIR = $pipCache
+    & $venvPy -m pip install --disable-pip-version-check -r (Join-Path $dir "requirements.txt") *>> $out
+    New-Item -ItemType File -Force -Path $sentinel | Out-Null
+  }
+
+  Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
+    -ArgumentList "-m","uvicorn","main:app","--host","0.0.0.0","--port","8002" `
+    -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
+}
+
 # Clean ports (avoid "Address already in use")
-foreach ($p in @(8081,8082,8083,8084,8085,8086,8087,8088,8089,8090,8091,8092,4200,8001)) { Stop-PortIfSafe $p }
+foreach ($p in @(8081,8082,8083,8084,8085,8086,8087,8088,8089,8090,8091,8092,4200,8001,8002)) { Stop-PortIfSafe $p }
 
 # Start all Spring services
 Start-Svc "UserService" (Join-Path $root "Backend\\UserService")
@@ -188,10 +217,12 @@ foreach ($s in $services) {
   "READY $($s.name) port=$($s.port) ok=$ok" | Out-Host
 }
 
-# Start UI + PythonAI
+# Start UI + PythonAI + EventTypeAI
 Start-Frontend
 Start-PythonAi
+Start-EventTypeAi
 
 "UI: http://127.0.0.1:4200" | Out-Host
 "PythonAI: http://127.0.0.1:8001/health" | Out-Host
+"EventTypeAI: http://127.0.0.1:8002/docs" | Out-Host
 

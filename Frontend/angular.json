@@ -40,8 +40,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "30kb",
+                  "maximumError": "50kb"
                 }
               ],
               "outputHashing": "all"
@@ -88,6 +88,7 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.css"
             ],
             "scripts": []

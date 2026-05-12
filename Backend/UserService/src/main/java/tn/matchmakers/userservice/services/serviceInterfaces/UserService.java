@@ -15,5 +15,5 @@ public interface UserService {
     UserResponseDto assignRoleToUser(String userId, String roleName);
     UserResponseDto updateProfile(String userId, tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto);
     void changePassword(String userId, tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto);
-
+    void notifyUsersForNewEvent(tn.matchmakers.userservice.dto.EventNotificationDto dto);
 }
