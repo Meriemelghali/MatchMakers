@@ -1,0 +1,126 @@
+.sponsor-banner-wrap {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+/* Bannière principale */
+.sponsor-banner {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  border-radius: var(--border-radius-lg, 12px);
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(135deg, #0C447C, #185FA5);
+  border: 0.5px solid var(--color-border-tertiary);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.sponsor-banner:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(24, 95, 165, 0.2);
+}
+
+/* Image bannière */
+.banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Fallback */
+.banner-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.banner-logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.banner-text {
+  color: #fff;
+}
+
+.banner-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Badge */
+.banner-label {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* Flèches */
+.banner-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms ease;
+  backdrop-filter: blur(4px);
+  line-height: 1;
+  padding: 0;
+}
+
+.banner-arrow:hover    { background: rgba(0, 0, 0, 0.65); }
+.banner-arrow-left     { left: 10px; }
+.banner-arrow-right    { right: 10px; }
+
+/* Points indicateurs */
+.banner-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.banner-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  padding: 0;
+}
+
+.banner-dot.active {
+  background: #185FA5;
+  width: 18px;
+  border-radius: 3px;
+}

@@ -1,0 +1,358 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="page-head">
+    <div class="page-head-meta">
+      <a class="back-link" (click)="cancel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Retour aux campagnes
+      </a>
+      <div class="page-head-eyebrow">{{ isEdit ? 'Modification' : 'Création' }}</div>
+      <h1 class="page-head-title">{{ isEdit ? 'Modifier la campagne' : 'Planifier une campagne' }}</h1>
+      <div class="page-head-sub">
+        {{ isEdit ? 'Modifiez les paramètres de votre campagne publicitaire.' : 'Définissez les détails, le ciblage et la bannière de votre campagne.' }}
+      </div>
+    </div>
+    <div *ngIf="sponsor" class="sponsor-chip">
+      <img *ngIf="sponsor.logoUrl" [src]="sponsor.logoUrl"
+           [alt]="sponsor.companyName"
+           style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+      <div *ngIf="!sponsor.logoUrl" class="sponsor-chip-avatar">
+        {{ sponsor.companyName?.charAt(0) }}
+      </div>
+      <span>{{ sponsor.companyName }}</span>
+    </div>
+  </div>
+
+  <!-- Alertes -->
+  <div class="alert alert-err mb-16" *ngIf="error">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" width="15" height="15">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error }}
+  </div>
+  <div class="alert alert-ok mb-16" *ngIf="success">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" width="15" height="15">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+    {{ success }}
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" *ngIf="loading"><div class="spinner"></div></div>
+
+  <!-- FORM -->
+  <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
+
+    <div style="display:flex; gap:32px; align-items:flex-start;">
+
+      <!-- ═══ COLONNE PRINCIPALE ═══ -->
+      <div style="flex:2; display:flex; flex-direction:column; gap:24px;">
+
+        <!-- ── Section 1 : Identité ── -->
+        <div class="card">
+          <div class="section-head">
+            <div class="section-title-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="14" height="14">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Détails de l'annonce
+            </div>
+          </div>
+          <div class="form-body">
+
+            <div class="field">
+              <label class="field-label">Nom de la campagne *</label>
+              <input class="field-input" formControlName="campaignName"
+                     placeholder="Ex: Promo Été 2025, Lancement Nouveau Produit...">
+              <div class="field-error"
+                   *ngIf="form.get('campaignName')?.invalid && form.get('campaignName')?.touched">
+                Nom requis (min. 5 caractères)
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Lien de redirection (URL) *</label>
+              <input class="field-input" formControlName="targetUrl"
+                     placeholder="https://votre-site.com/produit">
+              <div class="field-error"
+                   *ngIf="form.get('targetUrl')?.invalid && form.get('targetUrl')?.touched">
+                URL valide requise
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" style="display: flex; justify-content: space-between; align-items: center;">
+                Description courte
+                <button type="button" class="btn-ai" (click)="generateDescription()" [disabled]="isGeneratingDesc" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                  ✨ {{ isGeneratingDesc ? 'Génération...' : 'Générer avec IA' }}
+                </button>
+              </label>
+              <textarea class="field-input" formControlName="description"
+                        rows="3"
+                        placeholder="Un texte accrocheur pour votre campagne..."></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Section 2 : Ciblage ── -->
+        <div class="card">
+          <div class="section-head">
+            <div class="section-title-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="14" height="14">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+              Ciblage &amp; Budget
+            </div>
+          </div>
+          <div class="form-body">
+
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">Cible</label>
+                <select class="field-input" formControlName="target">
+                  <option value="GLOBAL">🌐 Global (toute la plateforme)</option>
+                  <option value="PRODUCT">📦 Produit spécifique</option>
+                  <option value="EVENT">🏆 Événement</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label">Position d'affichage</label>
+                <select class="field-input" formControlName="position">
+                  <option value="FEATURED">⭐ En avant</option>
+                  <option value="TOP">🔝 En haut</option>
+                  <option value="BANNER">📢 Bannière</option>
+                  <option value="SIDEBAR">↔️ Côté</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">Sport ciblé</label>
+                <select class="field-input" formControlName="targetSport">
+                  <option value="">Tous les sports</option>
+                  <option *ngFor="let s of sports" [value]="s">{{ s }}</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label">Badge affiché</label>
+                <input class="field-input" formControlName="badge"
+                       placeholder="Ex: -20%, NOUVEAU, OFFRE SPÉCIALE">
+              </div>
+            </div>
+
+            <div class="field" style="max-width:260px">
+              <label class="field-label">Budget alloué (TND) *</label>
+              <input type="number" class="field-input" formControlName="budget"
+                     placeholder="0.00" min="0" step="0.01">
+              <div class="field-error"
+                   *ngIf="form.get('budget')?.invalid && form.get('budget')?.touched">
+                Budget requis
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Section 3 : Calendrier ── -->
+        <div class="card">
+          <div class="section-head">
+            <div class="section-title-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="14" height="14">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18"/>
+              </svg>
+              Calendrier de diffusion
+            </div>
+          </div>
+          <div class="form-body">
+
+            <div class="form-grid">
+              <div class="field">
+                <label class="field-label">Date de début *</label>
+                <input class="field-input" type="date" formControlName="startDate">
+                <div class="field-error"
+                     *ngIf="form.get('startDate')?.invalid && form.get('startDate')?.touched">
+                  Date de début requise
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label">Date de fin *</label>
+                <input class="field-input" type="date" formControlName="endDate">
+                <div class="field-error"
+                     *ngIf="form.get('endDate')?.invalid && form.get('endDate')?.touched">
+                  Date de fin requise
+                </div>
+              </div>
+            </div>
+
+            <!-- Durée calculée -->
+            <div class="duration-chip"
+                 *ngIf="form.get('startDate')?.value && form.get('endDate')?.value">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="13" height="13">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              Durée : <strong>{{ getDuration() }} jour(s)</strong>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ═══ COLONNE DROITE : BANNIÈRE + RÉSUMÉ ═══ -->
+      <div style="flex:1; position:sticky; top:calc(var(--nav-h, 64px) + 32px);">
+
+        <!-- Bannière publicitaire -->
+        <div class="card" style="margin-bottom:24px;">
+          <div class="section-head">
+            <div class="section-title-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="14" height="14">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              Bannière publicitaire
+            </div>
+          </div>
+          <div class="form-body">
+
+            <!-- Zone upload -->
+            <label class="upload-zone" [class.has-img]="bannerPreview" for="bannerInput">
+              <input type="file" id="bannerInput" accept="image/*"
+                     style="display:none" (change)="onFileSelected($event)">
+              <div *ngIf="!bannerPreview" class="upload-inner">
+                <div class="upload-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="1.5" width="28" height="28">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+                <span class="upload-label">Cliquez pour importer</span>
+                <span class="upload-sub">PNG, JPG — max 5 MB<br>Format recommandé : 1200 × 400 px</span>
+              </div>
+              <div *ngIf="bannerPreview" class="upload-inner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e"
+                     stroke-width="2.5" width="22" height="22">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                <span class="upload-label" style="color:#22c55e">Image prête</span>
+                <span class="upload-sub">Cliquez pour changer</span>
+              </div>
+            </label>
+
+            <!-- Aperçu -->
+            <div *ngIf="bannerPreview" class="preview-wrap">
+              <div class="preview-label">Aperçu rendu :</div>
+              <div class="preview-card">
+                <img [src]="bannerPreview" alt="Aperçu bannière" class="preview-img">
+                <div class="preview-overlay">
+                  <span class="preview-badge" *ngIf="form.get('badge')?.value">
+                    {{ form.get('badge')?.value }}
+                  </span>
+                  <div class="preview-meta">
+                    <div class="preview-name">
+                      {{ form.get('campaignName')?.value || 'Nom campagne' }}
+                    </div>
+                    <div class="preview-sponsor">{{ sponsor?.companyName }}</div>
+                  </div>
+                </div>
+                <button type="button" class="btn-remove-img" (click)="removeBanner()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2.5" width="12" height="12">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Note info -->
+            <div class="info-note">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="13" height="13" style="flex-shrink:0">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>
+                Votre campagne sera soumise à validation admin.
+                Elle apparaîtra sur la plateforme après approbation.
+              </span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Résumé + Actions -->
+        <div class="card card-inset" style="background:var(--layer-1, #111827); border:1px solid var(--border-s);">
+          <div style="margin-bottom:16px;">
+            <div class="summary-title">
+              {{ form.get('campaignName')?.value || 'Nom de la campagne' }}
+            </div>
+            <div class="summary-target">
+              {{ form.get('target')?.value || 'GLOBAL' }}
+            </div>
+          </div>
+
+          <div class="info-grid" style="gap:8px 12px; margin-bottom:16px;">
+            <div class="info-key">Budget</div>
+            <div class="info-val">
+              {{ form.get('budget')?.value ? (form.get('budget')?.value + ' TND') : '—' }}
+            </div>
+            <div class="info-key">Sport</div>
+            <div class="info-val">{{ form.get('targetSport')?.value || 'Tous' }}</div>
+            <div class="info-key">Début</div>
+            <div class="info-val t-mono" style="font-size:12px;">
+              {{ form.get('startDate')?.value || '—' }}
+            </div>
+            <div class="info-key">Fin</div>
+            <div class="info-val t-mono" style="font-size:12px;">
+              {{ form.get('endDate')?.value || '—' }}
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <button type="submit" class="btn btn-primary w-full btn-lg"
+                  [disabled]="form.invalid || submitting">
+            <div *ngIf="submitting" class="spinner"
+                 style="width:14px;height:14px;border-color:#fff;border-top-color:transparent"></div>
+            <svg *ngIf="!submitting" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            {{ submitting ? 'Envoi...' : (isEdit ? 'Mettre à jour' : 'Lancer la campagne') }}
+          </button>
+          <button type="button" class="btn btn-ghost w-full mt-12" (click)="cancel()">
+            Annuler
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </form>
+
+</div>
