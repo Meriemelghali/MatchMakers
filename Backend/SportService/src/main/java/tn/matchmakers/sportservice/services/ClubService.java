@@ -10,6 +10,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import java.io.InputStream;
+import java.net.URL;
 import tn.matchmakers.sportservice.dto.ClubCreateDto;
 import tn.matchmakers.sportservice.dto.ClubResponseDto;
 import tn.matchmakers.sportservice.dto.external.TeamDto;
@@ -61,8 +63,9 @@ public class ClubService {
         Map<String, Object> userInfo = response.getBody();
         if (userInfo == null) throw new UnauthorizedException("Token invalide");
 
-        String role = String.valueOf(userInfo.get("role"));
-        if (!"ADMIN".equals(role) && !"RESPONSABLE".equals(role)) {
+        @SuppressWarnings("unchecked")
+        List<String> roles = (List<String>) userInfo.get("roles");
+        if (roles == null || (!roles.contains("ADMIN") && !roles.contains("RESPONSABLE"))) {
             throw new ForbiddenException("Seuls les Admins ou Responsables peuvent créer un club");
         }
 
@@ -76,17 +79,17 @@ public class ClubService {
         club.setCity(dto.getCity());
         club.setDescriptionClub(dto.getDescriptionClub());
         club.setLogoFileName(dto.getLogoFileName());
-        club.setSport(dto.getSport());
+        club.setSports(dto.getSports());
         club.setTeamIds(dto.getTeamIds());
 
         // 3️⃣ Assignation createdBy
         club.setCreatedBy(new UserRef(userId, (firstName + " " + lastName).trim()));
 
         // 4️⃣ Assignation ownerId
-        if ("RESPONSABLE".equals(role)) {
-            club.setOwnerId(userId); // responsable = owner
-        } else if ("ADMIN".equals(role)) {
+        if (roles.contains("ADMIN")) {
             club.setOwnerId(dto.getOwnerId()); // ADMIN peut assigner owner
+        } else if (roles.contains("RESPONSABLE")) {
+            club.setOwnerId(userId); // responsable = owner
         }
 
         Club saved = clubRepository.save(club);
@@ -101,7 +104,7 @@ public class ClubService {
         return clubRepository.findAll();
     }
     public List<Club> getBySport(String sportId) {
-        return clubRepository.findBySportId(sportId);
+        return clubRepository.findBySportsId(sportId);
     }
     public List<Club> getByCity(String city) {
         return clubRepository.findByCity(city);
@@ -114,7 +117,7 @@ public class ClubService {
         existing.setNameClub(updated.getNameClub());
         existing.setCity(updated.getCity());
         existing.setDescriptionClub(updated.getDescriptionClub());
-        existing.setSport(updated.getSport());
+        existing.setSports(updated.getSports());
         return clubRepository.save(existing);
     }
     public void delete(String id) {
@@ -128,25 +131,38 @@ public class ClubService {
     // ─── Logo
     public Club uploadLogo(String clubId, MultipartFile file) throws IOException {
         Club club = getById(clubId);
-
-        // Supprime l'ancien logo
-        if (club.getLogoFileName() != null) {
-            deleteLogo(club.getLogoFileName());
-        }
-
-        // Génère un nom unique
+        if (club.getLogoFileName() != null) deleteLogo(club.getLogoFileName());
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
         String fileName = UUID.randomUUID().toString() + "." + extension;
-
-        // Crée le dossier si nécessaire
         Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+        Files.copy(file.getInputStream(), uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+        club.setLogoFileName(fileName);
+        return clubRepository.save(club);
+    }
 
-        // Sauvegarde le fichier
-        Files.copy(file.getInputStream(), uploadPath.resolve(fileName),
-                StandardCopyOption.REPLACE_EXISTING);
+    public Club saveLogoFromUrl(String clubId, String imageUrl) throws IOException {
+        Club club = getById(clubId);
+        if (club.getLogoFileName() != null) deleteLogo(club.getLogoFileName());
+
+        String extension = "png";
+        if (imageUrl.startsWith("data:image/svg+xml")) extension = "svg";
+        else if (imageUrl.startsWith("data:image/jpeg")) extension = "jpg";
+
+        String fileName = UUID.randomUUID().toString() + "." + extension;
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+        if (imageUrl.startsWith("data:")) {
+            // Extraction du contenu base64
+            String base64Content = imageUrl.substring(imageUrl.indexOf(",") + 1);
+            byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Content);
+            Files.write(uploadPath.resolve(fileName), decodedBytes);
+        } else {
+            try (InputStream in = new URL(imageUrl).openStream()) {
+                Files.copy(in, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
 
         club.setLogoFileName(fileName);
         return clubRepository.save(club);
@@ -192,7 +208,7 @@ public class ClubService {
                 .city(club.getCity())
                 .descriptionClub(club.getDescriptionClub())
                 .logoUrl(logoUrl)
-                .sport(club.getSport())
+                .sports(club.getSports())
                 .ownerId(club.getOwnerId())
                 .teams(teams)
                 .build();

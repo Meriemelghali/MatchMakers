@@ -3,6 +3,7 @@ export const environment = {
   userServiceUrl:    'http://localhost:8081',
   reclamationServiceUrl: 'http://localhost:8082/reclamations/api/reclamations',
   sportServiceUrl:   'http://localhost:8084/sports',
+  clubServiceUrl:    'http://localhost:8084/sports/api/clubs',
   eventServiceUrl:   'http://localhost:8083/api/events',
   matchServiceUrl: 'http://localhost:8087/matchs',
   socialServiceUrl: 'http://localhost:8090/social/api/posts',

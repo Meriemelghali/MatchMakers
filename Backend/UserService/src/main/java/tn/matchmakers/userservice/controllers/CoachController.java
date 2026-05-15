@@ -37,8 +37,10 @@ public class CoachController {
     @PostMapping("/chat/{userId}")
     public ResponseEntity<Map<String, Object>> chatWithCoach(
             @PathVariable String userId,
-            @RequestBody Map<String, String> request) {
-        String message = request.get("message");
-        return ResponseEntity.ok(aiService.askCoachAssistant(userId, message));
+            @RequestBody Map<String, Object> request) {
+        String message = (String) request.get("message");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> context = (Map<String, Object>) request.get("context");
+        return ResponseEntity.ok(aiService.askCoachAssistant(userId, message, context));
     }
 }

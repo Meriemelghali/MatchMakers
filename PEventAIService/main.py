@@ -1,6 +1,7 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
 from dotenv import load_dotenv
@@ -17,6 +18,14 @@ if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     
 app = FastAPI(title="EventType AI Service", description="AI microservice for Event Type suggestions", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SuggestionRequest(BaseModel):
     typeName: str
@@ -65,6 +74,7 @@ class EventPredictionRequest(BaseModel):
     sport: str
     eventType: str
     participants: List[str]
+
 
 class QuoteRequest(BaseModel):
     sports: List[str]
@@ -461,6 +471,60 @@ async def sport_quote(request: QuoteRequest):
             "quote": random.choice(fallbacks),
             "from_llm": False
         }
+
+class LogoRequest(BaseModel):
+    name: str
+    description: str
+    sports: str
+
+@app.post("/api/ai/generate-logo")
+async def generate_logo(request: LogoRequest):
+    import base64
+
+    svg_fallback = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+        <rect width="300" height="300" fill="#1a1a2e" rx="20"/>
+        <circle cx="150" cy="110" r="70" fill="#FF6B00" opacity="0.9"/>
+        <text x="150" y="105" font-size="22" text-anchor="middle" fill="white" font-weight="bold" font-family="Arial">{request.name}</text>
+        <text x="150" y="200" font-size="14" text-anchor="middle" fill="#FF6B00" font-family="Arial">{request.sports}</text>
+        <text x="150" y="260" font-size="11" text-anchor="middle" fill="#888" font-family="Arial">MatchMakers</text>
+    </svg>'''
+
+    if not GEMINI_API_KEY:
+        encoded = base64.b64encode(svg_fallback.encode('utf-8')).decode('utf-8')
+        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
+
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        prompt = f"""Create a professional SVG logo for a sports club.
+Club name: {request.name}
+Sports: {request.sports}
+Description: {request.description}
+Rules:
+- Return ONLY valid SVG code, starting with <svg and ending with </svg>
+- No markdown, no explanation, no backticks
+- Use colors: orange #FF6B00 and dark #1a1a2e
+- Include the club name as text
+- viewBox="0 0 300 300"
+"""
+        response = model.generate_content(prompt)
+        svg_code = response.text.strip()
+
+        if "```svg" in svg_code:
+            svg_code = svg_code.split("```svg")[1].split("```")[0].strip()
+        elif "```" in svg_code:
+            svg_code = svg_code.split("```")[1].split("```")[0].strip()
+
+        if not svg_code.startswith("<svg"):
+            raise ValueError("Invalid SVG response")
+
+        encoded = base64.b64encode(svg_code.encode('utf-8')).decode('utf-8')
+        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
+
+    except Exception as e:
+        print(f"Gemini error: {str(e)}")
+        encoded = base64.b64encode(svg_fallback.encode('utf-8')).decode('utf-8')
+        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

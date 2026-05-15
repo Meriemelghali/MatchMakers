@@ -19,6 +19,7 @@ OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME", "MatchMakers").strip()
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 # Default to a small model that is commonly available; override via env.
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma2:2b")
+COACH_CHAT_MODEL = os.getenv("COACH_CHAT_MODEL", "meta-llama/llama-3-8b-instruct:free")
 
 
 class LeaderboardRequest(BaseModel):
@@ -269,6 +270,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     from_llm: bool
+    updatedPlan: Optional[dict] = None
 
 @app.post("/api/ai/coach/plan", response_model=CoachPlanResponse)
 async def generate_coach_plan(req: CoachRequest):
@@ -331,25 +333,122 @@ async def generate_coach_plan(req: CoachRequest):
 
 @app.post("/api/ai/coach/chat", response_model=ChatResponse)
 async def coach_chat(req: ChatRequest):
+    plan_context = f"\nEntraînement actuel de l'utilisateur : {json.dumps(req.context, ensure_ascii=False)}" if req.context else ""
+    
     prompt = f"""
     Tu es un Coach Sportif personnel virtuel nommé 'MatchCoach'. 
     Tu es expert, motivant, et tu parles en français.
+    {plan_context}
+    
     L'utilisateur demande : "{req.message}"
-    Réponds de manière concise (max 3 phrases). Reste dans le domaine sportif.
+    
+    Si l'utilisateur demande à modifier l'entraînement (ex: changer un exercice, adapter la difficulté), tu dois fournir un plan mis à jour en te basant sur l'entraînement actuel.
+    
+    Réponds UNIQUEMENT avec un objet JSON valide contenant :
+    {{
+      "reply": "Ta réponse textuelle à l'utilisateur (concise, max 3 phrases).",
+      "updatedPlan": {{ le plan complet mis à jour si une modification est demandée, ou null sinon }}
+    }}
+    
+    Si aucune modification n'est nécessaire, mets "updatedPlan": null.
     """
     
     try:
+        text = ""
         if OPENROUTER_API_KEY:
+            try:
+                from openai import OpenAI
+                client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+                resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                    model=COACH_CHAT_MODEL,
+                    messages=[{"role": "user", "content": prompt}]
+                ))
+                text = resp.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"Coach Chat OpenRouter Error: {e}")
+                
+        # Ollama Fallback
+        if not text:
+            import httpx
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                r = await client.post(
+                    f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
+                    json={"model": OLLAMA_MODEL, "messages": [{"role": "user", "content": prompt}], "stream": False},
+                )
+                r.raise_for_status()
+                text = r.json()["choices"][0]["message"]["content"].strip()
+                
+        if text:
+            import re
+            # Extract JSON block if present
+            match = re.search(r'\{[\s\S]*\}', text)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                data = {"reply": text, "updatedPlan": None}
+                
+            return ChatResponse(
+                reply=data.get("reply", "Bien reçu !"),
+                updatedPlan=data.get("updatedPlan"),
+                from_llm=True
+            )
+            
+    except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
+        return ChatResponse(reply=f"ERREUR INTERNE: {str(e)}\n\nTraceback:\n{err_msg}", from_llm=False, updatedPlan=None)
+        
+    return ChatResponse(reply="Je suis votre coach MatchMakers ! Je suis là pour vous aider à atteindre vos sommets. Posez-moi une question sur vos exercices.", from_llm=False, updatedPlan=None)
+
+class LogoRequest(BaseModel):
+    name: str
+    description: str
+    sports: List[str]
+
+class LogoResponse(BaseModel):
+    imageUrl: str
+    prompt: str
+    latency_ms: int
+
+@app.post("/api/ai/generate-logo", response_model=LogoResponse)
+async def generate_logo(req: LogoRequest):
+    t0 = time.time()
+    sports_str = ", ".join(req.sports) if req.sports else "sport"
+    
+    prompt_for_llm = f"""
+    Tu es un designer de logos expert. 
+    Génère un PROMPT ANGLAIS court et ultra-descriptif pour un générateur d'images IA (type DALL-E) afin de créer un logo professionnel pour un club de sport.
+    Nom du club : {req.name}
+    Description : {req.description}
+    Sports : {sports_str}
+    
+    Style : Minimaliste, moderne, vectoriel, fond blanc uni, couleurs vives, haute résolution.
+    Règle : Réponds UNIQUEMENT avec le prompt en anglais, rien d'autre.
+    """
+    
+    generated_prompt = "professional sports club logo, minimalist vector art, flat design"
+    
+    # Try to get a better prompt from LLM
+    if OPENROUTER_API_KEY:
+        try:
             from openai import OpenAI
             client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
             resp = await asyncio.to_thread(lambda: client.chat.completions.create(
                 model=OPENROUTER_MODEL,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt_for_llm}]
             ))
-            return {"reply": resp.choices[0].message.content.strip(), "from_llm": True}
-    except Exception:
-        pass
-        
-    return {"reply": "Je suis votre coach MatchMakers ! Je suis là pour vous aider à atteindre vos sommets. Posez-moi une question sur vos exercices.", "from_llm": False}
-
-
+            text = resp.choices[0].message.content.strip()
+            if text: generated_prompt = text
+        except Exception: pass
+    
+    # Clean prompt for URL
+    import urllib.parse
+    generated_prompt = generated_prompt.replace("\n", " ").replace("\"", "").strip()
+    clean_prompt = urllib.parse.quote(generated_prompt)
+    image_url = f"https://image.pollinations.ai/prompt/{clean_prompt}?width=512&height=512&nologo=true&seed={int(time.time())}"
+    
+    return LogoResponse(
+        imageUrl=image_url,
+        prompt=generated_prompt,
+        latency_ms=int((time.time() - t0) * 1000)
+    )

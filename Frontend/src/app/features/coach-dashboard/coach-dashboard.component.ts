@@ -1,16 +1,18 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CoachService } from '../../core/services/UserService/coach.service';
 import { AuthService } from '../../core/services/AuthService/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-coach-dashboard',
   templateUrl: './coach-dashboard.component.html',
   styleUrls: ['./coach-dashboard.component.css']
 })
-export class CoachDashboardComponent implements OnInit {
+export class CoachDashboardComponent implements OnInit, OnDestroy {
   trainingPlan: any = null;
   isLoading = true;
   userId: string | null = null;
+  private planSub!: Subscription;
 
   constructor(
     private coachService: CoachService,
@@ -19,8 +21,22 @@ export class CoachDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.userId = this.authService.getUserId();
+    
+    this.planSub = this.coachService.currentPlan$.subscribe(plan => {
+      if (plan) {
+        this.trainingPlan = plan;
+        this.isLoading = false;
+      }
+    });
+
     if (this.userId) {
       this.loadTrainingPlan();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.planSub) {
+      this.planSub.unsubscribe();
     }
   }
 
@@ -28,10 +44,8 @@ export class CoachDashboardComponent implements OnInit {
     if (!this.userId) return;
     this.isLoading = true;
     this.coachService.getTodayPlan(this.userId).subscribe({
-      next: (res) => {
-        console.log('Training Plan received:', res);
-        this.trainingPlan = res;
-        this.isLoading = false;
+      next: () => {
+        // State is updated via the behavior subject in CoachService
       },
       error: (err) => {
         console.error('Plan loading error:', err);

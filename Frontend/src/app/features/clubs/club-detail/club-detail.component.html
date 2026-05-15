@@ -1,0 +1,86 @@
+<div class="detail-container">
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading club details...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+    <button class="btn btn-outline" routerLink="/clubs">Back to Clubs</button>
+  </div>
+
+  <div *ngIf="!loading && !error && club" class="club-detail-card">
+    <div class="card-header">
+      <div class="logo-container" [class.can-edit]="canManage()" (click)="canManage() && triggerFileInput()">
+        <img [src]="getLogoUrl(club.logoUrl || club.logoFileName)" alt="Club Logo" class="club-logo" (error)="logo.src='https://placehold.co/150/000000/FF6B00?text=No+Logo'" #logo>
+        <div class="logo-overlay" *ngIf="canManage()">
+          <i class="fa fa-camera"></i>
+          <span>Change Logo</span>
+        </div>
+        <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*">
+      </div>
+
+      <div class="header-info">
+        <h1>{{ club.nameClub }}</h1>
+        <p class="location"><i class="fa fa-map-marker"></i> {{ club.city }}</p>
+        <div class="sports-badges" *ngIf="club.sports && club.sports.length > 0">
+          <span class="sport-badge" *ngFor="let s of club.sports">{{ s.nameSport }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions" *ngIf="canManage()">
+        <button class="btn btn-icon btn-edit" (click)="editClub()" title="Edit Club"><i
+            class="fa fa-pencil"></i></button>
+        <button class="btn btn-icon btn-delete" (click)="deleteClub()" title="Delete Club"><i
+            class="fa fa-trash"></i></button>
+      </div>
+    </div>
+
+    <div *ngIf="uploading" class="alert alert-info mt-3">Uploading logo...</div>
+    <div *ngIf="uploadSuccess" class="alert alert-success mt-3">{{ uploadSuccess }}</div>
+    <div *ngIf="uploadError" class="alert alert-danger mt-3">{{ uploadError }}</div>
+
+    <div class="card-body">
+      <div class="section">
+        <h3>About the Club</h3>
+        <p class="description">{{ club.descriptionClub }}</p>
+      </div>
+
+      <div class="section teams-section">
+        <h3>Teams Management</h3>
+        <div class="add-team-form" *ngIf="canManage()">
+          <div class="search-container">
+            <input type="text" [ngModel]="teamSearchQuery" (ngModelChange)="onTeamSearch($event)"
+              placeholder="Search Team by name..." class="form-control">
+
+            <div class="search-suggestions" *ngIf="filteredTeams.length > 0">
+              <div class="suggestion-item" *ngFor="let team of filteredTeams" (click)="selectTeam(team)">
+                <span class="team-name">{{ team.name }}</span>
+                <span class="team-sport">{{ team.sport }}</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" (click)="addTeam()" [disabled]="!teamIdToAdd">Add Team</button>
+        </div>
+
+        <div class="teams-list mt-4" *ngIf="club.teams && club.teams.length > 0">
+          <div class="team-card-mini" *ngFor="let team of club.teams">
+            <div class="team-icon">
+              <i class="fa fa-users"></i>
+            </div>
+            <div class="team-info">
+              <span class="name">{{ team.name }}</span>
+              <span class="sport">{{ team.sport }}</span>
+            </div>
+            <button class="btn-remove-team" (click)="removeTeam(team.id!)" title="Remove Team" *ngIf="canManage()">
+              <i class="fa fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="!club.teams || club.teams.length === 0" class="empty-teams-msg">
+          <i class="fa fa-info-circle"></i> No teams assigned to this club yet.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

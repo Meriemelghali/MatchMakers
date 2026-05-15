@@ -1,0 +1,53 @@
+<div class="club-list-container">
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="title">Clubs Management</h1>
+      <p class="subtitle">Discover, manage, and join elite sports clubs</p>
+    </div>
+    <button class="btn-create" (click)="createClub()" *ngIf="canCreateClub()">
+      <i class="fa fa-plus-circle"></i> Create New Club
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading clubs...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadClubs()">Retry</button>
+  </div>
+
+  <div *ngIf="!loading && !error && clubs.length === 0" class="empty-state">
+    <i class="fa fa-users empty-icon"></i>
+    <h2>No clubs found</h2>
+    <p>There are no clubs registered yet. Be the first to create one!</p>
+    <button class="btn-create mt-3" (click)="createClub()">Create Club</button>
+  </div>
+
+  <div *ngIf="!loading && !error && clubs.length > 0" class="clubs-grid">
+    <div class="club-card" *ngFor="let club of clubs" (click)="viewDetails(club.id)">
+      <div class="card-header">
+        <img [src]="getLogoUrl(club.logoFileName)" alt="{{ club.nameClub }} logo" class="club-logo" (error)="logo.src='assets/images/default-club.png'" #logo>
+        <div class="sports-container" *ngIf="club.sports && club.sports.length > 0">
+          <div class="sport-badge" *ngFor="let s of club.sports">
+            {{ s.nameSport }}
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <h3 class="club-name">{{ club.nameClub }}</h3>
+        <p class="club-location"><i class="fa fa-map-marker"></i> {{ club.city }}</p>
+        <p class="club-description">{{ club.descriptionClub | slice:0:100 }}{{ club.descriptionClub.length > 100 ? '...' : '' }}</p>
+      </div>
+      <div class="card-footer">
+        <div class="stat">
+          <i class="fa fa-shield"></i>
+          <span>{{ club.teamIds ? club.teamIds.length : 0 }} Teams</span>
+        </div>
+        <button class="btn-view">View Details</button>
+      </div>
+    </div>
+  </div>
+</div>

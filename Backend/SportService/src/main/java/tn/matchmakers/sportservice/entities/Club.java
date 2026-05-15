@@ -26,9 +26,10 @@ public class Club {
     // Accessible via GET /api/clubs/logo/{fileName}
     private String logoFileName;
 
-    // Référence vers Sport (même service)
+    // Références vers Sports (même service)
     @DBRef
-    private Sport sport;
+    @Builder.Default
+    private List<Sport> sports = new ArrayList<>();
 
     // IDs des équipes (référence vers TeamService de Sami — port 8085)
     @Builder.Default

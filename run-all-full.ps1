@@ -174,6 +174,19 @@ function Start-EventTypeAi() {
     New-Item -ItemType File -Force -Path $sentinel | Out-Null
   }
 
+  $envFile = Join-Path $dir ".env"
+  if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+      if (-not $line -or $line.StartsWith('#')) { return }
+        $eq = $line.IndexOf('=')
+        if ($eq -lt 1) { return }
+        $key = $line.Substring(0, $eq).Trim()
+        $val = $line.Substring($eq + 1).Trim()
+        if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+    }
+  }
+
   Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
     -ArgumentList "-m","uvicorn","main:app","--host","0.0.0.0","--port","8002" `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
