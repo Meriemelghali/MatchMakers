@@ -45,9 +45,9 @@ public class RewardController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/player/{playerId}")
-    public ResponseEntity<List<RewardDto>> byPlayer(@PathVariable String playerId) {
-        return ResponseEntity.ok(service.getByPlayer(playerId));
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<RewardDto>> byUser(@PathVariable String userId) {
+        return ResponseEntity.ok(service.getByUser(userId));
     }
 
     @GetMapping("/team/{teamId}")

@@ -19,7 +19,6 @@ import tn.matchmakers.sportservice.exceptions.ForbiddenException;
 import tn.matchmakers.sportservice.exceptions.UnauthorizedException;
 import tn.matchmakers.sportservice.repositories.ClubRepository;
 import tn.matchmakers.sportservice.services.clients.TeamServiceClient;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,13 +46,13 @@ public class ClubService {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response;
+        ResponseEntity<Map<String, Object>> response;
         try {
             response = restTemplate.exchange(
                     userServiceUrl,
                     HttpMethod.GET,
                     entity,
-                    Map.class
+                    new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {}
             );
         } catch (HttpClientErrorException e) {
             throw new UnauthorizedException("Token invalide ou expiré");

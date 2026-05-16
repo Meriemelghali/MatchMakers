@@ -30,8 +30,8 @@ export interface Reward {
   createdAt?: string;
   updatedAt?: string;
 
-  playerId?: string;
-  playerName?: string;
+  userId?: string;
+  username?: string;
   teamId?: string;
   teamName?: string;
   eventId?: string;
@@ -48,8 +48,8 @@ export interface CreateRewardRequest {
   imageUrl?: string;
   awardedBy?: string;
 
-  playerId?: string;
-  playerName?: string;
+  userId?: string;
+  username?: string;
   teamId?: string;
   teamName?: string;
   eventId?: string;
@@ -87,8 +87,8 @@ export class RewardService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
-  getRewardsByPlayer(playerId: string): Observable<Reward[]> {
-    return this.http.get<Reward[]>(`${this.base}/player/${playerId}`);
+  getRewardsByUser(userId: string): Observable<Reward[]> {
+    return this.http.get<Reward[]>(`${this.base}/user/${userId}`);
   }
 
   getRewardsByTeam(teamId: string): Observable<Reward[]> {

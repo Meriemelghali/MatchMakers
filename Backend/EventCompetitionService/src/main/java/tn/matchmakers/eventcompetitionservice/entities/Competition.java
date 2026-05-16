@@ -1,7 +1,6 @@
 package tn.matchmakers.eventcompetitionservice.entities;
 
 import lombok.*;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import tn.matchmakers.eventcompetitionservice.entities.enums.CompetitionFormat;
 import tn.matchmakers.eventcompetitionservice.entities.enums.CompetitionStatus;

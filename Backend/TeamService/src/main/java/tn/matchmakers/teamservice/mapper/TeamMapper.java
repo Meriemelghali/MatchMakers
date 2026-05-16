@@ -18,6 +18,8 @@ public interface TeamMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "members", expression = "java(new java.util.ArrayList<>())")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "ownerId", ignore = true)
     Team fromCreate(TeamCreateRequest request);
 }
 

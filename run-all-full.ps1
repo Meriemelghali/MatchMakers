@@ -16,7 +16,17 @@ New-Item -ItemType Directory -Force -Path $logs | Out-Null
 $m2 = Join-Path $root ".m2"
 $tmp = Join-Path $root ".tmp"
 $pipCache = Join-Path $root ".pip-cache"
-New-Item -ItemType Directory -Force -Path $tmp, $pipCache | Out-Null
+New-Item -ItemType Directory -Force -Path $m2, $tmp, $pipCache | Out-Null
+$env:MAVEN_USER_HOME = $m2
+
+function Get-MavenCmd() {
+  $dists = Join-Path $m2 "wrapper\\dists"
+  if (Test-Path $dists) {
+    $cmd = Get-ChildItem -Path $dists -Recurse -Filter "mvn.cmd" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cmd) { return $cmd.FullName }
+  }
+  return $null
+}
 
 function Get-PortPids([int]$port) {
   $lines = netstat -ano | Select-String (":$port") | ForEach-Object { $_.ToString().Trim() }
@@ -66,7 +76,12 @@ function Start-Svc([string]$name, [string]$dir) {
   $err = Join-Path $logs "$name.err.log"
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting $name ... log: $out" | Out-Host
-  $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run"
+  $mvn = Get-MavenCmd
+  if ($mvn) {
+    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run"
+  } else {
+    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run"
+  }
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
@@ -77,7 +92,11 @@ function Start-Frontend() {
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting Frontend ... log: $out" | Out-Host
   $dir = Join-Path $root "Frontend"
-  $cmd = "cd `"$dir`"; node .\\node_modules\\@angular\\cli\\bin\\ng.js serve --configuration development --host 127.0.0.1 --port 4200"
+  $cmd = @"
+cd "$dir"
+if (!(Test-Path ".\\node_modules")) { npm ci }
+node .\\node_modules\\@angular\\cli\\bin\\ng.js serve --configuration development --host 127.0.0.1 --port 4200
+"@
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
@@ -96,7 +115,56 @@ function Start-PythonAi() {
     powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
   }
 
+  # Load optional env file (ignored by git). See PythonAI/.env.example
+  $envFile = Join-Path $dir ".env"
+  if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+      $line = [string]$_
+      if ($null -eq $line) { $line = "" }
+      $line = $line.Trim()
+      if (-not $line -or $line.StartsWith('#')) { return }
+      $eq = $line.IndexOf('=')
+      if ($eq -lt 1) { return }
+      $key = $line.Substring(0, $eq).Trim()
+      $val = $line.Substring($eq + 1).Trim()
+      if (($val.StartsWith('"') -and $val.EndsWith('"')) -or ($val.StartsWith("'") -and $val.EndsWith("'"))) {
+        $val = $val.Substring(1, $val.Length - 2)
+      }
+      if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+    }
+  }
+
   # deps once (avoid restricted user temp)
+  $req = Join-Path $dir "requirements.txt"
+  $reqHash = if (Test-Path $req) { (Get-FileHash $req -Algorithm SHA256).Hash.Substring(0, 12) } else { "none" }
+  $sentinel = Join-Path $dir (".venv\\.deps_ok_{0}" -f $reqHash)
+  if (-not (Test-Path $sentinel)) {
+    $env:TEMP = $tmp
+    $env:TMP = $tmp
+    $env:PIP_CACHE_DIR = $pipCache
+    & $venvPy -m pip install --disable-pip-version-check -r $req *>> $out
+    New-Item -ItemType File -Force -Path $sentinel | Out-Null
+  }
+
+  Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
+    -ArgumentList "-m","uvicorn","app:app","--host","0.0.0.0","--port","8001" `
+    -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
+}
+
+function Start-EventTypeAi() {
+  $dir = Join-Path $root "PEventAIService"
+  if (-not (Test-Path $dir)) { return }
+
+  $out = Join-Path $logs "PEventAI.log"
+  $err = Join-Path $logs "PEventAI.err.log"
+  Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
+  "Starting PEventAIService ... log: $out" | Out-Host
+
+  $venvPy = Join-Path $dir ".venv\\Scripts\\python.exe"
+  if (-not (Test-Path $venvPy)) {
+    powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
+  }
+
   $sentinel = Join-Path $dir ".venv\\.deps_ok"
   if (-not (Test-Path $sentinel)) {
     $env:TEMP = $tmp
@@ -107,12 +175,12 @@ function Start-PythonAi() {
   }
 
   Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
-    -ArgumentList "-m","uvicorn","app:app","--host","0.0.0.0","--port","8001" `
+    -ArgumentList "-m","uvicorn","main:app","--host","0.0.0.0","--port","8002" `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
 
 # Clean ports (avoid "Address already in use")
-foreach ($p in @(8081,8082,8083,8084,8085,8086,8087,8088,8089,8090,8091,8092,4200,8001)) { Stop-PortIfSafe $p }
+foreach ($p in @(8081,8082,8083,8084,8085,8086,8087,8088,8089,8090,8091,8092,4200,8001,8002)) { Stop-PortIfSafe $p }
 
 # Start all Spring services
 Start-Svc "UserService" (Join-Path $root "Backend\\UserService")
@@ -149,10 +217,12 @@ foreach ($s in $services) {
   "READY $($s.name) port=$($s.port) ok=$ok" | Out-Host
 }
 
-# Start UI + PythonAI
+# Start UI + PythonAI + EventTypeAI
 Start-Frontend
 Start-PythonAi
+Start-EventTypeAi
 
 "UI: http://127.0.0.1:4200" | Out-Host
 "PythonAI: http://127.0.0.1:8001/health" | Out-Host
+"EventTypeAI: http://127.0.0.1:8002/docs" | Out-Host
 

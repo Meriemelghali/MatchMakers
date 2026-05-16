@@ -58,13 +58,7 @@ public class EventServiceImpl implements EventService {
         checkOrganizerOrAdminRole(userInfo);
 
         // 2. Construire createdBy
-        String userId    = String.valueOf(userInfo.get("id"));
-        String firstName = String.valueOf(userInfo.get("firstName"));
-        String lastName  = String.valueOf(userInfo.get("lastName"));
-        Map<String, String> createdByMap = Map.of(
-                "id",   userId,
-                "name", (firstName + " " + lastName).trim()
-        );
+        Map<String, String> createdByMap = buildCreatedByMap(userInfo);
 
         // 3. Vérifier unicité du nom
         if (eventRepository.existsByName(dto.getName())) {
@@ -89,6 +83,11 @@ public class EventServiceImpl implements EventService {
                 .sportId(dto.getSportId())
                 .clubId(dto.getClubId())
                 .terrainId(dto.getTerrainId())
+                .startPoint(dto.getStartPoint())
+                .endPoint(dto.getEndPoint())
+                .distances(dto.getDistances())
+                .routePath(dto.getRoutePath())
+                .participantIds(dto.getParticipantIds() != null ? dto.getParticipantIds() : new ArrayList<>())
                 .eventType(eventType)
                 .build();
 
@@ -129,7 +128,7 @@ public class EventServiceImpl implements EventService {
                 matchRequest.setEquipe2(dto.getTeamIds().get(1));              // ← equipe2
                 matchRequest.setDateDebut(dto.getStartDate().atTime(15, 0));   // ← dateDebut
                 matchRequest.setDateFin(dto.getStartDate().atTime(17, 0));     // ← dateFin
-                matchRequest.setType("AMICAL");
+                matchRequest.setType(toMatchType(dto.getFormat()));
                 matchRequest.setTerrainId(dto.getTerrainId());
                 matchRequest.setDescription(dto.getDescription());
                 MatchDto createdMatch = matchServiceClient.creerMatch(matchRequest);
@@ -138,6 +137,28 @@ public class EventServiceImpl implements EventService {
                 log.warn("match-service indisponible — création match ignorée: {}",
                         e.getMessage());
             }
+        }
+
+        // 11. Notifier les utilisateurs intéressés (nouveau)
+        try {
+            SportDto sport = getSportDetails(savedEvent.getSportId());
+            if (sport != null) {
+                Map<String, Object> notificationRequest = new HashMap<>();
+                notificationRequest.put("title", savedEvent.getName());
+                notificationRequest.put("description", savedEvent.getDescriptionEvent());
+                notificationRequest.put("location", savedEvent.getLocation());
+                notificationRequest.put("sportName", sport.getNameSport());
+                notificationRequest.put("startDate", savedEvent.getStartDate().toString());
+                notificationRequest.put("endDate", savedEvent.getEndDate().toString());
+
+                log.info("Envoi de la notification pour le sport: '{}' à l'URL: http://localhost:8081/users/notify-new-event", sport.getNameSport());
+                restTemplate.postForObject("http://localhost:8081/users/notify-new-event", notificationRequest, Void.class);
+                log.info("Notification envoyée avec succès pour l'événement '{}'", savedEvent.getName());
+            } else {
+                log.warn("Impossible de notifier les utilisateurs : le sport avec l'ID {} n'a pas pu être récupéré", savedEvent.getSportId());
+            }
+        } catch (Exception e) {
+            log.error("ÉCHEC de la notification (l'événement a été créé quand même): {}", e.getMessage());
         }
 
         return new EventResponseDto(savedEvent);
@@ -178,21 +199,22 @@ public class EventServiceImpl implements EventService {
         if (dto.getStartDate() != null)   existing.setStartDate(dto.getStartDate());
         if (dto.getEndDate() != null)     existing.setEndDate(dto.getEndDate());
         if (dto.getTerrainId() != null)   existing.setTerrainId(dto.getTerrainId());
+        if (dto.getStartPoint() != null)  existing.setStartPoint(dto.getStartPoint());
+        if (dto.getEndPoint() != null)    existing.setEndPoint(dto.getEndPoint());
+        if (dto.getDistances() != null)   existing.setDistances(dto.getDistances());
+        if (dto.getRoutePath() != null)   existing.setRoutePath(dto.getRoutePath());
         if (dto.getStatutEvent() != null) existing.setStatutEvent(dto.getStatutEvent());
 
-        // 4. Mettre à jour équipes si requiresTeams sans bracket
-        EventType eventType = existing.getEventType();
-        if (Boolean.TRUE.equals(eventType.getRequiresTeams())
-                && !Boolean.TRUE.equals(eventType.getIsCompetition())
-                && dto.getTeamIds() != null) {
-            if (dto.getTeamIds().size() < 2) {
-                throw new InvalidEventConfigException(
-                        "Un événement avec équipes nécessite au moins 2 équipes.");
-            }
+        // 4. Mettre à jour équipes / participants
+        if (dto.getTeamIds() != null) {
             existing.setTeamIds(dto.getTeamIds());
+        }
+        if (dto.getParticipantIds() != null) {
+            existing.setParticipantIds(dto.getParticipantIds());
         }
 
         // 5. Mettre à jour la compétition si elle existe
+        EventType eventType = existing.getEventType(); // ensure eventType is available
         if (Boolean.TRUE.equals(eventType.getIsCompetition())
                 && existing.getCompetition() != null) {
             Competition competition = existing.getCompetition();
@@ -202,6 +224,8 @@ public class EventServiceImpl implements EventService {
                 competition.setMaxTeam(dto.getMaxTeam());
             if (dto.getFormat() != null)
                 competition.setFormat(dto.getFormat());
+            if (dto.getTeamIds() != null)
+                competition.setTeamIds(new ArrayList<>(dto.getTeamIds()));
             competitionRepository.save(competition);
         }
 
@@ -332,6 +356,43 @@ public class EventServiceImpl implements EventService {
         return new EventResponseDto(eventRepository.save(event));
     }
 
+    @Override
+    public EventResponseDto joinEvent(String eventId, String token) {
+        Map<String, Object> userInfo = getUserInfoFromToken(token);
+        String userId = String.valueOf(userInfo.get("id"));
+
+        Event event = getById(eventId);
+        EventType eventType = event.getEventType();
+
+        if (Boolean.TRUE.equals(eventType.getIsCompetition())) {
+            throw new InvalidEventConfigException("Veuillez rejoindre avec votre équipe pour une compétition.");
+        }
+
+        if (event.getParticipantIds() == null) {
+            event.setParticipantIds(new ArrayList<>());
+        }
+        if (event.getParticipantIds().contains(userId)) {
+            throw new InvalidEventConfigException("Vous participez déjà à cet événement.");
+        }
+
+        event.getParticipantIds().add(userId);
+        return new EventResponseDto(eventRepository.save(event));
+    }
+
+    @Override
+    public EventResponseDto leaveEvent(String eventId, String token) {
+        Map<String, Object> userInfo = getUserInfoFromToken(token);
+        String userId = String.valueOf(userInfo.get("id"));
+
+        Event event = getById(eventId);
+        
+        if (event.getParticipantIds() == null || !event.getParticipantIds().remove(userId)) {
+            throw new RuntimeException("Vous n'êtes pas inscrit à cet événement.");
+        }
+
+        return new EventResponseDto(eventRepository.save(event));
+    }
+
     // ══════════════════════════════════════════════════════════════════════════
     // APPELS EXTERNES
     // ══════════════════════════════════════════════════════════════════════════
@@ -394,17 +455,16 @@ public class EventServiceImpl implements EventService {
                             ? competitionName : "Compétition — " + eventName)
                     .maxTeam(maxTeam != null ? maxTeam : 0L)
                     .format(format)
+                    .teamIds(teamIds != null ? new ArrayList<>(teamIds) : new ArrayList<>())
                     .status(CompetitionStatus.PENDING)
                     .build();
             event.setCompetition(competitionRepository.save(competition));
 
             // Branche B — équipes sans bracket (Friendly Match)
         } else if (Boolean.TRUE.equals(eventType.getRequiresTeams())) {
-            if (teamIds == null || teamIds.size() < 2) {
-                throw new InvalidEventConfigException(
-                        "Un Friendly Match nécessite au moins 2 équipes.");
+            if (teamIds != null && !teamIds.isEmpty()) {
+                event.setTeamIds(teamIds);
             }
-            event.setTeamIds(teamIds);
         }
         // Branche C — individuel simple → rien
     }
@@ -414,8 +474,9 @@ public class EventServiceImpl implements EventService {
         headers.set("Authorization", "Bearer " + token);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    userServiceUrl, HttpMethod.GET, entity, Map.class);
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    userServiceUrl, HttpMethod.GET, entity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {});
             Map<String, Object> userInfo = response.getBody();
             if (userInfo == null) throw new UnauthorizedException("Token invalide");
             return userInfo;

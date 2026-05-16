@@ -84,16 +84,16 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamDto joinTeam(String id, String playerId, String username, String role) {
+    public TeamDto joinTeam(String id, String userId, String username, String role) {
         Team team = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Équipe introuvable : " + id));
 
         boolean already = team.getMembers().stream()
-                .anyMatch(m -> m.getPlayerId().equals(playerId));
+                .anyMatch(m -> m.getUserId().equals(userId));
 
         if (!already) {
             team.getMembers().add(TeamMember.builder()
-                    .playerId(playerId)
+                    .userId(userId)
                     .username(username)
                     .role(role)
                     .joinDate(LocalDateTime.now())
@@ -105,14 +105,20 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public TeamDto leaveTeam(String id, String playerId) {
+    public TeamDto leaveTeam(String id, String userId) {
         Team team = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Équipe introuvable : " + id));
 
-        team.getMembers().removeIf(m -> m.getPlayerId().equals(playerId));
+        team.getMembers().removeIf(m -> m.getUserId().equals(userId));
 
         team.setUpdatedAt(LocalDateTime.now());
         return mapper.toDto(repository.save(team));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TeamDto> getTeamsByUserId(String userId) {
+        return mapper.toDtoList(repository.findByMembersUserId(userId));
     }
 }
 

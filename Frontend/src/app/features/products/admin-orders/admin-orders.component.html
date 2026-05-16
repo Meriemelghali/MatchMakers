@@ -1,0 +1,398 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="list-header">
+    <div class="header-main">
+      <h1>Gestion des Commandes</h1>
+      <p class="subtitle">Suivez et validez les commandes de la plateforme</p>
+    </div>
+    <div class="stats-mini">
+      <span class="count">{{ filtered.length }}</span>
+      <span class="label">Commandes</span>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="admin-kpis">
+    <div class="kpi-card">
+      <div class="kpi-label">Total commandes</div>
+      <div class="kpi-value">{{ totalOrders }}</div>
+      <div class="kpi-sub">Toutes périodes</div>
+    </div>
+    <div class="kpi-card" [class.kpi-alert]="pendingCash > 0">
+      <div class="kpi-label">Cash en attente</div>
+      <div class="kpi-value" [class.orange]="pendingCash > 0"
+           [style.color]="pendingCash === 0 ? '#10b981' : ''">
+        {{ pendingCash }}
+      </div>
+      <div class="kpi-sub">{{ pendingCash > 0 ? 'À confirmer' : 'Tout est à jour' }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Livrées</div>
+      <div class="kpi-value">{{ deliveredCount }}</div>
+      <div class="kpi-sub">Confirmées</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Revenus</div>
+      <div class="kpi-value">{{ totalRevenue | number:'1.0-0' }}</div>
+      <div class="kpi-sub">TND</div>
+    </div>
+  </div>
+
+  <!-- ALERT cash en attente -->
+  <div class="cash-alert" *ngIf="pendingCash > 0">
+    ⚠️ <strong>{{ pendingCash }} commande(s) cash</strong> en attente de confirmation.
+    Le stock sera décrémenté après validation livraison.
+  </div>
+
+  <!-- TABLE CARD -->
+  <div class="admin-table-card">
+
+    <!-- Filters -->
+    <div class="admin-table-header">
+      <span class="admin-table-title">
+        Commandes ({{ filtered.length }})
+      </span>
+      <div class="admin-filters">
+
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input [formControl]="searchFilter"
+                 placeholder="Produit, client..."
+                 style="width:200px">
+        </div>
+
+        <select [formControl]="statusFilter" style="width:150px">
+          <option value="">Tous statuts</option>
+          <option value="PENDING">En attente</option>
+          <option value="CONFIRMED">Confirmée</option>
+          <option value="DELIVERED">Livrée</option>
+          <option value="CANCELLED">Annulée</option>
+        </select>
+
+        <select [formControl]="methodFilter" style="width:140px">
+          <option value="">Paiement</option>
+          <option value="CASH">Cash</option>
+          <option value="CARD">Carte</option>
+        </select>
+
+        <button class="btn-reset" (click)="resetFilters()">
+          <i class="fas fa-sync-alt"></i> Réinitialiser
+        </button>
+
+        <button class="btn-add" (click)="load()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Actualiser
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Commande</th>
+            <th>Produit</th>
+            <th>Type</th>
+            <th>Paiement</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr *ngIf="loading">
+            <td colspan="8" class="loading-state">Chargement des données...</td>
+          </tr>
+
+          <tr *ngIf="!loading && filtered.length === 0">
+            <td colspan="8" class="empty-state">Aucune commande trouvée.</td>
+          </tr>
+
+          <tr *ngFor="let o of filtered"
+              [class.row-cash-pending]="isCashPending(o)"
+              (click)="openDetail(o)"
+              style="cursor:pointer">
+
+            <!-- ID -->
+            <td>
+              <div class="order-id-cell">
+                <div class="product-name">#{{ o.id | slice:0:8 }}...</div>
+                <div class="product-desc">×{{ o.quantity }} article(s)</div>
+              </div>
+            </td>
+
+            <!-- Produit -->
+            <td>
+              <div class="product-name">{{ o.productName }}</div>
+            </td>
+
+            <!-- Type -->
+            <td>
+              <span class="role-badge"
+                    [ngClass]="o.orderType === 'PURCHASE' ? 'badge-sale' : 'badge-rental'">
+                {{ o.orderType === 'PURCHASE' ? 'Achat' : 'Location' }}
+              </span>
+            </td>
+
+            <!-- Paiement -->
+            <td>
+              <span class="role-badge"
+                    [ngClass]="o.paymentMethod === 'CASH' ? 'badge-cash' : 'badge-card'">
+                {{ o.paymentMethod === 'CASH' ? '💵 Cash' : '💳 Carte' }}
+              </span>
+            </td>
+
+            <!-- Montant -->
+            <td>
+              <span style="font-weight:800;color:#000">
+                {{ o.totalPrice | number:'1.2-2' }} TND
+              </span>
+            </td>
+
+            <!-- Statut -->
+            <td>
+              <span class="status-badge"
+                    [ngClass]="{
+                      's-pending':   o.status === 'PENDING',
+                      's-confirmed': o.status === 'CONFIRMED',
+                      's-delivered': o.status === 'DELIVERED',
+                      's-cancelled': o.status === 'CANCELLED'
+                    }">
+                {{ o.status === 'PENDING'   ? 'En attente' :
+                   o.status === 'CONFIRMED' ? 'Confirmée'  :
+                   o.status === 'DELIVERED' ? 'Livrée'     : 'Annulée' }}
+              </span>
+            </td>
+
+            <!-- Date -->
+            <td>
+              <span class="product-desc">{{ o.createdAt | date:'dd/MM HH:mm' }}</span>
+            </td>
+
+            <!-- Actions -->
+            <td (click)="$event.stopPropagation()">
+              <div class="table-actions">
+
+                <!-- Voir détail -->
+                <button class="btn-action edit"
+                        (click)="openDetail(o)"
+                        title="Voir détail">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+
+                <!-- Confirmer livraison (cash uniquement) -->
+                <button *ngIf="isCashPending(o)"
+                        class="btn-action confirm"
+                        [disabled]="confirming === o.id"
+                        (click)="openConfirmModal(o.id, $event)"
+                        title="Confirmer livraison">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </button>
+
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ✅ MODAL DÉTAIL COMMANDE -->
+<div class="overlay" *ngIf="showDetail" (click)="closeDetail()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2.5" width="18" height="18">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Détail commande</div>
+          <div class="modal-sub">#{{ selectedOrder?.id }}</div>
+        </div>
+      </div>
+      <button class="btn-action" (click)="closeDetail()" style="border:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="16" height="16">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body" *ngIf="selectedOrder">
+      <div class="detail-grid">
+
+        <div class="detail-item">
+          <div class="detail-label">Produit</div>
+          <div class="detail-value">{{ selectedOrder.productName }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Quantité</div>
+          <div class="detail-value">{{ selectedOrder.quantity }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Type</div>
+          <div class="detail-value">
+            {{ selectedOrder.orderType === 'PURCHASE' ? '🛒 Achat' : '⏱️ Location' }}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Paiement</div>
+          <div class="detail-value">
+            {{ selectedOrder.paymentMethod === 'CASH' ? '💵 Cash' : '💳 Carte' }}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Total</div>
+          <div class="detail-value" style="font-weight:800;color:#E8500A">
+            {{ selectedOrder.totalPrice | number:'1.2-2' }} TND
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Statut</div>
+          <div class="detail-value">
+            <span class="status-badge"
+                  [ngClass]="{
+                    's-pending':   selectedOrder.status === 'PENDING',
+                    's-confirmed': selectedOrder.status === 'CONFIRMED',
+                    's-delivered': selectedOrder.status === 'DELIVERED',
+                    's-cancelled': selectedOrder.status === 'CANCELLED'
+                  }">
+              {{ selectedOrder.status }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Livraison -->
+        <ng-container *ngIf="selectedOrder.orderType === 'PURCHASE'">
+          <div class="detail-item">
+            <div class="detail-label">Nom livraison</div>
+            <div class="detail-value">{{ selectedOrder.deliveryName || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Téléphone</div>
+            <div class="detail-value">{{ selectedOrder.deliveryPhone || '—' }}</div>
+          </div>
+          <div class="detail-item detail-full">
+            <div class="detail-label">Adresse</div>
+            <div class="detail-value">
+              {{ selectedOrder.deliveryAddress }}, {{ selectedOrder.deliveryCity }}
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Location -->
+        <ng-container *ngIf="selectedOrder.orderType === 'RENTAL'">
+          <div class="detail-item">
+            <div class="detail-label">Lieu retrait</div>
+            <div class="detail-value">{{ selectedOrder.pickupLocation || '—' }}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Durée</div>
+            <div class="detail-value">{{ selectedOrder.durationHours }} heure(s)</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Début</div>
+            <div class="detail-value">
+              {{ selectedOrder.startDateTime | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Fin</div>
+            <div class="detail-value">
+              {{ selectedOrder.endDateTime | date:'dd/MM/yyyy HH:mm' }}
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDetail()">Fermer</button>
+      <button *ngIf="selectedOrder && isCashPending(selectedOrder)"
+              class="btn-confirm-delete"
+              style="background:#000;color:#E8500A"
+              (click)="openConfirmModal(selectedOrder!.id, $event); closeDetail()">
+        ✓ Confirmer livraison
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ✅ MODAL CONFIRMATION LIVRAISON -->
+<div class="overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#e6f4ea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a7f3c"
+               stroke-width="2.5" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Confirmer la livraison</div>
+          <div class="modal-sub">Paiement cash — marquer comme livré</div>
+        </div>
+      </div>
+      <button class="btn-action" (click)="closeConfirmModal()" style="border:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="16" height="16">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-warn" style="background:#f0fff4;border-color:#bbf7d0;color:#14532d">
+        En confirmant la livraison :<br>
+        ✅ Le statut passe à <strong>DELIVERED</strong><br>
+        ✅ Le paiement passe à <strong>PAID</strong><br>
+        ✅ Le stock est décrémenté automatiquement
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeConfirmModal()">Annuler</button>
+      <button class="btn-confirm-delete"
+              style="background:#000;color:#E8500A"
+              (click)="confirmDelivery()">
+        ✓ Oui, livraison confirmée
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Event, StatutEvent, CreateEventRequest, EventType } from '../../../features/events/event.model';
+import { Event, StatutEvent, CreateEventRequest, UpdateEventRequest, EventType } from '../../../features/events/event.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class EventService {
   create(dto: CreateEventRequest): Observable<Event> {
     return this.http.post<Event>(this.API, dto);
   }
-  update(id: string, dto: Partial<CreateEventRequest>): Observable<Event> {
+  update(id: string, dto: UpdateEventRequest): Observable<Event> {
     return this.http.put<Event>(`${this.API}/${id}`, dto);
   }
   delete(id: string): Observable<void> {
@@ -60,8 +60,22 @@ export class EventService {
   leaveTeam(eventId: string, teamId: string): Observable<Event> {
     return this.http.delete<Event>(`${this.API}/${eventId}/teams/${teamId}`);
   }
+  // Participants individuels
+  joinEvent(id: string): Observable<Event> {
+    return this.http.post<Event>(`${this.API}/${id}/join`, {});
+  }
+  leaveEvent(id: string): Observable<Event> {
+    return this.http.delete<Event>(`${this.API}/${id}/leave`);
+  }
   // Event Types
   getEventTypes(): Observable<EventType[]> {
     return this.http.get<EventType[]>(this.TYPES_API);
+  }
+  createEventType(type: Partial<EventType>): Observable<EventType> {
+    return this.http.post<EventType>(this.TYPES_API, type);
+  }
+
+  deleteEventType(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.TYPES_API}/${id}`);
   }
 }

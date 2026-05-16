@@ -49,8 +49,8 @@ public class RewardServiceImpl implements RewardService {
         if (request.getAwardedBy() != null) reward.setAwardedBy(request.getAwardedBy());
         if (request.getRevokedReason() != null) reward.setRevokedReason(request.getRevokedReason());
 
-        if (request.getPlayerId() != null) reward.setPlayerId(request.getPlayerId());
-        if (request.getPlayerName() != null) reward.setPlayerName(request.getPlayerName());
+        if (request.getUserId() != null) reward.setUserId(request.getUserId());
+        if (request.getUsername() != null) reward.setUsername(request.getUsername());
         if (request.getTeamId() != null) reward.setTeamId(request.getTeamId());
         if (request.getTeamName() != null) reward.setTeamName(request.getTeamName());
         if (request.getEventId() != null) reward.setEventId(request.getEventId());
@@ -83,8 +83,8 @@ public class RewardServiceImpl implements RewardService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RewardDto> getByPlayer(String playerId) {
-        return mapper.toDtoList(repository.findByPlayerId(playerId));
+    public List<RewardDto> getByUser(String userId) {
+        return mapper.toDtoList(repository.findByUserId(userId));
     }
 
     @Override

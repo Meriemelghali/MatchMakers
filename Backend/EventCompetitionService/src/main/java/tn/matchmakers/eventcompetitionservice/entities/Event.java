@@ -1,7 +1,7 @@
 package tn.matchmakers.eventcompetitionservice.entities;
 
 import lombok.*;
-import org.springframework.data.mongodb.core.index.Indexed;
+
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import tn.matchmakers.eventcompetitionservice.entities.enums.StatutEvent;
@@ -25,6 +25,7 @@ public class Event extends BaseEntity {
     private LocalDate startDate;
     private LocalDate endDate;
     private String location;
+    @Builder.Default
     private StatutEvent statutEvent = StatutEvent.PLANNED;
     private String sportId;
     private String clubId;
@@ -40,4 +41,16 @@ public class Event extends BaseEntity {
 
     @Builder.Default
     private List<String> teamIds = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> participantIds = new ArrayList<>();
+
+    // ── route-based events ──
+    private String startPoint;
+    private String endPoint;
+    
+    @Builder.Default
+    private List<Double> distances = new ArrayList<>();
+
+    private List<Map<String, Double>> routePath;
 }
