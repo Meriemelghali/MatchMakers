@@ -1,0 +1,227 @@
+.split-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  background-color: #0b0f19; /* Fallback dark */
+}
+
+/* Base side styling */
+.split-side {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: flex 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  overflow: hidden;
+}
+
+.split-side:hover {
+  flex: 1.2;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(11, 15, 25, 0.8);
+  transition: background 0.4s ease;
+  z-index: 1;
+}
+
+.split-side:hover .overlay {
+  background: rgba(11, 15, 25, 0.6);
+}
+
+/* Backgrounds */
+.app-side {
+  background: url('https://images.unsplash.com/photo-1518655048521-f130df041f66?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+}
+.app-side .overlay {
+  background: linear-gradient(135deg, rgba(232, 80, 10, 0.85) 0%, rgba(11, 15, 25, 0.95) 100%);
+}
+
+.admin-side {
+  background: url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+}
+.admin-side .overlay {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 240, 245, 0.9) 100%);
+}
+
+.split-side:hover.app-side .overlay {
+  background: linear-gradient(135deg, rgba(232, 80, 10, 0.75) 0%, rgba(11, 15, 25, 0.9) 100%);
+}
+.split-side:hover.admin-side .overlay {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 240, 245, 0.8) 100%);
+}
+
+/* Content */
+.content-wrapper {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  padding: 2rem;
+  transform: translateY(20px);
+  transition: all 0.4s ease;
+  opacity: 0.8;
+}
+
+.split-side:hover .content-wrapper {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.icon-circle {
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  transition: transform 0.4s ease, background 0.4s ease;
+}
+
+.admin-side .content-wrapper {
+  color: #1a202c; /* Texte sombre pour le fond clair */
+}
+
+.admin-side .content-wrapper p {
+  color: #4a5568;
+}
+
+.app-side:hover .icon-circle {
+  transform: scale(1.1);
+  background: #E8500A; /* Orange */
+}
+
+.admin-side .icon-circle {
+  background: rgba(232, 80, 10, 0.1);
+  color: #E8500A;
+}
+
+.admin-side:hover .admin-icon {
+  transform: scale(1.1);
+  background: #E8500A;
+  color: #ffffff;
+}
+
+.content-wrapper h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+.content-wrapper p {
+  color: #a0aec0;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.choice-btn {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.choice-btn i {
+  transition: transform 0.3s ease;
+}
+
+.admin-side .choice-btn {
+  border-color: #E8500A;
+  color: #E8500A;
+}
+
+.split-side:hover .choice-btn.admin-btn {
+  background: #E8500A;
+  border-color: #E8500A;
+  color: #ffffff;
+}
+
+.split-side:hover .choice-btn {
+  background: #E8500A;
+  border-color: #E8500A;
+}
+
+.split-side:hover .choice-btn i {
+  transform: translateX(4px);
+}
+
+/* Center Brand badge */
+.center-brand {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  background: #1a202c;
+  padding: 1.5rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.logo-wrapper img {
+  height: 35px;
+}
+
+.brand-text {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.badge {
+  background: rgba(232, 80, 10, 0.1);
+  color: #E8500A;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .split-layout {
+    flex-direction: column;
+  }
+  .center-brand {
+    padding: 1rem;
+  }
+}

@@ -8,5 +8,6 @@ import java.util.List;
 public interface TeamRepository extends MongoRepository<Team, String> {
 
     List<Team> findBySportIgnoreCase(String sport);
+    List<Team> findByMembersUserId(String userId);
 }
 

@@ -26,7 +26,7 @@ import java.util.Map;
 @RequestMapping("/api/events")
 @SecurityRequirement(name = "bearer-jwt")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8080"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200", "http://localhost:8080"})
 public class EventController {
 
     private final EventService eventService;
@@ -94,6 +94,12 @@ public class EventController {
         return ResponseEntity.ok(dtoList);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<EventResponseDto>> getByUser(@PathVariable String userId) {
+        // For now, return events organized by the user
+        return this.getByOrganizer(userId);
+    }
+
     //  GET BY DATE RANGE
     @GetMapping("/range")
     public ResponseEntity<List<EventResponseDto>> getByDateRange(
@@ -141,6 +147,24 @@ public class EventController {
                 eventService.getMatchesForCompetition(event.getCompetition().getId())
         );
     }
+
+    //  INDIVIDUAL PARTICIPATION
+    @PostMapping("/{id}/join")
+    public ResponseEntity<EventResponseDto> joinEvent(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        return ResponseEntity.ok(eventService.joinEvent(id, token));
+    }
+
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<EventResponseDto> leaveEvent(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        return ResponseEntity.ok(eventService.leaveEvent(id, token));
+    }
+
     // GET BY LOCATION
     // GET /api/events/location?city=Tunis
     @GetMapping("/location")

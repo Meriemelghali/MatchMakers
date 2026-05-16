@@ -16,7 +16,7 @@ public interface RewardService {
 
     List<RewardDto> getAll();
 
-    List<RewardDto> getByPlayer(String playerId);
+    List<RewardDto> getByUser(String userId);
 
     List<RewardDto> getByTeam(String teamId);
 }

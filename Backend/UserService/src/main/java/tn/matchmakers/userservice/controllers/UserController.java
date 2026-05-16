@@ -2,11 +2,9 @@ package tn.matchmakers.userservice.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.userservice.dto.UserResponseDto;
 import tn.matchmakers.userservice.mapper.UserMapper;
-import tn.matchmakers.userservice.services.UserServiceImpl;
 import tn.matchmakers.userservice.services.serviceInterfaces.UserService;
 
 import java.util.List;
@@ -14,8 +12,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:8080"})
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
     @GetMapping
@@ -24,11 +22,7 @@ public class UserController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable String id) {
-        return ResponseEntity.ok(userService.getAllUsers()
-                .stream()
-                .filter(u -> u.getIdUser().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("User not found")));
+        return ResponseEntity.ok(UserMapper.mapToUserResponseDto(userService.getUserById(id)));
     }
     @DeleteMapping("deleteuser/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
@@ -41,5 +35,26 @@ public class UserController {
             @PathVariable String userId,
             @PathVariable String roleName) {
         return ResponseEntity.ok(userService.assignRoleToUser(userId, roleName));
+    }
+
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<UserResponseDto> updateProfile(
+            @PathVariable String userId,
+            @RequestBody tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto) {
+        return ResponseEntity.ok(userService.updateProfile(userId, profileUpdateDto));
+    }
+
+    @PutMapping("/{userId}/change-password")
+    public ResponseEntity<Void> changePassword(
+            @PathVariable String userId,
+            @RequestBody tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto) {
+        userService.changePassword(userId, changePasswordDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/notify-new-event")
+    public ResponseEntity<Void> notifyNewEvent(@RequestBody tn.matchmakers.userservice.dto.EventNotificationDto dto) {
+        userService.notifyUsersForNewEvent(dto);
+        return ResponseEntity.ok().build();
     }
 }
