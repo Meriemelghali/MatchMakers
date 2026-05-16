@@ -64,17 +64,93 @@
         </div>
 
         <div class="teams-list mt-4" *ngIf="club.teams && club.teams.length > 0">
-          <div class="team-card-mini" *ngFor="let team of club.teams">
-            <div class="team-icon">
-              <i class="fa fa-users"></i>
+          <div class="team-card-premium" *ngFor="let team of club.teams">
+            <div class="team-card-header">
+              <div class="team-identity">
+                <div class="team-icon">
+                  <i class="fa fa-shield-alt"></i>
+                </div>
+                <div class="team-info">
+                  <span class="name">{{ team.name }}</span>
+                  <span class="sport">{{ team.sport }}</span>
+                </div>
+              </div>
+              <button class="btn-remove-team" (click)="removeTeam(team.id!)" title="Remove Team" *ngIf="canManage()">
+                <i class="fa fa-times"></i>
+              </button>
             </div>
-            <div class="team-info">
-              <span class="name">{{ team.name }}</span>
-              <span class="sport">{{ team.sport }}</span>
-            </div>
-            <button class="btn-remove-team" (click)="removeTeam(team.id!)" title="Remove Team" *ngIf="canManage()">
-              <i class="fa fa-trash-alt"></i>
-            </button>
+
+            <!-- COACH/ADMIN VIEW: AI & Performance Stats -->
+            <ng-container *ngIf="canManage()">
+              <div class="team-stats-grid">
+                <div class="stat-item">
+                  <div class="stat-label">
+                    <span><i class="fa fa-bolt"></i> Energy</span>
+                    <span class="stat-value">{{ team.energy || 100 }}%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill energy" [style.width.%]="team.energy || 100"></div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">
+                    <span><i class="fa fa-brain"></i> Morale</span>
+                    <span class="stat-value">{{ team.morale || 100 }}%</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress-fill morale" [style.width.%]="team.morale || 100"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="ai-analysis-box" *ngIf="team.performanceAnalysis">
+                <div class="analysis-header">
+                  <i class="fa fa-robot"></i>
+                  <span>Gemini Smart Analysis</span>
+                  <span class="badge" [class]="team.performanceAnalysis.fatigueLevel.toLowerCase()">
+                    Fatigue: {{ team.performanceAnalysis.fatigueLevel }}
+                  </span>
+                </div>
+                <p class="ai-recommendation">
+                  "{{ team.performanceAnalysis.recommendation }}"
+                </p>
+                <div class="analysis-footer">
+                  <span class="impact">Impact: <strong>{{ team.performanceAnalysis.performanceImpact }}</strong></span>
+                  <span class="ai-sparkle">✨</span>
+                </div>
+              </div>
+              <div class="ai-analysis-loading" *ngIf="!team.performanceAnalysis">
+                <div class="shimmer"></div>
+                <span>Analyzing team status...</span>
+              </div>
+            </ng-container>
+
+            <!-- SPORTIF/MEMBER VIEW: Public Match Stats (Real Data) -->
+            <ng-container *ngIf="!canManage()">
+              <div class="public-stats-grid">
+                <div class="public-stat-box">
+                  <i class="fa fa-trophy"></i>
+                  <div class="stat-info">
+                    <span class="stat-title">Taux de Réussite</span>
+                    <span class="stat-value">{{ teamStats[team.id!]?.winRate || 0 | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+                <div class="public-stat-box">
+                  <i class="fa fa-medal"></i>
+                  <div class="stat-info">
+                    <span class="stat-title">Total Victoires</span>
+                    <span class="stat-value">{{ teamStats[team.id!]?.won || 0 }} Victoires</span>
+                  </div>
+                </div>
+                <div class="public-stat-box">
+                  <i class="fa fa-gamepad"></i>
+                  <div class="stat-info">
+                    <span class="stat-title">Matchs Joués</span>
+                    <span class="stat-value">{{ teamStats[team.id!]?.played || 0 }} Matchs</span>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
         <div *ngIf="!club.teams || club.teams.length === 0" class="empty-teams-msg">

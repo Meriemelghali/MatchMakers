@@ -5,6 +5,8 @@ import { Club } from '../models/club.model';
 import { ClubResponseDto } from '../models/club-response.dto';
 import { TeamService, Team } from '../../teams/services/team.service';
 import { AuthService } from '../../../core/services/AuthService/auth.service';
+import { MatchService } from '../../../matches/services/match.service';
+import { Match } from '../../../matches/models/match.model';
 
 @Component({
   selector: 'app-club-detail',
@@ -23,6 +25,9 @@ export class ClubDetailComponent implements OnInit {
   
   teamIdToAdd = '';
   
+  // Real Match Stats
+  teamStats: { [teamId: string]: { played: number, won: number, winRate: number, streak: number } } = {};
+  
   // Search Teams
   allTeams: Team[] = [];
   filteredTeams: Team[] = [];
@@ -35,12 +40,13 @@ export class ClubDetailComponent implements OnInit {
     private clubService: ClubService,
     private router: Router,
     private teamService: TeamService,
-    private authService: AuthService
+    private authService: AuthService,
+    private matchService: MatchService
   ) { }
 
   canManage(): boolean {
     const role = this.authService.getUserRole()?.toUpperCase();
-    return role === 'ADMIN' || role === 'RESPONSABLE';
+    return role === 'ADMIN' || role === 'RESPONSABLE' || role === 'COACH';
   }
 
   ngOnInit(): void {
@@ -62,12 +68,85 @@ export class ClubDetailComponent implements OnInit {
       next: (data: any) => {
         this.club = data;
         this.loading = false;
+        if (this.club?.teams) {
+          this.analyzeTeams();
+          this.loadMatchStats();
+        }
       },
       error: (err: any) => {
         this.error = 'Failed to load club details.';
         this.loading = false;
         console.error(err);
       }
+    });
+  }
+
+  loadMatchStats(): void {
+    if (!this.club?.teams || this.club.teams.length === 0) return;
+
+    this.matchService.getAll().subscribe({
+      next: (matches: Match[]) => {
+        const finishedMatches = matches.filter((m: Match) => m.statut === 'TERMINE');
+        
+        this.club!.teams!.forEach(team => {
+          const teamName = team.name;
+          const teamId = team.id!;
+          
+          // Trouver tous les matchs de l'équipe, triés du plus récent au plus ancien
+          const teamMatches = finishedMatches
+            .filter((m: Match) => m.equipe1 === teamName || m.equipe2 === teamName)
+            .sort((a: Match, b: Match) => new Date(b.dateDebut).getTime() - new Date(a.dateDebut).getTime());
+          
+          let won = 0;
+          let streak = 0;
+          let streakActive = true;
+
+          teamMatches.forEach((m: Match) => {
+            const isEq1 = (m.equipe1 === teamName);
+            const myScore = isEq1 ? m.scoreEquipe1 : m.scoreEquipe2;
+            const oppScore = isEq1 ? m.scoreEquipe2 : m.scoreEquipe1;
+            
+            if (myScore > oppScore) {
+              won++;
+              if (streakActive) streak++;
+            } else {
+              streakActive = false;
+            }
+          });
+
+          const played = teamMatches.length;
+          const winRate = played > 0 ? (won / played) * 100 : 0;
+
+          this.teamStats[teamId] = { played, won, winRate, streak };
+        });
+      },
+      error: (err: any) => console.error('Error fetching matches for stats', err)
+    });
+  }
+
+  analyzeTeams(): void {
+    if (!this.club?.teams) return;
+    this.club.teams.forEach(team => {
+      this.analyzeTeam(team);
+    });
+  }
+
+  analyzeTeam(team: Team): void {
+    // Si les valeurs ne sont pas définies, on met des valeurs par défaut pour la démo
+    const payload = {
+      teamName: team.name,
+      sport: team.sport,
+      energy: team.energy ?? 100,
+      fatigue: team.fatigue ?? 0,
+      morale: team.morale ?? 100,
+      recentActivity: "Saison régulière"
+    };
+
+    this.teamService.analyzeTeamPerformance(payload).subscribe({
+      next: (analysis) => {
+        team.performanceAnalysis = analysis;
+      },
+      error: (err) => console.error(`Error analyzing team ${team.name}:`, err)
     });
   }
 

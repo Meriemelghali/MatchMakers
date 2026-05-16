@@ -25,6 +25,7 @@ export class ProfileComponent implements OnInit {
   activeTab = 'general';
   sportInspiration?: SportInspiration;
   isLoadingInspiration = false;
+  safeAvatarUrl: SafeResourceUrl | null = null;
   
   availableSports: Sport[] = [];
   
@@ -108,6 +109,10 @@ export class ProfileComponent implements OnInit {
         this.userProfile = res.profile;
         this.profileForm.patchValue(res.profile);
         
+        if (res.profile.avatar3dUrl) {
+          this.safeAvatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(res.profile.avatar3dUrl);
+        }
+        
         if (res.profile.theme) {
           this.themeService.setTheme(res.profile.theme as ThemeType, true);
         }
@@ -117,7 +122,8 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading data', err);
+        console.error('Error loading data for ID:', userId);
+        console.error('Full Http Error:', err);
         this.isLoading = false;
         this.toastService.error('Erreur lors du chargement du profil');
       }
@@ -262,6 +268,7 @@ export class ProfileComponent implements OnInit {
 
     if (this.userProfile) {
       this.userProfile.avatar3dUrl = url;
+      this.safeAvatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     }
 
     const userId = this.authService.getUserId();

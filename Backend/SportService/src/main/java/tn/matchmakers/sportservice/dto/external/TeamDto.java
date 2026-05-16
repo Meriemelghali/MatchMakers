@@ -11,4 +11,7 @@ public class TeamDto {
     private String sport;
     private String description;
     private String logoUrl;
+    private Integer energy;
+    private Integer fatigue;
+    private Integer morale;
 }

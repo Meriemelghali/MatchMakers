@@ -14,9 +14,9 @@
           {{ userProfile?.firstName?.charAt(0) }}{{ userProfile?.lastName?.charAt(0) }}
           <div class="status-indicator"></div>
         </div>
-        <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl">
+        <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl && safeAvatarUrl">
           <model-viewer
-            [src]="getSafeUrl(userProfile?.avatar3dUrl!)"
+            [src]="safeAvatarUrl!"
             camera-controls
             auto-rotate
             shadow-intensity="1"

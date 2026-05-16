@@ -51,7 +51,7 @@ export class ProfileService {
   }
 
   getUserClubs(userId: string): Observable<any[]> {
-    // SportService handles clubs
-    return this.http.get<any[]>(`${environment.sportServiceUrl}/clubs/user/${userId}`);
+    // SportService handles clubs - Need to include /api/ segment
+    return this.http.get<any[]>(`${environment.sportServiceUrl}/api/clubs/user/${userId}`);
   }
 }

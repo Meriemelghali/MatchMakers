@@ -20,6 +20,9 @@ public interface TeamMapper {
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "ownerId", ignore = true)
+    @Mapping(target = "energy", ignore = true)
+    @Mapping(target = "fatigue", ignore = true)
+    @Mapping(target = "morale", ignore = true)
     Team fromCreate(TeamCreateRequest request);
 }
 

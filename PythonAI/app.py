@@ -8,6 +8,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import json
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
 
 
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
@@ -178,7 +187,26 @@ async def sport_quote(req: QuoteRequest):
     - Pas de titres, pas de markdown.
     """
 
-    # 1. Try OpenRouter
+    # 1. Try Gemini (Utilisation du 1.5-flash pour de meilleurs quotas sur les citations)
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            def _call_gemini():
+                return model.generate_content(prompt)
+            
+            response = await asyncio.to_thread(_call_gemini)
+            text = response.text.strip()
+            if text:
+                return QuoteResponse(
+                    quote=text,
+                    from_llm=True,
+                    model="gemini-1.5-flash",
+                    latency_ms=int((time.time() - t0) * 1000)
+                )
+        except Exception as e:
+            print(f"[Gemini Quote Error - Quota likely]: {e}")
+
+    # 2. Try OpenRouter (Backup)
     if OPENROUTER_API_KEY:
         try:
             from openai import OpenAI
@@ -452,3 +480,75 @@ async def generate_logo(req: LogoRequest):
         prompt=generated_prompt,
         latency_ms=int((time.time() - t0) * 1000)
     )
+class TeamPerformanceRequest(BaseModel):
+    teamName: str
+    sport: str
+    energy: int
+    fatigue: int
+    morale: int
+    recentActivity: Optional[str] = None
+
+class TeamPerformanceResponse(BaseModel):
+    fatigueLevel: str
+    energyStatus: str
+    moraleStatus: str
+    recommendation: str
+    performanceImpact: str
+    from_llm: bool
+
+@app.post("/api/ai/analyze-team-performance", response_model=TeamPerformanceResponse)
+async def analyze_team_performance(req: TeamPerformanceRequest):
+    t0 = time.time()
+    
+    prompt = f"""
+    Tu es un expert en médecine du sport et en psychologie d'équipe pour MatchMakers.
+    Analyse l'état actuel de l'équipe suivante et donne des recommandations intelligentes.
+    
+    Équipe : {req.teamName} ({req.sport})
+    Énergie : {req.energy}%
+    Fatigue : {req.fatigue}%
+    Moral : {req.morale}%
+    Activité récente : {req.recentActivity or "Non spécifiée"}
+    
+    Réponds UNIQUEMENT en JSON avec cette structure :
+    {{
+        "fatigueLevel": "Low/Medium/High",
+        "energyStatus": "Low/Medium/High",
+        "moraleStatus": "Poor/Fair/Good/Excellent",
+        "recommendation": "Ta recommandation courte en français (ex: Repos suggéré)",
+        "performanceImpact": "Negative/Neutral/Positive (Impact sur les prochains matchs)"
+    }}
+    """
+    
+    try:
+        if OPENROUTER_API_KEY:
+            from openai import OpenAI
+            client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+            resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            ))
+            text = resp.choices[0].message.content.strip()
+            if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+            data = json.loads(text)
+            data["from_llm"] = True
+            return data
+    except Exception as e:
+        print(f"Team Performance AI Error: {e}")
+
+    # Fallback Statique
+    f_level = "High" if req.fatigue > 70 else ("Medium" if req.fatigue > 30 else "Low")
+    e_status = "Low" if req.energy < 30 else ("Medium" if req.energy < 70 else "High")
+    m_status = "Excellent" if req.morale > 80 else ("Good" if req.morale > 50 else "Poor")
+    
+    impact = "Negative" if req.fatigue > 60 or req.energy < 40 else "Positive"
+    rec = "Repos et récupération suggérés." if req.fatigue > 50 else "Prêt pour la compétition !"
+    
+    return {
+        "fatigueLevel": f_level,
+        "energyStatus": e_status,
+        "moraleStatus": m_status,
+        "recommendation": rec,
+        "performanceImpact": impact,
+        "from_llm": False
+    }

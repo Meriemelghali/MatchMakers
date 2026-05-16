@@ -26,6 +26,10 @@ export interface Team {
   contactEmail?: string;
   contactPhone?: string;
   isPublic?: boolean;
+  energy?: number;
+  fatigue?: number;
+  morale?: number;
+  performanceAnalysis?: any;
   members?: TeamMember[];
   createdAt?: string;
   updatedAt?: string;
@@ -84,6 +88,11 @@ export class TeamService {
 
   leaveTeam(teamId: string, payload?: { userId?: string }): Observable<Team> {
     return this.http.post<Team>(`${this.base}/${teamId}/leave`, payload ?? {});
+  }
+
+  analyzeTeamPerformance(payload: { teamName: string; sport: string; energy: number; fatigue: number; morale: number; recentActivity?: string }): Observable<any> {
+    // Calling EventCompetitionService's AI endpoint
+    return this.http.post<any>(`http://localhost:8083/eventsCompetitions/api/ai/analyze-team`, payload);
   }
 }
 

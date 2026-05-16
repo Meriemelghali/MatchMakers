@@ -348,53 +348,221 @@
   flex-shrink: 0;
 }
 
-.team-info {
-  flex-grow: 1;
+/* Teams Section - Smart Training & Fatigue Management */
+.teams-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.team-card-premium {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.team-card-premium:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 107, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.team-card-header {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
 }
 
-.team-info .name {
-  font-weight: 600;
-  color: #ffffff;
-  font-size: 1.05rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.team-identity {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
-.team-info .sport {
-  font-size: 0.75rem;
-  color: #FF6B00;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 700;
-  opacity: 0.8;
-}
-
-.btn-remove-team {
-  background: rgba(255, 75, 75, 0.05);
-  border: none;
-  color: #ff4b4b;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+.team-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 107, 0, 0.1);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  opacity: 0.4;
+  color: #FF6B00;
+  font-size: 1.4rem;
 }
 
-.team-card-mini:hover .btn-remove-team {
-  opacity: 1;
+.team-info .name {
+  display: block;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.team-info .sport {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.btn-remove-team {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-remove-team:hover {
   background: rgba(255, 75, 75, 0.2);
-  transform: scale(1.1);
+  color: #ff4b4b;
+}
+
+.team-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-item .stat-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  color: #aaa;
+}
+
+.stat-item .stat-label i {
+  margin-right: 4px;
+}
+
+.stat-value {
+  color: #fff;
+  font-weight: 600;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+
+.progress-fill.energy {
+  background: linear-gradient(90deg, #FF6B00, #FF8E3C);
+  box-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+}
+
+.progress-fill.morale {
+  background: linear-gradient(90deg, #00f2fe, #4facfe);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+}
+
+/* AI Analysis Box */
+.ai-analysis-box {
+  background: rgba(255, 107, 0, 0.05);
+  border: 1px solid rgba(255, 107, 0, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  position: relative;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #FF6B00;
+  margin-bottom: 0.6rem;
+}
+
+.analysis-header .badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.badge.low { background: rgba(0, 255, 127, 0.1); color: #00ff7f; }
+.badge.medium { background: rgba(255, 191, 0, 0.1); color: #ffbf00; }
+.badge.high { background: rgba(255, 75, 75, 0.1); color: #ff4b4b; }
+
+.ai-recommendation {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #ddd;
+  margin: 0 0 0.8rem 0;
+  font-style: italic;
+}
+
+.analysis-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.impact strong {
+  color: #fff;
+}
+
+.ai-sparkle {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.ai-analysis-loading {
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+.shimmer {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, rgba(255,107,0,0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .empty-teams-msg {
@@ -427,4 +595,76 @@
   .add-team-form {
     flex-direction: column;
   }
+}
+
+/* Public Stats for Regular Users */
+.public-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.public-stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.6rem;
+  transition: all 0.3s ease;
+}
+
+.public-stat-box:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.public-stat-box i {
+  font-size: 1.3rem;
+  color: #FF6B00;
+  background: rgba(255, 107, 0, 0.1);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.public-stat-box:nth-child(2) i {
+  color: #ff4b4b;
+  background: rgba(255, 75, 75, 0.1);
+}
+
+.public-stat-box:nth-child(3) i {
+  color: #00f2fe;
+  background: rgba(0, 242, 254, 0.1);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.stat-info .stat-title {
+  font-size: 0.65rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.stat-info .stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
 }

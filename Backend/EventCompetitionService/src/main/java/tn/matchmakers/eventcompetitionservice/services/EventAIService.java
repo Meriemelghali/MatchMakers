@@ -7,8 +7,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.reactive.function.client.WebClient;
 import tn.matchmakers.eventcompetitionservice.dto.AISuggestionDto;
+import tn.matchmakers.eventcompetitionservice.dto.TeamPerformanceDto;
 import tn.matchmakers.eventcompetitionservice.entities.EventType;
 
 import java.util.Arrays;
@@ -21,7 +24,12 @@ import java.util.Map;
 public class EventAIService {
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final WebClient aiWebClient;
     private final String AI_SERVICE_URL = "http://localhost:8002/api/ai";
+
+    public EventAIService(@Qualifier("aiWebClient") WebClient aiWebClient) {
+        this.aiWebClient = aiWebClient;
+    }
 
 
     /**
@@ -302,5 +310,33 @@ public class EventAIService {
         fallback.put("confidence", 0);
         fallback.put("analysis", "Le service d'analyse IA est temporairement indisponible.");
         return fallback;
+    }
+    public TeamPerformanceDto analyzeTeamPerformance(String teamName, String sport, int energy, int fatigue, int morale, String activity) {
+        try {
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("teamName", teamName);
+            requestBody.put("sport", sport);
+            requestBody.put("energy", energy);
+            requestBody.put("fatigue", fatigue);
+            requestBody.put("morale", morale);
+            requestBody.put("recentActivity", activity);
+            
+            return aiWebClient.post()
+                    .uri("/api/ai/analyze-team-performance")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(TeamPerformanceDto.class)
+                    .block();
+        } catch (Exception e) {
+            System.err.println("Error calling AI Service for team performance: " + e.getMessage());
+            return TeamPerformanceDto.builder()
+                    .fatigueLevel("N/A")
+                    .energyStatus("N/A")
+                    .moraleStatus("N/A")
+                    .recommendation("Service IA indisponible.")
+                    .performanceImpact("Neutral")
+                    .from_llm(false)
+                    .build();
+        }
     }
 }

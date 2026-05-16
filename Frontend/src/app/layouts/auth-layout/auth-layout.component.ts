@@ -26,7 +26,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
   isLoadingInspiration = false;
 
   constructor(
-    private router: Router,
+    public router: Router,
     private aiService: AIService,
     private authService: AuthService
   ) {}
@@ -183,5 +183,9 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
       return (window.innerHeight - rect.top + 8) + 'px';
     }
     return '120px';
+  }
+
+  isCoachRoute(): boolean {
+    return this.router.url.includes('/coach');
   }
 }

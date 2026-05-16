@@ -427,9 +427,8 @@ async def sport_quote(request: QuoteRequest):
         }
         
     try:
-        import random
-        # Switch to gemini-1.5-flash for better stability/quota
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Utilisation du modèle standard gemini-2.0-flash du service PEventAIService
+        model = genai.GenerativeModel('gemini-2.0-flash')
         sports_str = ", ".join(request.sports) if request.sports else "sports en général"
         
         prompt = f"""
@@ -526,5 +525,85 @@ Rules:
         return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
 
 
+class TeamPerformanceRequest(BaseModel):
+    teamName: str
+    sport: str
+    energy: int
+    fatigue: int
+    morale: int
+    recentActivity: Optional[str] = None
+
+def get_team_performance_fallback(request: TeamPerformanceRequest):
+    """Fallback logic when AI is unavailable or quota exceeded."""
+    f_level = "High" if request.fatigue > 70 else ("Medium" if request.fatigue > 30 else "Low")
+    e_status = "Low" if request.energy < 30 else ("Medium" if request.energy < 70 else "High")
+    m_status = "Excellent" if request.morale > 80 else ("Good" if request.morale > 50 else "Poor")
+    
+    # Logic for recommendation
+    if request.fatigue > 65:
+        rec = "Niveau de fatigue critique. Repos obligatoire et séances de récupération active recommandées."
+        impact = "Negative"
+    elif request.energy < 40:
+        rec = "Baisse d'énergie détectée. Allégez les entraînements et privilégiez le sommeil."
+        impact = "Negative"
+    elif request.morale < 40:
+        rec = "Le moral de l'équipe est bas. Organisez une activité de teambuilding ou une session de motivation."
+        impact = "Neutral"
+    else:
+        rec = "L'équipe est dans une forme optimale. Continuez sur ce rythme pour les prochains matchs."
+        impact = "Positive"
+
+    return {
+        "fatigueLevel": f_level,
+        "energyStatus": e_status,
+        "moraleStatus": m_status,
+        "recommendation": rec,
+        "performanceImpact": impact,
+        "from_llm": False
+    }
+
+@app.post("/api/ai/analyze-team-performance")
+async def analyze_team_performance(request: TeamPerformanceRequest):
+    if not GEMINI_API_KEY:
+        return get_team_performance_fallback(request)
+        
+    try:
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        prompt = f"""
+        Tu es un expert en médecine du sport et en psychologie d'équipe pour MatchMakers.
+        Analyse l'état actuel de l'équipe suivante et donne des recommandations intelligentes.
+        
+        Équipe : {request.teamName} ({request.sport})
+        Énergie : {request.energy}%
+        Fatigue : {request.fatigue}%
+        Moral : {request.morale}%
+        Activité récente : {request.recentActivity or "Non spécifiée"}
+        
+        Réponds UNIQUEMENT en JSON avec cette structure :
+        {{
+            "fatigueLevel": "Low/Medium/High",
+            "energyStatus": "Low/Medium/High",
+            "moraleStatus": "Poor/Fair/Good/Excellent",
+            "recommendation": "Ta recommandation courte en français (ex: Repos suggéré)",
+            "performanceImpact": "Negative/Neutral/Positive (Impact sur les prochains matchs)"
+        }}
+        """
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+            
+        data = json.loads(text)
+        data["from_llm"] = True
+        return data
+    except Exception as e:
+        print(f"Error analyzing team performance (falling back): {str(e)}")
+        return get_team_performance_fallback(request)
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
+
