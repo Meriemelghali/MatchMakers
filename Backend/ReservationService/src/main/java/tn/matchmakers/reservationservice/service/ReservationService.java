@@ -2,6 +2,7 @@ package tn.matchmakers.reservationservice.service;
 
 import tn.matchmakers.reservationservice.dto.ReservationRequestDto;
 import tn.matchmakers.reservationservice.dto.ReservationResponseDto;
+import tn.matchmakers.reservationservice.dto.ReservationDashboardDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,4 +12,5 @@ public interface ReservationService {
     ReservationResponseDto createReservation(ReservationRequestDto reservation);
     ReservationResponseDto updateReservation(String id, ReservationRequestDto reservation);
     void deleteReservation(String id);
+    ReservationDashboardDto getReservationStatsByUser(String userId);
 }

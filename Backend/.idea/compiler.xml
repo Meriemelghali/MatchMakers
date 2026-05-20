@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="ReservationService" />
+        <module name="SocialService" />
+        <module name="FinanceService" />
+        <module name="TeamService" />
+        <module name="ProductService" />
+        <module name="RewardService" />
+        <module name="MatchService" />
+        <module name="SportService" />
+        <module name="ReclamationService" />
+        <module name="TerrainService" />
+        <module name="EventCompetitionService" />
+      </profile>
+      <profile name="Annotation profile for UserService" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
+        </processorPath>
+        <module name="UserService" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="EventCompetitionService" options="-parameters" />
+      <module name="FinanceService" options="-parameters" />
+      <module name="MatchService" options="-parameters" />
+      <module name="ProductService" options="-parameters" />
+      <module name="ReclamationService" options="-parameters" />
+      <module name="ReservationService" options="-parameters" />
+      <module name="RewardService" options="-parameters" />
+      <module name="SocialService" options="-parameters" />
+      <module name="SportService" options="-parameters" />
+      <module name="TeamService" options="-parameters" />
+      <module name="TerrainService" options="-parameters" />
+      <module name="UserService" options="-parameters" />
+    </option>
+  </component>
+</project>
