@@ -2,6 +2,7 @@ package tn.matchmakers.reservationservice.controller;
 
 import tn.matchmakers.reservationservice.dto.ReservationRequestDto;
 import tn.matchmakers.reservationservice.dto.ReservationResponseDto;
+import tn.matchmakers.reservationservice.dto.ReservationDashboardDto;
 import tn.matchmakers.reservationservice.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,9 +33,7 @@ public class ReservationController {
     })
     @GetMapping
     public ResponseEntity<Page<ReservationResponseDto>> getAllReservations(
-            @Parameter(description = "Numéro de page") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Taille de la page") @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+            @Parameter(description = "Pagination and sorting parameters") Pageable pageable) {
         return ResponseEntity.ok(reservationService.getAllReservations(pageable));
     }
 
@@ -83,6 +82,12 @@ public class ReservationController {
             @Parameter(description = "ID de la réservation") @PathVariable String id) {
         reservationService.deleteReservation(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Récupérer les statistiques des réservations d'un utilisateur", description = "Récupère les statistiques pour le dashboard")
+    @GetMapping("/user/{userId}/stats")
+    public ResponseEntity<ReservationDashboardDto> getReservationStatsByUser(@PathVariable String userId) {
+        return ResponseEntity.ok(reservationService.getReservationStatsByUser(userId));
     }
 }
 
