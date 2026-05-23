@@ -1,4 +1,4 @@
-<div class="page" *ngIf="!loading && reward; else loadingTpl">
+﻿<div class="page" *ngIf="!loading && reward; else loadingTpl">
   <div class="container-sm">
 
     <a routerLink="/rewards" class="back-link">
@@ -27,7 +27,94 @@
       </div>
     </div>
 
+    <div class="tabs mt-12">
+      <a class="tab active" [routerLink]="['/rewards', reward?.id]">Update</a>
+      <a class="tab" [routerLink]="['/rewards', reward?.id, 'designer']">Designer</a>
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="save()">
+
+      <div class="form-section">
+        <div class="form-section-title">Studio design (aperçu)</div>
+
+        <div class="grid-2">
+          <div class="card-inset reward-design-preview" [style.background]="presetBg()" [style.borderColor]="presetAccent() + '33'">
+            <div class="section-head">
+              <div class="section-title-bar">
+                <span>Aperçu carte</span>
+              </div>
+              <span class="tag" [style.borderColor]="presetAccent() + '55'" [style.color]="presetAccent()">
+                {{ presetLabel() }}
+              </span>
+            </div>
+
+            <div class="design-top">
+              <div class="design-icon" [style.background]="presetAccent() + '22'" [style.borderColor]="presetAccent() + '55'">
+                <span>{{ (form.value.type || reward?.type || 'CERTIFICATE').toString().slice(0,1) }}</span>
+              </div>
+              <div class="design-meta">
+                <div class="t-muted" style="font-size:12px;">{{ form.value.type || reward?.type }} • {{ form.value.rarity || reward?.rarity || '—' }}</div>
+                <div class="t-display" style="font-size:18px;">{{ form.value.name || reward?.name }}</div>
+              </div>
+            </div>
+
+            <div class="t-body mt-12" style="min-height:48px;">
+              {{ form.value.description || reward?.description || 'Ajoute une description courte et apaisée.' }}
+            </div>
+
+            <div class="design-bottom mt-14">
+              <div class="design-pill" [style.borderColor]="presetAccent() + '55'">
+                <span class="t-dim">Points</span>
+                <span class="design-pill-val" [style.color]="presetAccent()">{{ form.value.points ?? reward?.points ?? '—' }}</span>
+              </div>
+              <div class="design-pill">
+                <span class="t-dim">Utilisateur</span>
+                <span class="design-pill-val">{{ form.value.username || reward?.username || '—' }}</span>
+              </div>
+              <div class="design-pill">
+                <span class="t-dim">Équipe</span>
+                <span class="design-pill-val">{{ form.value.teamName || reward?.teamName || '—' }}</span>
+              </div>
+            </div>
+
+            <div class="t-muted mt-12" style="font-size:12px;">
+              Objectif: une carte lisible, calme, cohérente avec le thème.
+            </div>
+          </div>
+
+          <div class="card-inset">
+            <div class="section-head">
+              <div class="section-title-bar">
+                <span>Style</span>
+              </div>
+            </div>
+
+            <div class="field mt-12">
+              <label class="field-label">Preset</label>
+              <select class="field-input" [(ngModel)]="designStyle" [ngModelOptions]="{standalone:true}">
+                <option value="CALM">Calme</option>
+                <option value="PRESTIGE">Prestige</option>
+                <option value="ENERGY">Énergie</option>
+                <option value="MINIMAL">Minimal</option>
+              </select>
+              <div class="t-muted mt-8" style="font-size:12px;">
+                Ce style n'affecte pas les autres écrans: c'est un aperçu visuel pour t'aider à “designer” ta récompense.
+              </div>
+            </div>
+
+            <div class="divider mt-16"></div>
+
+            <div class="t-muted" style="font-size:12px;">
+              Conseils rapides:
+              <ul class="design-help">
+                <li>Nom court + concret (ex: “Fair-play”, “Progression”, “MVP apaisé”).</li>
+                <li>Description 1–2 phrases, sans jugement.</li>
+                <li>Rareté cohérente avec les points.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="form-section">
         <div class="form-section-title">Détails</div>
@@ -58,7 +145,7 @@
             <input class="field-input" type="date" formControlName="dateAwarded" />
           </div>
           <div class="field">
-            <label class="field-label">Évènement (ID)</label>
+            <label class="field-label">Événement (ID)</label>
             <input class="field-input" type="text" formControlName="eventId" />
           </div>
         </div>
@@ -125,12 +212,17 @@
 
         <div class="form-grid mt-16">
           <div class="field">
-            <label class="field-label">Équipe (ID)</label>
-            <input class="field-input" type="text" formControlName="teamId" />
+            <label class="field-label">Équipe</label>
+            <select class="field-input" formControlName="teamId" [disabled]="teamsLoading">
+              <option value="">(optionnel) - Aucune</option>
+              <option *ngFor="let t of teams" [value]="t.id">{{ t.name }}</option>
+            </select>
+            <div class="t-muted mt-8" style="font-size:12px;" *ngIf="teamsLoading">Chargement des equipes...</div>
+            <div class="field-error" *ngIf="teamsError">{{ teamsError }}</div>
           </div>
           <div class="field">
             <label class="field-label">Nom de l’équipe</label>
-            <input class="field-input" type="text" formControlName="teamName" />
+            <input class="field-input" type="text" formControlName="teamName" readonly />
           </div>
         </div>
       </div>
@@ -151,6 +243,7 @@
       <div class="alert alert-info mt-16" *ngIf="success">{{ success }}</div>
 
     </form>
+
   </div>
 </div>
 

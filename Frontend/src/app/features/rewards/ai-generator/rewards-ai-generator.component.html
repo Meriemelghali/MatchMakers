@@ -1,0 +1,103 @@
+<div class="page">
+  <div class="container">
+
+    <a routerLink="/rewards" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour aux récompenses
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Admin</div>
+        <h1 class="page-head-title">Générer des récompenses (IA)</h1>
+        <div class="page-head-sub">Aperçu 5–10 suggestions, puis accepter / rejeter.</div>
+      </div>
+      <div class="page-head-actions">
+        <button class="btn btn-primary btn-sm" type="button" (click)="generate()" [disabled]="loading">
+          <span *ngIf="!loading">Générer</span>
+          <span *ngIf="loading">Génération...</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="card-inset">
+      <div class="section-head">
+        <div class="section-title-bar">
+          <span>Paramètres</span>
+        </div>
+        <span class="tag" *ngIf="meta">{{ meta }}</span>
+      </div>
+
+      <div class="form-grid mt-12">
+        <div class="field">
+          <label class="field-label">Event type</label>
+          <input class="field-input" type="text" [formControl]="form.controls.eventType" placeholder="Tournament, League..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Team count</label>
+          <input class="field-input" type="number" min="1" max="128" [formControl]="form.controls.teamCount" />
+        </div>
+      </div>
+
+      <div class="form-grid mt-16">
+        <div class="field">
+          <label class="field-label">Difficulty</label>
+          <select class="field-input" [formControl]="form.controls.difficulty">
+            <option value="EASY">EASY</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HARD">HARD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">Date d'attribution</label>
+          <input class="field-input" type="date" [formControl]="form.controls.dateAwarded" />
+        </div>
+      </div>
+
+      <div class="form-grid mt-16">
+        <div class="field">
+          <label class="field-label">Équipe (nom, optionnel)</label>
+          <input class="field-input" type="text" [formControl]="form.controls.teamName" placeholder="Team A..." />
+        </div>
+        <div class="field">
+          <label class="field-label">Association</label>
+          <div class="t-muted" style="font-size:12px;">Les récompenses acceptées seront associées à ton compte (ID non affiché).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loader" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="alert alert-err mt-16" *ngIf="error">{{ error }}</div>
+
+    <div class="grid-auto mt-24" *ngIf="!loading && suggestions.length">
+      <div class="card card-interactive" *ngFor="let s of suggestions">
+        <div class="section-head">
+          <div class="section-title-bar">
+            <span>{{ s.type }}</span>
+          </div>
+          <span class="tag">{{ s.rarity }} • {{ s.points }} pts</span>
+        </div>
+        <div class="t-display" style="font-size:18px;">{{ s.name }}</div>
+        <div class="t-body mt-10">{{ s.description }}</div>
+
+        <div class="ai-actions mt-14">
+          <button class="btn btn-primary btn-sm" type="button" (click)="accept(s)" [disabled]="loading || s.state === 'ACCEPTED'">
+            <span *ngIf="s.state !== 'ACCEPTED'">Accepter</span>
+            <span *ngIf="s.state === 'ACCEPTED'">Acceptée</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" type="button" (click)="reject(s)" [disabled]="loading || s.state !== 'NEW'">
+            Rejeter
+          </button>
+          <span class="t-muted" style="font-size:12px;" *ngIf="s.state === 'REJECTED'">Rejetée</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
