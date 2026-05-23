@@ -17,6 +17,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RewardEvolutionNamingServiceImpl implements RewardEvolutionNamingService {
 
+    // Builder RestClient Spring pour appeler PythonAI.
     private final RestClient.Builder restClientBuilder;
 
     @Value("${reward.ai.pythonai-base-url:http://127.0.0.1:8001}")
@@ -25,8 +26,10 @@ public class RewardEvolutionNamingServiceImpl implements RewardEvolutionNamingSe
     @Override
     public Optional<Reward> suggestEvolvedNaming(Reward reward) {
         try {
+            // Client HTTP vers PythonAI (baseUrl configurable).
             RestClient client = restClientBuilder.baseUrl(pythonAiBaseUrl).build();
             Map<String, Object> body = new HashMap<>();
+            // Body "souple": on envoie du contexte pour aider l'IA a renommer.
             body.put("goal", "Renommer apres evolution (titre plus 'legendary' si niveau eleve), et raffiner la description.");
             body.put("type", reward.getType() != null ? reward.getType().name() : null);
             body.put("teamName", reward.getTeamName());
@@ -42,10 +45,12 @@ public class RewardEvolutionNamingServiceImpl implements RewardEvolutionNamingSe
                     .retrieve()
                     .body(RewardsSuggestResponse.class);
 
+            // Si pas de nom retour IA -> on ne change rien.
             if (resp == null || resp.getName() == null || resp.getName().isBlank()) {
                 return Optional.empty();
             }
 
+            // Construit une copie (sans modifier l'original directement) avec les champs renommes.
             Reward copy = Reward.builder()
                     .id(reward.getId())
                     .name(resp.getName())

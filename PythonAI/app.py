@@ -1,4 +1,22 @@
 ﻿import os
+"""
+MatchMakers - PythonAI (FastAPI)
+
+Ce service expose des endpoints IA utilises par le module Rewards (Angular) et par le backend RewardService (Spring):
+- `GET /health` : diagnostic provider/model
+- `POST /rewards/suggest` : suggestion de recompense (nom/description/points/rarity)
+- `POST /rewards/insights` : analyse/QA sur un contexte de recompenses
+- `POST /rewards/generate` : generation d'une liste de recompenses
+- `POST /leaderboard` : texte pour l'ecran classement
+
+Providers:
+- OpenRouter (cloud) si `OPENROUTER_API_KEY` est configure
+- Ollama (local) sinon (via `OLLAMA_URL` + `OLLAMA_MODEL`)
+
+Les sorties LLM pouvant etre non fiables, ce fichier contient des etapes de "sanitization":
+clamp des longueurs, normalisation des enums, extraction JSON, et fallbacks deterministes.
+"""
+
 import time
 import asyncio
 import json
@@ -107,6 +125,14 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
+    """
+    Healthcheck simple.
+
+    Utilise par le frontend pour afficher:
+    - provider actif (openrouter ou ollama)
+    - modele utilise
+    - info de config (URL, presence de cle, etc.)
+    """
     provider = "openrouter" if OPENROUTER_API_KEY else "ollama"
     return {
         "ok": True,
@@ -193,6 +219,17 @@ async def _chat_ollama(prompt: str, model_override: Optional[str] = None) -> Opt
 
 
 def _extract_first_json_object(text: str) -> Optional[dict]:
+    """
+    Extrait le premier objet JSON ({...}) d'un texte.
+
+    Pourquoi:
+    - Les LLM renvoient souvent du texte autour du JSON.
+    - On isole le premier bloc qui "ressemble" a un objet JSON, puis on tente json.loads().
+
+    Retour:
+    - dict si parsing OK
+    - None sinon
+    """
     if not text:
         return None
 
@@ -238,6 +275,11 @@ def _extract_first_json_object(text: str) -> Optional[dict]:
 
 
 def _extract_first_json_array(text: str) -> Optional[list]:
+    """
+    Extrait le premier tableau JSON ([...]) d'un texte.
+
+    Utilise surtout par /rewards/generate (on attend une liste d'items).
+    """
     if not text:
         return None
 
@@ -332,6 +374,12 @@ def _build_rewards_insights_prompt(req: RewardsInsightsRequest) -> str:
 
 
 def _coerce_rarity(rarity: Optional[str], points: int) -> Optional[str]:
+    """
+    Normalise une rarity (string) en valeur attendue.
+
+    - Si la rarity est valide (COMMON/RARE/EPIC/LEGENDARY) -> on la renvoie.
+    - Sinon, on applique une heuristique simple basee sur les points.
+    """
     if rarity:
         r = rarity.strip().upper()
         if r in {"COMMON", "RARE", "EPIC", "LEGENDARY"}:
@@ -347,6 +395,20 @@ def _coerce_rarity(rarity: Optional[str], points: int) -> Optional[str]:
 
 
 def _sanitize_rewards_suggestion(payload: Optional[dict]) -> tuple[dict, bool]:
+    """
+    Nettoie/valide une suggestion de recompense produite par un LLM.
+
+    Garanties:
+    - name/description non vides
+    - points entier >= 0 (fallback a 10 si 0/absent)
+    - rarity normalisee (via _coerce_rarity)
+    - clamp longueurs (name/description/rationale)
+
+    Retour:
+    - (clean, from_llm)
+      - from_llm=True si le payload original contenait des champs utiles
+      - from_llm=False si on est essentiellement sur un fallback
+    """
     if not isinstance(payload, dict):
         payload = {}
 
@@ -392,6 +454,12 @@ def _sanitize_rewards_suggestion(payload: Optional[dict]) -> tuple[dict, bool]:
 
 
 def _build_rewards_generate_prompt(req: RewardsGenerateRequest) -> str:
+    """
+    Construit le prompt pour generer une liste de recompenses.
+
+    Le prompt demande explicitement un JSON array "pur" (sans texte) afin de faciliter
+    l'extraction (voir _extract_first_json_array) et la sanitization (voir _sanitize_generate_items).
+    """
     parts = []
     parts.append("Tu es un assistant pour generer des recompenses de gamification (MatchMakers).")
     parts.append("Tu dois produire UNIQUEMENT un JSON array valide, sans texte autour.")
@@ -413,6 +481,17 @@ def _build_rewards_generate_prompt(req: RewardsGenerateRequest) -> str:
 
 
 def _sanitize_generate_items(arr: Optional[list]) -> list[dict]:
+    """
+    Nettoie une liste d'items de generation afin de garantir un format stable.
+
+    Regles principales:
+    - ignore les elements non dict
+    - name obligatoire + unique (case-insensitive)
+    - clamp longueurs (name <= 120, description <= 220)
+    - type/rarity limites aux enums attendus
+    - points converti en int >= 0
+    - max 10 items
+    """
     if not isinstance(arr, list):
         return []
     out: list[dict] = []

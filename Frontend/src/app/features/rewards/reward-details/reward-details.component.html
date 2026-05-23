@@ -1,4 +1,4 @@
-<div class="page" *ngIf="!loading && reward; else loadingTpl">
+﻿<div class="page" *ngIf="!loading && reward; else loadingTpl">
   <div class="container-sm">
 
     <a routerLink="/rewards" class="back-link">
@@ -145,7 +145,7 @@
             <input class="field-input" type="date" formControlName="dateAwarded" />
           </div>
           <div class="field">
-            <label class="field-label">Évènement (ID)</label>
+            <label class="field-label">Événement (ID)</label>
             <input class="field-input" type="text" formControlName="eventId" />
           </div>
         </div>
@@ -212,12 +212,17 @@
 
         <div class="form-grid mt-16">
           <div class="field">
-            <label class="field-label">Équipe (ID)</label>
-            <input class="field-input" type="text" formControlName="teamId" />
+            <label class="field-label">Équipe</label>
+            <select class="field-input" formControlName="teamId" [disabled]="teamsLoading">
+              <option value="">(optionnel) - Aucune</option>
+              <option *ngFor="let t of teams" [value]="t.id">{{ t.name }}</option>
+            </select>
+            <div class="t-muted mt-8" style="font-size:12px;" *ngIf="teamsLoading">Chargement des equipes...</div>
+            <div class="field-error" *ngIf="teamsError">{{ teamsError }}</div>
           </div>
           <div class="field">
             <label class="field-label">Nom de l’équipe</label>
-            <input class="field-input" type="text" formControlName="teamName" />
+            <input class="field-input" type="text" formControlName="teamName" readonly />
           </div>
         </div>
       </div>

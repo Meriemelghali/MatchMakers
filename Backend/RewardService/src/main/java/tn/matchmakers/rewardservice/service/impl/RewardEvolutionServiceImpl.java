@@ -28,23 +28,30 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
 
     @Override
     public RewardEvolutionPreviewDto addProgress(String rewardId, RewardProgressRequest request) {
+        // 1) Charger la recompense depuis Mongo (sinon 404).
         Reward reward = repository.findById(rewardId)
                 .orElseThrow(() -> new NotFoundException("Recompense introuvable : " + rewardId));
 
+        // 2) Snapshot "before" (pour renvoyer au front un diff before/after propre).
         Reward before = snapshot(reward);
 
+        // 3) Delta de progression (defaut 0, et clamp >= 0).
         int delta = request.getDelta() != null ? request.getDelta() : 0;
         if (delta < 0) delta = 0;
 
+        // 4) Normalise les compteurs et applique la progression.
         reward.setMaxProgress(normalizeMax(reward.getMaxProgress()));
         reward.setProgress(normalizeProgress(reward.getProgress()) + delta);
         reward.setUpdatedAt(LocalDateTime.now());
 
+        // 5) Auto-evolution: par defaut true si null.
         boolean auto = request.getAutoEvolve() == null || request.getAutoEvolve();
         RewardEvolutionPreviewDto result;
         if (auto) {
+            // 5.a) Si auto => tente une evolution si progress atteint le max.
             result = evolveIfNeeded(reward, before);
         } else {
+            // 5.b) Sinon => on sauvegarde seulement la progression.
             Reward saved = repository.save(reward);
             result = new RewardEvolutionPreviewDto(
                     mapper.toDto(mapReward(before, rewardId)),
@@ -59,19 +66,25 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
 
     @Override
     public RewardEvolutionPreviewDto evolveNow(String rewardId) {
+        // 1) Charger la recompense (sinon 404).
         Reward reward = repository.findById(rewardId)
                 .orElseThrow(() -> new NotFoundException("Recompense introuvable : " + rewardId));
 
+        // 2) Snapshot before.
         Reward before = snapshot(reward);
+        // 3) Normalisation avant evolution.
         reward.setMaxProgress(normalizeMax(reward.getMaxProgress()));
         reward.setProgress(normalizeProgress(reward.getProgress()));
 
+        // 4) Tente l'evolution.
         return evolveIfNeeded(reward, before);
     }
 
     private RewardEvolutionPreviewDto evolveIfNeeded(Reward reward, Reward beforeSnapshot) {
+        // 1) La recompense doit etre evolutive pour level-up.
         boolean evolutive = Boolean.TRUE.equals(reward.getEvolutive());
         if (!evolutive) {
+            // Si non evolutive: on sauvegarde la progression normalisee, mais aucun level-up.
             Reward saved = repository.save(reward);
             return new RewardEvolutionPreviewDto(
                     mapper.toDto(mapReward(beforeSnapshot, reward.getId())),
@@ -82,9 +95,11 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
             );
         }
 
+        // 2) Lire max/progress normalises.
         int max = normalizeMax(reward.getMaxProgress());
         int progress = normalizeProgress(reward.getProgress());
 
+        // 3) Si progress insuffisant: pas d'evolution.
         if (progress < max) {
             Reward saved = repository.save(reward);
             return new RewardEvolutionPreviewDto(
@@ -96,6 +111,7 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
             );
         }
 
+        // 4) Sinon: on applique l'evolution (potentiellement plusieurs levels si progress tres grand).
         int levelsGained = 0;
         int level = normalizeLevel(reward.getLevel());
 
@@ -107,12 +123,16 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
             max = nextMaxProgress(max, reward.getEvolutionRules());
         }
 
+        // 5) Ecrit les nouvelles valeurs sur l'entity.
         reward.setLevel(level);
         reward.setProgress(progress);
         reward.setMaxProgress(max);
+
+        // 6) Met a jour la "puissance" (points) et la rarete selon le niveau.
         bumpPower(reward, levelsGained);
         reward.setRarity(pickRarity(reward));
 
+        // 7) Optionnel: renommer via IA apres evolution (rule renameWithAi).
         if (shouldRenameWithAi(reward.getEvolutionRules())) {
             Optional<Reward> named = namingService.suggestEvolvedNaming(reward);
             named.ifPresent(n -> {
@@ -122,6 +142,7 @@ public class RewardEvolutionServiceImpl implements RewardEvolutionService {
             });
         }
 
+        // 8) Save final + retour preview.
         reward.setUpdatedAt(LocalDateTime.now());
         Reward saved = repository.save(reward);
 

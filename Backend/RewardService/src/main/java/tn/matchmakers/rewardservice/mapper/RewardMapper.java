@@ -11,10 +11,14 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface RewardMapper {
 
+    // Entity (Mongo) -> DTO (JSON renvoye au frontend).
     RewardDto toDto(Reward reward);
 
+    // Liste Entity -> Liste DTO.
     List<RewardDto> toDtoList(List<Reward> rewards);
 
+    // Request (creation) -> Entity.
+    // NB: plusieurs champs sont ignores pour empecher le client de forcer des valeurs sensibles.
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "revokedReason", ignore = true)

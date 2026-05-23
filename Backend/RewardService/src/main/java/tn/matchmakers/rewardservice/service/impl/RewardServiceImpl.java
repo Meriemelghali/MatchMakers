@@ -24,23 +24,35 @@ public class RewardServiceImpl implements RewardService {
 
     @Override
     public RewardDto create(RewardCreateRequest request) {
+        // 1) MapStruct: copie les champs autorises du request vers l'entity Reward.
+        //    Les champs sensibles (id, status, progress, timestamps, etc.) sont ignores dans RewardMapper.fromCreate().
         Reward reward = mapper.fromCreate(request);
+
+        // 2) Valeurs par defaut / initialisation serveur.
         reward.setStatus(RewardStatus.ACTIVE);
         if (reward.getLevel() == null) reward.setLevel(1);
         if (reward.getProgress() == null) reward.setProgress(0);
         if (reward.getMaxProgress() == null) reward.setMaxProgress(100);
         if (reward.getEvolutive() == null) reward.setEvolutive(false);
+
+        // 3) Timestamps serveur.
         reward.setCreatedAt(LocalDateTime.now());
         reward.setUpdatedAt(LocalDateTime.now());
+
+        // 4) Sauvegarde Mongo.
         Reward saved = repository.save(reward);
+
+        // 5) Retour DTO (entity -> JSON).
         return mapper.toDto(saved);
     }
 
     @Override
     public RewardDto update(String id, RewardUpdateRequest request) {
+        // 1) Charge la reward, sinon 404.
         Reward reward = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Recompense introuvable : " + id));
 
+        // 2) Update partiel: chaque champ est applique seulement s'il est non-null dans la requete.
         if (request.getName() != null) reward.setName(request.getName());
         if (request.getType() != null) reward.setType(request.getType());
         if (request.getDescription() != null) reward.setDescription(request.getDescription());
@@ -64,12 +76,16 @@ public class RewardServiceImpl implements RewardService {
         if (request.getEvolutionRules() != null) reward.setEvolutionRules(request.getEvolutionRules());
         if (request.getDesign() != null) reward.setDesign(request.getDesign());
 
+        // 3) updatedAt serveur.
         reward.setUpdatedAt(LocalDateTime.now());
+
+        // 4) Save + retour DTO.
         return mapper.toDto(repository.save(reward));
     }
 
     @Override
     public void delete(String id) {
+        // Evite un delete silencieux: si l'id n'existe pas, on renvoie 404.
         if (!repository.existsById(id)) {
             throw new NotFoundException("Recompense introuvable : " + id);
         }
@@ -79,6 +95,7 @@ public class RewardServiceImpl implements RewardService {
     @Override
     @Transactional(readOnly = true)
     public RewardDto get(String id) {
+        // Lecture simple: findById sinon 404, puis mapping entity -> DTO.
         Reward reward = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Recompense introuvable : " + id));
         return mapper.toDto(reward);

@@ -1,20 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RewardRarity, RewardService, RewardType } from '../services/reward.service';
 import { AuthService } from '../../../core/services/AuthService/auth.service';
 import { RewardsAiService, RewardsSuggestResponse } from '../services/rewards-ai.service';
+import { Team, TeamService } from '../../teams/services/team.service';
 
 @Component({
   selector: 'app-create-reward',
   templateUrl: './create-reward.component.html',
   styleUrls: ['./create-reward.component.css']
 })
-export class CreateRewardComponent {
+export class CreateRewardComponent implements OnInit {
 
   loading = false;
   error = '';
   success = false;
+
+  teams: Team[] = [];
+  teamsLoading = false;
+  teamsError = '';
 
   aiOpen = false;
   aiLoading = false;
@@ -56,8 +61,49 @@ export class CreateRewardComponent {
     private rewardService: RewardService,
     private router: Router,
     private auth: AuthService,
-    private rewardsAi: RewardsAiService
+    private rewardsAi: RewardsAiService,
+    private teamService: TeamService
   ) { }
+
+  ngOnInit(): void {
+    this.loadTeams();
+
+    this.form.controls.teamId.valueChanges.subscribe((teamId) => {
+      const id = (teamId ?? '').toString().trim();
+      if (!id) {
+        this.form.patchValue({ teamName: '' }, { emitEvent: false });
+        return;
+      }
+      const t = this.teams.find(x => (x.id ?? '').toString() === id);
+      if (t?.name) {
+        this.form.patchValue({ teamName: t.name }, { emitEvent: false });
+      }
+    });
+  }
+
+  private loadTeams(): void {
+    this.teamsLoading = true;
+    this.teamsError = '';
+    this.teamService.getTeams().subscribe({
+      next: (teams) => {
+        this.teams = (teams ?? []).filter(t => !!t && !!t.name)
+          .sort((a, b) => (a.name ?? '').localeCompare((b.name ?? ''), undefined, { sensitivity: 'base' }));
+        this.teamsLoading = false;
+
+        // If teamId already selected (rare), sync teamName.
+        const currentId = (this.form.controls.teamId.value ?? '').toString().trim();
+        if (currentId) {
+          const t = this.teams.find(x => (x.id ?? '').toString() === currentId);
+          if (t?.name) this.form.patchValue({ teamName: t.name }, { emitEvent: false });
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.teamsError = "Impossible de charger la liste des equipes.";
+        this.teamsLoading = false;
+      }
+    });
+  }
 
   private displayName(): string {
     const firstName = (localStorage.getItem('firstName') ?? '').trim();
@@ -75,6 +121,10 @@ export class CreateRewardComponent {
         ? undefined
         : Number(pointsRaw);
 
+    const teamId = (raw.teamId ?? '').toString().trim() || undefined;
+    const teamNameFromList = teamId ? (this.teams.find(t => (t.id ?? '').toString() === teamId)?.name ?? '') : '';
+    const teamName = (teamNameFromList || (raw.teamName ?? '').toString()).trim() || undefined;
+
     return {
       ...raw,
       points: Number.isFinite(points) ? points : undefined,
@@ -83,8 +133,8 @@ export class CreateRewardComponent {
       awardedBy: (raw.awardedBy ?? '').trim() || undefined,
       description: (raw.description ?? '').trim() || undefined,
       username: (raw.username ?? '').trim() || undefined,
-      teamId: (raw.teamId ?? '').trim() || undefined,
-      teamName: (raw.teamName ?? '').trim() || undefined,
+      teamId,
+      teamName,
       eventId: (raw.eventId ?? '').trim() || undefined
     };
   }
