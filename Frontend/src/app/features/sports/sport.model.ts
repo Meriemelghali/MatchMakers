@@ -8,5 +8,6 @@ export interface Sport {
   nameSport: string;
   minPlayers: number;
   maxPlayers: number;
+  color?: string;
   sportCategories: SportCategory[];
 }

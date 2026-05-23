@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  reservation-service:
+    build:
+      context: ./Backend/ReservationService
+      dockerfile: Dockerfile
+    image: matchmakers-reservation-service:latest
+    container_name: reservation-service
+    ports:
+      - "8089:8089"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+
+  social-service:
+    build:
+      context: ./Backend/SocialService
+      dockerfile: Dockerfile
+    image: matchmakers-social-service:latest
+    container_name: social-service
+    ports:
+      - "8090:8090"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+
+# Si d'autres services ont des Dockerfiles (ex: API Gateway, Eureka, etc.),
+# vous pourrez les ajouter ici plus tard.

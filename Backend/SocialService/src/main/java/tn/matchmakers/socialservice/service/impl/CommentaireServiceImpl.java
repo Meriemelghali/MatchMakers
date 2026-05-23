@@ -6,6 +6,7 @@ import tn.matchmakers.socialservice.dto.SocialDtoMapper;
 import tn.matchmakers.socialservice.entities.Commentaire;
 import tn.matchmakers.socialservice.repository.CommentaireRepository;
 import tn.matchmakers.socialservice.service.CommentaireService;
+import tn.matchmakers.socialservice.service.ToxicityService;
 import tn.matchmakers.socialservice.support.SocialEntityRefs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CommentaireServiceImpl implements CommentaireService {
 
     private final CommentaireRepository commentaireRepository;
+    private final ToxicityService toxicityService;
 
     @Override
     public Page<CommentaireResponseDto> getAllCommentaires(Pageable pageable) {
@@ -37,6 +39,10 @@ public class CommentaireServiceImpl implements CommentaireService {
     @Override
     public CommentaireResponseDto createCommentaire(CommentaireRequestDto dto) {
         log.info("Creating new commentaire");
+        
+        // Toxicity Check
+        toxicityService.checkToxicity(dto.getContent());
+
         Commentaire commentaire = Commentaire.builder()
                 .content(dto.getContent())
                 .post(SocialEntityRefs.postRef(dto.getIdPost()))
@@ -50,6 +56,10 @@ public class CommentaireServiceImpl implements CommentaireService {
     @Override
     public CommentaireResponseDto updateCommentaire(String id, CommentaireRequestDto dto) {
         log.info("Updating commentaire with id: {}", id);
+        
+        // Toxicity Check
+        toxicityService.checkToxicity(dto.getContent());
+
         Commentaire existing = getByIdOrThrow(id);
         existing.setContent(dto.getContent());
         existing.setPost(SocialEntityRefs.postRef(dto.getIdPost()));

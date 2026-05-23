@@ -1,0 +1,217 @@
+/* Reclamation Dashboard — Premium Light Theme */
+
+.dashboard-page {
+  padding: 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Light Card Override */
+.card {
+  background: #ffffff !important;
+  border: 1px solid #f0f0f0 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+  padding: 24px !important;
+}
+
+/* Titles and Text */
+.page-head-title {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.page-head-sub {
+  color: #666666 !important;
+}
+
+.section-title-bar {
+  color: #000000 !important;
+  font-size: 13px !important;
+}
+
+/* Reclamation List */
+.reclamation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.reclamation-card {
+  background: #fcfcfc;
+  border: 1px solid #eeeeee;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.reclamation-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--brand);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.reclamation-card:hover {
+  transform: translateX(4px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border-color: #e0e0e0;
+}
+
+.reclamation-card:hover::before {
+  opacity: 1;
+}
+
+.reclamation-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.reclamation-desc {
+  font-size: 14px;
+  color: #555555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* AI Response Box — Light Style */
+.ai-response-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 20px;
+}
+
+.ai-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-content {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.5;
+  font-style: normal;
+  margin: 0;
+}
+
+/* Sidebar Specifics */
+.side-column .card {
+  position: sticky;
+  top: 30px;
+}
+
+.field-input {
+  background: #f9f9f9 !important;
+  border: 1px solid #e5e5e5 !important;
+  color: #000000 !important;
+}
+
+.field-input:focus {
+  background: #ffffff !important;
+  border-color: var(--brand) !important;
+  box-shadow: 0 0 0 4px rgba(232, 80, 10, 0.1) !important;
+}
+
+/* Status Badges Overrides */
+.badge-annule {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.1) !important;
+}
+
+.badge-occupe {
+  background: #fff7ed !important;
+  color: #ea580c !important;
+  border: 1px solid rgba(234, 88, 12, 0.1) !important;
+}
+
+.tag {
+  background: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* Empty State */
+.empty-body {
+  color: #94a3b8;
+}
+
+.empty-icon {
+  color: #cbd5e1;
+}
+
+/* Meta Info Grid — Visibility Fix */
+.reclamation-meta {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px 0;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.info-key {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #ffffff !important;
+  background: #3b82f6; /* Bleu professionnel */
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  letter-spacing: 0.05em;
+}
+
+.info-val {
+  font-size: 14px;
+  color: #111827 !important; /* Noir profond */
+  padding-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.info-val.text-danger {
+  color: #ef4444 !important; /* Rouge vif pour la cible */
+  font-weight: 700;
+}
+
+.t-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: #475569 !important;
+}

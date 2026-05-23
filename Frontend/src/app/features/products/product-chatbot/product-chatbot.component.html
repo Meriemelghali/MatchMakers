@@ -1,0 +1,93 @@
+<!-- Bouton flottant -->
+<div class="chatbot-fab" (click)="toggleChat()"
+     [class.chatbot-fab-open]="isOpen">
+  <svg *ngIf="!isOpen" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" width="22" height="22">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <svg *ngIf="isOpen" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2" width="22" height="22">
+    <line x1="18" y1="6" x2="6" y2="18"/>
+    <line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+</div>
+
+<!-- Fenêtre chat -->
+<div class="chatbot-window" *ngIf="isOpen">
+
+  <!-- Header -->
+  <div class="chatbot-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="chatbot-avatar">🤖</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:#fff">
+          Assistant Boutique
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.7)">
+          Propulsé par IA
+        </div>
+      </div>
+    </div>
+    <button class="chatbot-clear" (click)="clearChat()" title="Effacer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" width="14" height="14">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <path d="M9 6V4h6v2"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="chatbot-messages" #messagesContainer>
+    <div *ngFor="let msg of messages"
+         class="chatbot-msg"
+         [class.chatbot-msg-user]="msg.role === 'user'"
+         [class.chatbot-msg-bot]="msg.role === 'bot'">
+
+      <!-- Loading dots -->
+      <div *ngIf="msg.loading" class="chatbot-loading">
+        <span></span><span></span><span></span>
+      </div>
+
+      <!-- Texte -->
+      <span *ngIf="!msg.loading">{{ msg.text }}</span>
+
+    </div>
+  </div>
+
+  <!-- Questions suggérées -->
+  <div class="chatbot-suggestions" *ngIf="messages.length <= 1">
+    <button class="chatbot-suggestion"
+            (click)="question = 'Quels produits de football avez-vous ?'; send()">
+      ⚽ Produits football
+    </button>
+    <button class="chatbot-suggestion"
+            (click)="question = 'Quels produits sont disponibles à la location ?'; send()">
+      ⏱️ Produits location
+    </button>
+    <button class="chatbot-suggestion"
+            (click)="question = 'Quel est le produit le moins cher ?'; send()">
+      💰 Moins cher
+    </button>
+  </div>
+
+  <!-- Input -->
+  <div class="chatbot-input-area">
+    <input class="chatbot-input"
+           [(ngModel)]="question"
+           (keydown)="onKeyDown($event)"
+           placeholder="Posez votre question..."
+           [disabled]="loading">
+    <button class="chatbot-send"
+            (click)="send()"
+            [disabled]="!question.trim() || loading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" width="16" height="16">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+
+</div>

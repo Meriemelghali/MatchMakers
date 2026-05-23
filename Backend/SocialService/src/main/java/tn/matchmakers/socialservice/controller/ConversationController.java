@@ -16,6 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.Map;
 
 @CrossOrigin("*")
 @RestController
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class ConversationController {
 
     private final ConversationService conversationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Operation(summary = "Récupérer toutes les conversations")
     @ApiResponses(value = {
@@ -56,8 +60,16 @@ public class ConversationController {
     })
     @PostMapping
     public ResponseEntity<ConversationResponseDto> createConversation(@Valid @RequestBody ConversationRequestDto conversation) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(conversationService.createConversation(conversation));
+        ConversationResponseDto response = conversationService.createConversation(conversation);
+        
+        // Broadcast new conversation to all participants
+        if (response.getUserIds() != null) {
+            response.getUserIds().forEach(userId -> {
+                messagingTemplate.convertAndSend("/topic/user/" + userId + "/conversations", response);
+            });
+        }
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Mettre à jour une conversation")
@@ -81,7 +93,17 @@ public class ConversationController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteConversation(
             @Parameter(description = "ID de la conversation") @PathVariable String id) {
+        ConversationResponseDto conversation = conversationService.getConversationById(id);
         conversationService.deleteConversation(id);
+        
+        // Broadcast deletion to all participants as an object
+        if (conversation.getUserIds() != null) {
+            conversation.getUserIds().forEach(userId -> {
+                messagingTemplate.convertAndSend("/topic/user/" + userId + "/conversations/delete", Map.of("idConversation", id));
+                System.out.println("DEBUG: Broadcasted conversation deletion " + id + " to user " + userId);
+            });
+        }
+        
         return ResponseEntity.noContent().build();
     }
 }
