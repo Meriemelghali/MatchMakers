@@ -1,13 +1,15 @@
 // auth-layout.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { AIService, SportInspiration } from '../../core/services/UserService/ai.service';
+import { AuthService } from '../../core/services/AuthService/auth.service';
 
 @Component({
   selector: 'app-auth-layout',
   templateUrl: './auth-layout.component.html',
   styleUrls: ['./auth-layout.component.css']
 })
-export class AuthLayoutComponent implements OnInit, OnDestroy{
+export class AuthLayoutComponent implements OnInit, OnDestroy {
   navOpen = false;
   now = new Date();
   private clockInterval: any;
@@ -17,8 +19,18 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
   userRole = '';
   userInitials = '';
   userPhoto = '';
+  
+  // AI Inspiration
+  sportInspiration?: SportInspiration;
+  showInspiration = false;
+  isLoadingInspiration = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
+  constructor(
+    private router: Router,
+    private aiService: AIService,
+    private authService: AuthService
+  ) {}
 
   navLinks = [
     {
@@ -47,6 +59,14 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
     },
     {
+      path: '/social/discussions',
+      label: 'Messagerie',
+      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>'
+      path: '/reclamations',
+      label: 'Réclamations',
+      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
+    },
+    {
       path: '/teams',
       label: 'Équipes',
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
@@ -60,6 +80,16 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
       path: '/leaderboard',
       label: 'Classement',
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>'
+    },
+    {
+      path: '/products',
+      label: 'Boutique',
+      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>'
+    },
+    {
+      path: '/coach',
+      label: 'Mon Coach IA',
+      icon: '<i class="fas fa-robot"></i>'
     }
   ];
 
@@ -67,14 +97,53 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     this.clockInterval = setInterval(() => this.now = new Date(), 30000);
     this.loadUserInfo();
     document.addEventListener('click', () => {
-    this.profileOpen = false;
-  });
+      this.profileOpen = false;
+    });
+
+    this.checkInspiration();
+  }
+
+  checkInspiration() {
+    const userId = this.authService.getUserId();
+    console.log('AI Inspiration Debug - UserId:', userId);
+
+    if (userId) {
+      this.loadInspiration(userId);
+    } else {
+      console.warn('AI Inspiration - No userId found in localStorage');
+    }
+  }
+
+  loadInspiration(userId: string) {
+    this.isLoadingInspiration = true;
+    console.log('AI Inspiration - Calling AI service...');
+    this.aiService.getSportInspiration(userId).subscribe({
+      next: (data) => {
+        console.log('AI Inspiration - Data received:', data);
+        this.sportInspiration = data;
+        this.showInspiration = true;
+        this.isLoadingInspiration = false;
+        
+        // Auto-hide after 15 seconds
+        setTimeout(() => {
+          this.closeInspiration();
+        }, 15000);
+      },
+      error: (err) => {
+        console.error('AI Inspiration - Error calling AI service:', err);
+        this.isLoadingInspiration = false;
+      }
+    });
+  }
+
+  closeInspiration() {
+    this.showInspiration = false;
   }
   ngOnDestroy() { clearInterval(this.clockInterval); }
-    loadUserInfo(): void {
+  loadUserInfo(): void {
     const firstName = localStorage.getItem('firstName') || '';
-    const lastName  = localStorage.getItem('lastName')  || '';
-    const email     = localStorage.getItem('userEmail') || '';
+    const lastName = localStorage.getItem('lastName') || '';
+    const email = localStorage.getItem('userEmail') || '';
 
     if (firstName || lastName) {
       this.userName = `${firstName} ${lastName}`.trim();
@@ -100,6 +169,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     this.profileOpen = false;
     this.router.navigate(['/login']);
   }
+  myprofile(): void { }
 
   get isAdmin(): boolean {
     const role = this.userRole?.toUpperCase() || '';

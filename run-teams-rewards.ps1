@@ -12,6 +12,7 @@ New-Item -ItemType Directory -Force -Path $logs | Out-Null
 
 $m2 = Join-Path $root ".m2"
 New-Item -ItemType Directory -Force -Path $m2 | Out-Null
+$env:MAVEN_USER_HOME = $m2
 
 function Get-PortPids([int]$port) {
   $lines = netstat -ano | Select-String (":$port") | ForEach-Object { $_.ToString().Trim() }
@@ -42,7 +43,7 @@ function Stop-PortIfSafe([int]$port) {
 function Start-Svc([string]$name, [string]$dir) {
   $out = Join-Path $logs "$name.log"
   "Starting $name ... log: $out" | Out-Host
-  $cmd = "cd `"$dir`"; `$env:MAVEN_USER_HOME=`"$m2`"; .\\mvnw.cmd spring-boot:run *>> `"$out`""
+  $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run *>> `"$out`""
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd | Out-Null
 }
 

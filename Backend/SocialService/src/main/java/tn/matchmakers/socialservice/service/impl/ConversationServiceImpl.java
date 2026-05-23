@@ -66,8 +66,16 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public void deleteConversation(String id) {
-        log.info("Deleting conversation with id: {}", id);
+        log.info("Deleting conversation with id: {} and its messages", id);
         Conversation conversation = getByIdOrThrow(id);
+        
+        // Cascading delete for messages
+        List<Message> messages = messageRepository.findByConversation_IdConversation(id);
+        if (messages != null && !messages.isEmpty()) {
+            messageRepository.deleteAll(messages);
+            log.info("Cascaded delete to {} messages", messages.size());
+        }
+        
         conversationRepository.delete(conversation);
     }
 

@@ -30,10 +30,17 @@ public class EventResponseDto {
     private String clubId;
     private String terrainId;
     private List<String> teamIds;
+    private List<String> participantIds;
     private String eventTypeName;
     private Boolean isCompetition;
     private String competitionId;
     private String competitionName;
+
+    // ── route fields ──────────────────────────
+    private String startPoint;
+    private String endPoint;
+    private List<Double> distances;
+    private List<Map<String, Double>> routePath;
 
     public EventResponseDto(Event event) {
         this.id          = event.getId();
@@ -51,6 +58,7 @@ public class EventResponseDto {
         this.clubId      = event.getClubId();
         this.terrainId   = event.getTerrainId();
         this.teamIds     = event.getTeamIds();
+        this.participantIds = event.getParticipantIds();
 
         if (event.getEventType() != null) {
             this.eventTypeName  = event.getEventType().getTypeName();
@@ -61,5 +69,11 @@ public class EventResponseDto {
             this.competitionId   = event.getCompetition().getId();
             this.competitionName = event.getCompetition().getNameCompetition();
         }
+
+        // ── route fields ──────────────────────
+        this.startPoint = event.getStartPoint();
+        this.endPoint = event.getEndPoint();
+        this.distances = event.getDistances();
+        this.routePath = event.getRoutePath();
     }
 }

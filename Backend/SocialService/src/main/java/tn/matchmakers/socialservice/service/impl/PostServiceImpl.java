@@ -12,6 +12,7 @@ import tn.matchmakers.socialservice.repository.CommentaireRepository;
 import tn.matchmakers.socialservice.repository.PostRepository;
 import tn.matchmakers.socialservice.repository.ReactionRepository;
 import tn.matchmakers.socialservice.service.PostService;
+import tn.matchmakers.socialservice.service.ToxicityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final CommentaireRepository commentaireRepository;
     private final ReactionRepository reactionRepository;
+    private final ToxicityService toxicityService;
 
     @Override
     public Page<PostResponseDto> getAllPosts(Pageable pageable, boolean expand) {
@@ -48,6 +50,10 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponseDto createPost(PostRequestDto post) {
         log.info("Creating new post");
+        
+        // Toxicity Check
+        toxicityService.checkToxicity(post.getContent());
+
         Post entity = Post.builder()
                 .content(post.getContent())
                 .idUser(post.getIdUser())
@@ -60,6 +66,10 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponseDto updatePost(String id, PostRequestDto post) {
         log.info("Updating post with id: {}", id);
+        
+        // Toxicity Check
+        toxicityService.checkToxicity(post.getContent());
+
         Post existingPost = findByIdOrThrow(id);
         existingPost.setContent(post.getContent());
         existingPost.setIdUser(post.getIdUser());
@@ -68,10 +78,27 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void deletePost(String id) {
-        log.info("Soft deleting post with id: {}", id);
+        log.info("Soft deleting post with id: {} and its associated content", id);
         Post post = findByIdOrThrow(id);
         post.setIsDeleted(true);
         postRepository.save(post);
+
+        // Cascading soft delete for comments
+        List<Commentaire> comments = commentaireRepository.findByPost_IdPostAndIsDeletedFalse(id);
+        if (comments != null && !comments.isEmpty()) {
+            comments.forEach(c -> {
+                c.setIsDeleted(true);
+                commentaireRepository.save(c);
+            });
+            log.info("Cascaded soft delete to {} comments", comments.size());
+        }
+
+        // Hard delete reactions since they don't have isDeleted field
+        List<Reaction> reactions = reactionRepository.findByPost_IdPost(id);
+        if (reactions != null && !reactions.isEmpty()) {
+            reactionRepository.deleteAll(reactions);
+            log.info("Cascaded hard delete to {} reactions", reactions.size());
+        }
     }
 
     private Post findByIdOrThrow(String id) {

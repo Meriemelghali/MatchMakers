@@ -1,0 +1,356 @@
+<div class="profile-container">
+  <!-- Toast Notification -->
+  <div class="toast-overlay" *ngIf="toast" [class.toast-error]="toast.type === 'error'">
+    <div class="toast-content">
+      <i class="fas" [class.fa-check-circle]="toast.type === 'success'" [class.fa-exclamation-circle]="toast.type === 'error'"></i>
+      <span>{{ toast.message }}</span>
+    </div>
+  </div>
+
+  <div class="profile-header">
+    <div class="header-content">
+      <div class="avatar-section">
+        <div class="avatar-large" *ngIf="!userProfile?.avatar3dUrl">
+          {{ userProfile?.firstName?.charAt(0) }}{{ userProfile?.lastName?.charAt(0) }}
+          <div class="status-indicator"></div>
+        </div>
+        <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl">
+          <model-viewer
+            [src]="getSafeUrl(userProfile?.avatar3dUrl!)"
+            camera-controls
+            auto-rotate
+            shadow-intensity="1"
+            class="avatar-3d">
+          </model-viewer>
+          <div class="status-indicator" style="bottom: 5px; right: 5px"></div>
+        </div>
+        <div class="name-meta">
+          <h1>{{ userProfile?.firstName }} {{ userProfile?.lastName }}</h1>
+          <div class="badges">
+            <span class="role-badge">{{ userProfile?.roles?.[0] || 'Sportif' }}</span>
+            <span class="status-badge" *ngFor="let sport of userProfile?.favoriteSports">
+              <i class="fas fa-star"></i> {{ sport }}
+            </span>
+          </div>
+          <button class="btn btn-sm btn-secondary mt-2" (click)="openAvatarCreator()">
+            <i class="fas fa-cube"></i> Personnaliser en 3D
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Inspiration Banner -->
+    <div class="ai-inspiration-container" *ngIf="sportInspiration || isLoadingInspiration">
+      <div class="ai-banner" [class.loading]="isLoadingInspiration">
+        <div class="ai-icon">
+          <i class="fas fa-magic"></i>
+        </div>
+        <div class="ai-content">
+          <div class="ai-header">
+            <span class="ai-tag">IA MATCHMAKERS</span>
+            <span class="ai-title">Inspiration du jour</span>
+          </div>
+          <p class="ai-quote" *ngIf="!isLoadingInspiration">
+            "{{ sportInspiration?.quote }}"
+          </p>
+          <div class="ai-skeleton" *ngIf="isLoadingInspiration">
+            <div class="line"></div>
+            <div class="line short"></div>
+          </div>
+        </div>
+        <div class="ai-decoration">
+          <i class="fas fa-bolt"></i>
+        </div>
+      </div>
+    </div>
+
+    <nav class="profile-nav">
+      <button [class.active]="activeTab === 'general'" (click)="setTab('general')">
+        <i class="fas fa-user-edit"></i> Informations
+      </button>
+      <button [class.active]="activeTab === 'security'" (click)="setTab('security')">
+        <i class="fas fa-shield-alt"></i> Sécurité
+      </button>
+      <button [class.active]="activeTab === 'fitness'" (click)="setTab('fitness')">
+        <i class="fas fa-robot"></i> Profil Sportif
+      </button>
+      <button [class.active]="activeTab === 'activity'" (click)="setTab('activity')">
+        <i class="fas fa-running"></i> Mes Activités
+      </button>
+    </nav>
+  </div>
+
+  <div class="profile-content" [ngSwitch]="activeTab">
+    <!-- TAB: GENERAL -->
+    <div class="tab-pane" *ngSwitchCase="'general'">
+      <div class="card">
+        <div class="card-header">
+          <h2>Détails du Compte</h2>
+          <p>Gérez vos informations personnelles et préférences</p>
+        </div>
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Prénom</label>
+              <input type="text" formControlName="firstName" placeholder="Votre prénom">
+            </div>
+            <div class="form-group">
+              <label>Nom</label>
+              <input type="text" formControlName="lastName" placeholder="Votre nom">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" formControlName="email">
+              <small>L'email ne peut pas être modifié</small>
+            </div>
+            <div class="form-group">
+              <label>Téléphone</label>
+              <input type="text" formControlName="phoneNumber" placeholder="+216 ...">
+            </div>
+            <div class="form-group full-width">
+              <label>Sports Préférés (Max 3)</label>
+              <div class="sports-selection-grid">
+                <button type="button" 
+                        *ngFor="let sport of availableSports" 
+                        class="sport-item"
+                        [class.active]="isSportSelected(sport.nameSport)"
+                        (click)="toggleSport(sport.nameSport)">
+                  <i class="fas" [class.fa-check-circle]="isSportSelected(sport.nameSport)" [class.fa-circle]="!isSportSelected(sport.nameSport)"></i>
+                  {{ sport.nameSport }}
+                </button>
+              </div>
+              <small class="selection-hint">Sélectionnez jusqu'à 3 sports qui vous passionnent.</small>
+            </div>
+            
+            <div class="form-group full-width">
+              <label>Apparence (Thème)</label>
+              <div class="theme-selector-grid">
+                <div class="theme-card" 
+                     [class.active]="isThemeSelected('DARK')" 
+                     (click)="selectTheme('DARK')">
+                  <div class="theme-preview dark-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body"></div>
+                  </div>
+                  <span class="theme-label"><i class="fas fa-moon"></i> Mode Sombre</span>
+                </div>
+                
+                <div class="theme-card" 
+                     [class.active]="isThemeSelected('LIGHT')" 
+                     (click)="selectTheme('LIGHT')">
+                  <div class="theme-preview light-preview">
+                    <div class="preview-header"></div>
+                    <div class="preview-body"></div>
+                  </div>
+                  <span class="theme-label"><i class="fas fa-sun"></i> Mode Clair</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label>Biographie</label>
+              <textarea formControlName="bio" rows="4" placeholder="Parlez-nous de vous..."></textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save" [disabled]="isSaving || profileForm.pristine">
+              <i class="fas fa-check"></i> Enregistrer les modifications
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB: SECURITY -->
+    <div class="tab-pane" *ngSwitchCase="'security'">
+      <div class="card security-card">
+        <div class="card-header">
+          <h2>Changer le mot de passe</h2>
+          <p>Assurez la sécurité de votre compte avec un mot de passe fort</p>
+        </div>
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+          <div class="form-group">
+            <label>Mot de passe actuel</label>
+            <input type="password" formControlName="currentPassword" placeholder="••••••••">
+          </div>
+          <div class="divider"></div>
+          <div class="form-group">
+            <label>Nouveau mot de passe</label>
+            <input type="password" formControlName="newPassword" placeholder="Min. 8 caractères">
+          </div>
+          <div class="form-group">
+            <label>Confirmer le nouveau mot de passe</label>
+            <input type="password" formControlName="confirmPassword" placeholder="Confirmez">
+            <div class="error" *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched">
+              Les mots de passe ne correspondent pas
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-security" [disabled]="isSaving || passwordForm.invalid">
+              Mettre à jour le mot de passe
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB: FITNESS -->
+    <div class="tab-pane" *ngSwitchCase="'fitness'">
+      <div class="card">
+        <div class="card-header">
+          <h2>Configuration du Coach IA</h2>
+          <p>Aidez votre coach virtuel à préparer vos entraînements.</p>
+        </div>
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Niveau Sportif</label>
+              <select formControlName="fitnessLevel" class="custom-select">
+                <option value="BEGINNER">Débutant</option>
+                <option value="INTERMEDIATE">Intermédiaire</option>
+                <option value="ADVANCED">Avancé</option>
+                <option value="PRO">Professionnel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Poids (kg)</label>
+              <input type="number" formControlName="weight" placeholder="Ex: 75">
+            </div>
+            <div class="form-group">
+              <label>Taille (cm)</label>
+              <input type="number" formControlName="height" placeholder="Ex: 180">
+            </div>
+            
+            <div class="form-group full-width">
+              <label>Objectifs</label>
+              <div class="goals-grid">
+                <button type="button" 
+                        *ngFor="let goal of availableGoals" 
+                        class="goal-item"
+                        [class.active]="isGoalSelected(goal)"
+                        (click)="toggleGoal(goal)">
+                  {{ goal }}
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-save" [disabled]="isSaving || profileForm.pristine">
+              <i class="fas fa-magic"></i> Optimiser mon profil Coach
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB: ACTIVITY -->
+    <div class="tab-pane" *ngSwitchCase="'activity'">
+      <div class="activity-grid">
+        <!-- Teams -->
+        <div class="activity-section">
+          <h3><i class="fas fa-users"></i> Mes Équipes ({{ myTeams.length }})</h3>
+          <div class="activity-list">
+            <div class="activity-item" *ngFor="let team of myTeams">
+              <div class="item-icon"><i class="fas fa-users"></i></div>
+              <div class="item-info">
+                <h4>{{ team.name }}</h4>
+                <p>{{ team.role || 'Membre' }}</p>
+              </div>
+            </div>
+            <div class="empty-activity" *ngIf="myTeams.length === 0">
+              Vous n'avez pas encore rejoint d'équipe.
+            </div>
+          </div>
+        </div>
+
+        <!-- Clubs -->
+        <div class="activity-section">
+          <h3><i class="fas fa-shield-alt"></i> Mes Clubs ({{ myClubs.length }})</h3>
+          <div class="activity-list">
+            <div class="empty-activity">
+              Vous n'êtes membre d'aucun club.
+            </div>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div class="activity-section">
+          <h3><i class="fas fa-trophy"></i> Mes Événements ({{ myEvents.length }})</h3>
+          <div class="activity-list">
+            <div class="empty-activity" *ngIf="myEvents.length === 0">
+              Inscrivez-vous à des tournois pour les voir ici !
+            </div>
+          </div>
+        </div>
+
+        <!-- Reclamations -->
+        <div class="activity-section">
+          <h3><i class="fas fa-exclamation-circle"></i> Mes Réclamations ({{ myReclamations.length }})</h3>
+          <div class="activity-list">
+            <div class="activity-item reclamation-item" *ngFor="let rec of myReclamations">
+              <div class="item-icon" [class.status-resolved]="rec.status === 'RESOLVED'">
+                <i class="fas" [class.fa-check-circle]="rec.status === 'RESOLVED'" [class.fa-clock]="rec.status !== 'RESOLVED'"></i>
+              </div>
+              <div class="item-info">
+                <div class="flex justify-between items-center w-full">
+                  <h4>{{ rec.title }}</h4>
+                  <span class="badge" [ngClass]="rec.status === 'RESOLVED' ? 'badge-en_cours' : 'badge-annule'">
+                    {{ rec.status === 'RESOLVED' ? 'Résolu' : 'En attente' }}
+                  </span>
+                </div>
+                <p class="t-muted text-xs mt-4">{{ rec.createdAt | date:'shortDate' }} • {{ rec.type }}</p>
+              </div>
+            </div>
+            <div class="empty-activity" *ngIf="myReclamations.length === 0">
+              Vous n'avez soumis aucune réclamation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ready Player Me -->
+  <div class="avatar-modal-overlay" *ngIf="showAvatarCreator">
+    <div class="avatar-modal" [class.wide-modal]="!isCustomMode">
+      <div class="avatar-modal-header">
+        <h3>{{ isCustomMode ? "Éditeur d'Avatar Custom" : "Suggestions pour " + (userProfile?.favoriteSports?.[0] || 'vous') }}</h3>
+        <button class="close-btn" (click)="closeAvatarCreator()"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <!-- SUGGESTIONS MODE -->
+      <div class="suggestions-container" *ngIf="!isCustomMode">
+        <p class="suggestions-hint">Choisissez l'un de ces modèles basés sur vos sports ou créez le vôtre.</p>
+        <div class="suggestions-grid">
+          <div class="suggestion-card" *ngFor="let suggestion of suggestedAvatars" (click)="selectAvatar(suggestion.url)">
+            <div class="suggestion-preview">
+              <model-viewer
+                [src]="getSafeUrl(suggestion.url)"
+                auto-rotate
+                camera-controls
+                touch-action="pan-y"
+                shadow-intensity="1"
+                environment-image="neutral"
+                class="preview-viewer">
+              </model-viewer>
+            </div>
+            <div class="suggestion-info">
+              <button class="btn-apply">Choisir</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text" (click)="switchToCustomMode()">
+            <i class="fas fa-magic"></i> Je préfère créer mon propre avatar
+          </button>
+        </div>
+      </div>
+
+      <!-- IFRAME MODE (CUSTOM) -->
+      <iframe *ngIf="isCustomMode"
+              [src]="avatarCreatorUrl" 
+              allow="camera *; microphone *; clipboard-write *"
+              allowfullscreen="true"
+              class="avatar-iframe"></iframe>
+    </div>
+  </div>
+</div>
