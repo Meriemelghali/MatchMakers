@@ -16,10 +16,13 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class RewardAIController {
 
+    // Service IA cote Spring: appelle PythonAI si dispo, sinon fallback local.
     private final RewardAIService aiService;
 
     @PostMapping("/generate")
     public ResponseEntity<List<RewardAISuggestionDto>> generate(@Valid @RequestBody RewardAIGenerateRequest request) {
+        // Endpoint: POST /api/ai/rewards/generate
+        // Retour: liste de suggestions (name/description/type/rarity/points).
         return ResponseEntity.ok(aiService.generateRewards(request));
     }
 }

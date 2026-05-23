@@ -12,6 +12,7 @@ import tn.matchmakers.rewardservice.service.RewardDashboardService;
 @CrossOrigin(origins = "*")
 public class RewardDashboardController {
 
+    // Service dashboard: calcule stats + applique filtres optionnels (q/type/rarity/status/teamId).
     private final RewardDashboardService dashboardService;
 
     @GetMapping
@@ -22,6 +23,7 @@ public class RewardDashboardController {
             @RequestParam(required = false) String rarity,
             @RequestParam(required = false) String status
     ) {
+        // Endpoint: GET /api/rewards/dashboard?... (query params optionnels)
         return ResponseEntity.ok(dashboardService.getDashboard(teamId, q, type, rarity, status));
     }
 }

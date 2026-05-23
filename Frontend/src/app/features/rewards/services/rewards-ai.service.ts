@@ -54,7 +54,11 @@ export interface AiHealthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class RewardsAiService {
+  // Base URL du service IA (PythonAI FastAPI).
   private base = (environment.aiServiceUrl ?? '').replace(/\/$/, '');
+
+  // HttpClient special qui bypass les interceptors (HttpBackend direct).
+  // But: ne pas envoyer de tokens Authorization vers PythonAI par erreur.
   private aiHttp: HttpClient;
 
   constructor(httpBackend: HttpBackend) {
@@ -62,14 +66,17 @@ export class RewardsAiService {
     this.aiHttp = new HttpClient(httpBackend);
   }
 
+  // POST /rewards/suggest : genere une suggestion (nom/description/points/rarity) selon le contexte.
   suggest(body: RewardsSuggestRequest): Observable<RewardsSuggestResponse> {
     return this.aiHttp.post<RewardsSuggestResponse>(`${this.base}/rewards/suggest`, body);
   }
 
+  // POST /rewards/insights : question + contexte -> reponse "analyse" par l'IA.
   insights(body: RewardsInsightsRequest): Observable<RewardsInsightsResponse> {
     return this.aiHttp.post<RewardsInsightsResponse>(`${this.base}/rewards/insights`, body);
   }
 
+  // GET /health : verifie que PythonAI est en ligne et donne des infos sur le provider.
   health(): Observable<AiHealthResponse> {
     return this.aiHttp.get<AiHealthResponse>(`${this.base}/health`);
   }

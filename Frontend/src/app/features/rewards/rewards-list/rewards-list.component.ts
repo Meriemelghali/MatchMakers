@@ -2,7 +2,16 @@ import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } fr
 import { RewardService, Reward, RewardDashboard } from '../services/reward.service';
 import Chart from 'chart.js/auto';
 import { RewardsAiService } from '../services/rewards-ai.service';
+import { Team, TeamService } from '../../teams/services/team.service';
 
+/**
+ * Ecran: liste des recompenses + barre de filtres + dashboard (charts) + modal IA.
+ *
+ * Note importante sur le filtrage:
+ * - Le filtre "Equipe" (teamId) declenche un filtrage cote serveur (GET /api/rewards/team/{teamId})
+ * - Les autres filtres (q/type/rarity/status/tri) sont appliques cote front sur "base"
+ * - Le dashboard (stats) est recalcule cote serveur via GET /api/rewards/dashboard
+ */
 @Component({
   selector: 'app-rewards-list',
   templateUrl: './rewards-list.component.html',
@@ -10,13 +19,23 @@ import { RewardsAiService } from '../services/rewards-ai.service';
 })
 export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
+  // Dataset complet (charge une fois au depart).
   rewards: Reward[] = [];
+  // Dataset courant (toutes rewards OU rewards d'une equipe, selon teamId).
   base: Reward[] = [];
+  // Resultat final des filtres locaux.
   filtered: Reward[] = [];
+  // Page courante (slice de filtered).
   visible: Reward[] = [];
   loading = false;
   error = '';
 
+  // Liste des equipes (pour afficher un dropdown par nom).
+  teams: Team[] = [];
+  teamsLoading = false;
+  teamsError = '';
+
+  // --- Filtres UI ---
   teamId = '';
   q = '';
   typeFilter: '' | Reward['type'] = '';
@@ -24,10 +43,12 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   statusFilter = '';
   sort: 'DATE_DESC' | 'DATE_ASC' | 'POINTS_DESC' = 'DATE_DESC';
 
+  // --- Pagination ---
   page = 1;
   pageSize = 12;
   totalPages = 1;
 
+  // --- Charts (Chart.js) ---
   @ViewChild('typeChart') typeChartRef?: ElementRef<HTMLCanvasElement>;
   @ViewChild('teamChart') teamChartRef?: ElementRef<HTMLCanvasElement>;
 
@@ -37,6 +58,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
   private dashboardTimer: any = null;
   dashboard: RewardDashboard | null = null;
 
+  // --- IA (modal insights) ---
   aiOpen = false;
   aiQuestion = '';
   aiContext = '';
@@ -50,18 +72,24 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private rewardService: RewardService,
-    private rewardsAi: RewardsAiService
+    private rewardsAi: RewardsAiService,
+    private teamService: TeamService
   ) { }
 
   ngOnInit(): void {
+    // 1) Charge la liste des equipes (dropdown).
+    this.loadTeams();
+    // 2) Charge les recompenses (dataset complet).
     this.load();
   }
 
   ngAfterViewInit(): void {
+    // Les charts ont besoin que le DOM (canvas) existe.
     this.scheduleCharts();
   }
 
   ngOnDestroy(): void {
+    // Nettoyage timers + destruction chartjs.
     if (this.chartsTimer) {
       clearTimeout(this.chartsTimer);
       this.chartsTimer = null;
@@ -74,6 +102,34 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.teamChart?.destroy();
   }
 
+  /** Charge toutes les equipes depuis TeamService pour le dropdown. */
+  private loadTeams(): void {
+    this.teamsLoading = true;
+    this.teamsError = '';
+    this.teamService.getTeams().subscribe({
+      next: (teams) => {
+        // Tri par nom pour garder un ordre stable.
+        this.teams = (teams ?? []).filter(t => !!t && !!t.name)
+          .sort((a, b) => (a.name ?? '').localeCompare((b.name ?? ''), undefined, { sensitivity: 'base' }));
+        this.teamsLoading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.teamsError = "Impossible de charger la liste des equipes.";
+        this.teamsLoading = false;
+      }
+    });
+  }
+
+  /** Helper UI: convertit teamId -> nom d'equipe (si connu). */
+  teamLabel(teamId: string): string {
+    const id = (teamId ?? '').toString().trim();
+    if (!id) return '';
+    const t = this.teams.find(x => (x.id ?? '').toString() === id);
+    return (t?.name ?? '').toString();
+  }
+
+  /** Charge toutes les recompenses (sans filtre) depuis le backend. */
   load(): void {
     this.loading = true;
     this.error = '';
@@ -93,6 +149,10 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Filtre "Equipe" (server-side) + ensuite filtres locaux.
+   * Appele par le dropdown Equipe: (ngModelChange)="applyFilters()"
+   */
   applyFilters(): void {
     if (this.teamId) {
       this.loading = true;
@@ -116,6 +176,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applyLocalFilters();
   }
 
+  /** Reset de tous les filtres de la barre. */
   resetFilters(): void {
     this.teamId = '';
     this.q = '';
@@ -128,6 +189,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.applyLocalFilters();
   }
 
+  /** Applique les filtres locaux (q/type/rarity/status/tri) sur this.base + pagination + dashboard. */
   applyLocalFilters(): void {
     const q = this.q.trim().toLowerCase();
     let list = [...this.base];
@@ -170,6 +232,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.refreshDashboard();
   }
 
+  /** Export CSV du resultat filtre. */
   exportCsv(): void {
     const cols: Array<{ key: keyof Reward; label: string }> = [
       { key: 'name', label: 'name' },
@@ -197,7 +260,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
       lines.push(cols.map(c => esc((r as any)[c.key])).join(','));
     }
 
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const stamp = new Date().toISOString().slice(0, 10);
@@ -209,6 +272,8 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     URL.revokeObjectURL(url);
   }
 
+  // ---- IA modal ----
+
   openAi(): void {
     this.aiOpen = true;
     this.aiError = '';
@@ -217,7 +282,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aiContext = this.buildAiContext();
     this.showAiContext = false;
     if (!this.aiQuestion.trim()) {
-      this.aiQuestion = "Resume les recompenses, repere d'eventuels deseqilibres et propose 3 actions simples.";
+      this.aiQuestion = "Analyse les recompenses (equilibre points/rarete) et propose 3 actions simples.";
     }
 
     this.rewardsAi.health().subscribe({
@@ -236,37 +301,26 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     this.aiOpen = false;
   }
 
-  copyAiContext(): void {
-    const text = this.aiContext ?? '';
-    if (!text) return;
-    navigator.clipboard?.writeText(text).catch(() => { });
-  }
-
-  copyAiAnswer(): void {
-    const text = this.aiAnswer ?? '';
-    if (!text) return;
-    navigator.clipboard?.writeText(text).catch(() => { });
-  }
-
   askAi(): void {
-    const q = (this.aiQuestion ?? '').trim();
-    if (!q) return;
-
     this.aiLoading = true;
     this.aiError = '';
-    this.aiMeta = '';
     this.aiAnswer = '';
-    this.aiContext = this.buildAiContext();
+    this.aiMeta = '';
 
-    this.rewardsAi.insights({ question: q, context: this.aiContext }).subscribe({
-      next: (resp) => {
-        this.aiAnswer = (resp?.answer ?? '').trim();
-        const from = (resp as any)?.fromLlm ?? (resp as any)?.from_llm ?? false;
+    const body = {
+      question: (this.aiQuestion ?? '').trim(),
+      context: this.aiContext
+    };
+
+    this.rewardsAi.insights(body).subscribe({
+      next: (resp: any) => {
+        const from = resp?.fromLlm ?? resp?.from_llm ?? false;
         const origin = from ? 'OpenRouter/Ollama' : 'Fallback';
-        const model = resp?.model ? ` â€¢ ${resp.model}` : '';
-        const latency = (resp as any)?.latencyMs ?? (resp as any)?.latency_ms;
-        const ms = typeof latency === 'number' ? ` â€¢ ${latency}ms` : '';
+        const model = resp?.model ? ` • ${resp.model}` : '';
+        const latency = resp?.latencyMs ?? resp?.latency_ms;
+        const ms = typeof latency === 'number' ? ` • ${latency}ms` : '';
         this.aiMeta = `${origin}${model}${ms}`;
+        this.aiAnswer = resp?.answer ?? '';
         this.aiLoading = false;
       },
       error: (err) => {
@@ -277,34 +331,49 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  aiPreset(q: string): void {
-    this.aiQuestion = q;
+  aiPreset(text: string): void {
+    this.aiQuestion = text;
     this.askAi();
   }
+
+  copyAiContext(): void {
+    navigator.clipboard?.writeText(this.aiContext ?? '');
+  }
+
+  copyAiAnswer(): void {
+    navigator.clipboard?.writeText(this.aiAnswer ?? '');
+  }
+
+  // ---- Pagination ----
 
   setPage(p: number): void {
     this.page = p;
     this.applyLocalFilters();
   }
 
-  private buildCharts(): void {
-    // Pas encore de canvas dispo (vue pas encore rendue)
-    if (!this.typeChartRef || !this.teamChartRef) {
-      return;
-    }
+  // ---- Charts + Dashboard ----
 
-    this.typeChart?.destroy();
-    this.teamChart?.destroy();
+  private buildCharts(): void {
+    const typeCtx = this.typeChartRef?.nativeElement?.getContext('2d');
+    const teamCtx = this.teamChartRef?.nativeElement?.getContext('2d');
+    if (!typeCtx && !teamCtx) return;
 
     const dash = this.dashboard ?? this.computeDashboardFromLocal();
-    const typeLabels = (dash?.byType ?? []).map(i => i.label);
-    const typeValues = (dash?.byType ?? []).map(i => i.count);
 
-    const teamLabels = (dash?.byTeam ?? []).map(i => i.label);
-    const teamValues = (dash?.byTeam ?? []).map(i => i.count);
+    const typeLabels = (dash.byType ?? []).map(x => x.label);
+    const typeValues = (dash.byType ?? []).map(x => x.count);
 
-    const typeCtx = this.typeChartRef.nativeElement.getContext('2d');
-    const teamCtx = this.teamChartRef.nativeElement.getContext('2d');
+    const teamLabels = (dash.byTeam ?? []).map(x => x.label);
+    const teamValues = (dash.byTeam ?? []).map(x => x.count);
+
+    if (this.typeChart) {
+      this.typeChart.destroy();
+      this.typeChart = undefined;
+    }
+    if (this.teamChart) {
+      this.teamChart.destroy();
+      this.teamChart = undefined;
+    }
 
     if (typeCtx) {
       this.typeChart = new Chart(typeCtx, {
@@ -312,6 +381,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
         data: {
           labels: typeLabels,
           datasets: [{
+            label: 'Repartition par type',
             data: typeValues,
             backgroundColor: [
               'rgba(232, 80, 10, 0.85)',
@@ -345,7 +415,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
         data: {
           labels: teamLabels,
           datasets: [{
-            label: 'Récompenses par équipe',
+            label: 'Recompenses par equipe',
             data: teamValues,
             backgroundColor: 'rgba(232, 80, 10, 0.75)',
             borderColor: 'rgba(232, 80, 10, 0.95)',
@@ -360,7 +430,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
             },
             tooltip: {
               callbacks: {
-                label: (ctx) => `${(ctx.parsed as any)?.y ?? 0} récompense(s)`
+                label: (ctx) => `${(ctx.parsed as any)?.y ?? 0} recompense(s)`
               }
             }
           },
@@ -397,6 +467,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 0);
   }
 
+  // Construit les params (teamId/q/type/rarity/status) et appelle l'API dashboard cote backend.
   private loadDashboardFromApi(): void {
     const params = {
       teamId: this.teamId || undefined,
@@ -428,7 +499,8 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
       const typeKey = r.type ?? 'AUTRE';
       byType.set(typeKey, (byType.get(typeKey) ?? 0) + 1);
 
-      const teamKey = r.teamName || r.teamId || 'Sans équipe';
+      // On prefere teamName, sinon on essaie de retrouver le label par teamId.
+      const teamKey = r.teamName || this.teamLabel(r.teamId ?? '') || 'Sans equipe';
       byTeam.set(teamKey, (byTeam.get(teamKey) ?? 0) + 1);
 
       if (typeof r.points === 'number' && r.points >= 0) pts.push(r.points);
@@ -469,7 +541,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     lines.push('');
 
     const filters: string[] = [];
-    if (this.teamId) filters.push(`teamId=${this.teamId}`);
+    if (this.teamId) filters.push(`team="${this.teamLabel(this.teamId) || this.teamId}"`);
     if (this.q.trim()) filters.push(`q="${this.q.trim()}"`);
     if (this.typeFilter) filters.push(`type=${this.typeFilter}`);
     if (this.rarityFilter) filters.push(`rarity=${this.rarityFilter}`);
@@ -487,7 +559,7 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     for (const r of this.filtered ?? []) {
       const typeKey = r.type ?? 'AUTRE';
       byType.set(typeKey, (byType.get(typeKey) ?? 0) + 1);
-      const teamKey = r.teamName || r.teamId || 'Sans equipe';
+      const teamKey = r.teamName || this.teamLabel(r.teamId ?? '') || 'Sans equipe';
       byTeam.set(teamKey, (byTeam.get(teamKey) ?? 0) + 1);
       if (typeof r.points === 'number') {
         pointsCount += 1;
@@ -542,9 +614,8 @@ export class RewardsListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     lines.push('');
-    lines.push('Note: ne pas demander d\'ID utilisateur, ne pas inclure de donnees sensibles.');
+    lines.push("Note: ne pas demander d'ID utilisateur, ne pas inclure de donnees sensibles.");
     return lines.join('\n');
   }
-
 }
 

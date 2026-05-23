@@ -1,4 +1,4 @@
-<div class="page">
+﻿<div class="page">
   <div class="container-sm">
 
     <a routerLink="/rewards" class="back-link">
@@ -61,7 +61,7 @@
           </div>
 
           <div class="field">
-            <label class="field-label">Évènement (ID)</label>
+            <label class="field-label">Événement (ID)</label>
             <input class="field-input" type="text" formControlName="eventId"
                    placeholder="eventId lié (optionnel)" />
           </div>
@@ -116,14 +116,18 @@
 
         <div class="form-grid mt-16">
           <div class="field">
-            <label class="field-label">Équipe (ID)</label>
-            <input class="field-input" type="text" formControlName="teamId"
-                   placeholder="Identifiant équipe (optionnel)" />
+            <label class="field-label">Équipe</label>
+            <select class="field-input" formControlName="teamId" [disabled]="teamsLoading">
+              <option value="">(optionnel) - Aucune</option>
+              <option *ngFor="let t of teams" [value]="t.id">{{ t.name }}</option>
+            </select>
+            <div class="t-muted mt-8" style="font-size:12px;" *ngIf="teamsLoading">Chargement des équipes...</div>
+            <div class="field-error" *ngIf="teamsError">{{ teamsError }}</div>
           </div>
           <div class="field">
             <label class="field-label">Nom de l’équipe</label>
-            <input class="field-input" type="text" formControlName="teamName"
-                   placeholder="Nom d’équipe affiché" />
+            <input class="field-input" type="text" formControlName="teamName" readonly
+                   placeholder="Auto depuis la liste" />
           </div>
         </div>
       </div>
@@ -153,22 +157,22 @@
           <div>
             <div class="t-label">Assistant IA</div>
             <div class="t-muted" style="font-size:12px;">
-              Suggestion apaisÃ©e (nom, description, points, raretÃ©) â€¢ aucune donnÃ©e sensible â€¢ pas d'ID utilisateur
+              Suggestion apaisée (nom, description, points, rareté) • aucune donnée sensible • pas d'ID utilisateur
             </div>
           </div>
           <button class="btn btn-ghost btn-sm" type="button" (click)="closeAi()">Fermer</button>
         </div>
 
         <div class="t-muted" style="font-size:12px;" *ngIf="aiProvider || aiModel">
-          Provider: {{ aiProvider || '—' }} <span *ngIf="aiModel">â€¢ {{ aiModel }}</span>
+          Provider: {{ aiProvider || '—' }} <span *ngIf="aiModel">• {{ aiModel }}</span>
         </div>
 
         <div class="field">
           <label class="field-label">Intention</label>
           <input class="field-input" type="text" [(ngModel)]="aiGoal" name="aiGoal"
-                 placeholder="Ex: valoriser l'esprit d'Ã©quipe, la progression, le fair-play..." />
+                 placeholder="Ex: valoriser l'esprit d'équipe, la progression, le fair-play..." />
           <div class="t-muted mt-8" style="font-size:12px;">
-            Utilise tes champs dÃ©jÃ  saisis (type, date, Ã©quipe, description) pour proposer une rÃ©compense cohÃ©rente.
+            Utilise tes champs déjà saisis (type, date, équipe, description) pour proposer une récompense cohérente.
           </div>
         </div>
 
@@ -176,8 +180,8 @@
 
         <div class="flex items-center gap-12">
           <button class="btn btn-primary btn-sm" type="button" (click)="generateAi()" [disabled]="aiLoading">
-            <span *ngIf="!aiLoading">GÃ©nÃ©rer une suggestion</span>
-            <span *ngIf="aiLoading">GÃ©nÃ©ration...</span>
+            <span *ngIf="!aiLoading">Générer une suggestion</span>
+            <span *ngIf="aiLoading">Génération...</span>
           </button>
           <div class="t-muted" style="font-size:12px;" *ngIf="aiMeta">{{ aiMeta }}</div>
         </div>
@@ -195,7 +199,7 @@
           <div class="t-body mt-8">{{ aiSuggestion.description }}</div>
           <div class="t-muted mt-10" style="font-size:12px;">
             <span class="t-dim">Points :</span> {{ aiSuggestion.points }}
-            <span *ngIf="aiSuggestion.awardedBy"> â€¢ <span class="t-dim">Awarded by :</span> {{ aiSuggestion.awardedBy }}</span>
+            <span *ngIf="aiSuggestion.awardedBy"> • <span class="t-dim">Awarded by :</span> {{ aiSuggestion.awardedBy }}</span>
           </div>
           <div class="t-muted mt-10" style="font-size:12px;" *ngIf="aiSuggestion.rationale">
             <span class="t-dim">Pourquoi :</span> {{ aiSuggestion.rationale }}
@@ -204,7 +208,7 @@
 
         <div class="flex justify-between items-center mt-16" *ngIf="aiSuggestion">
           <button class="btn btn-ghost btn-sm" type="button" (click)="applyAi('FILL_EMPTY')">
-            ComplÃ©ter seulement
+            Compléter seulement
           </button>
           <button class="btn btn-primary btn-sm" type="button" (click)="applyAi('REPLACE')">
             Appliquer

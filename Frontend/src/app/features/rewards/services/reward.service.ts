@@ -135,51 +135,69 @@ export interface RewardDashboard {
 @Injectable({ providedIn: 'root' })
 export class RewardService {
 
+  /**
+   * Base URL du micro-service Rewards (Spring Boot).
+   * Exemple en dev: http://localhost:8086/rewards/api/rewards
+   */
   private base = environment.rewardServiceUrl;
 
   constructor(private http: HttpClient) { }
 
+  /** GET {base} -> liste de toutes les recompenses */
   getRewards(): Observable<Reward[]> {
     return this.http.get<Reward[]>(this.base);
   }
 
+  /** GET {base}/{id} -> details d'une recompense */
   getRewardById(id: string): Observable<Reward> {
     return this.http.get<Reward>(`${this.base}/${id}`);
   }
 
+  /** POST {base} -> creation d'une recompense */
   createReward(body: CreateRewardRequest): Observable<Reward> {
     return this.http.post<Reward>(this.base, body);
   }
 
+  /** PUT {base}/{id} -> update (partiel) d'une recompense */
   updateReward(id: string, body: UpdateRewardRequest): Observable<Reward> {
     return this.http.put<Reward>(`${this.base}/${id}`, body);
   }
 
+  /** DELETE {base}/{id} -> suppression */
   deleteReward(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
+  /** GET {base}/user/{userId} -> recompenses d'un user */
   getRewardsByUser(userId: string): Observable<Reward[]> {
     return this.http.get<Reward[]>(`${this.base}/user/${userId}`);
   }
 
+  /** GET {base}/team/{teamId} -> recompenses d'une equipe */
   getRewardsByTeam(teamId: string): Observable<Reward[]> {
     return this.http.get<Reward[]>(`${this.base}/team/${teamId}`);
   }
 
+  /** POST {base}/{id}/progress -> ajoute de la progression (et peut auto-evolve) */
   progressReward(id: string, body: RewardProgressRequest): Observable<RewardEvolutionPreview> {
     return this.http.post<RewardEvolutionPreview>(`${this.base}/${id}/progress`, body);
   }
 
+  /** POST {base}/{id}/evolve -> force une evolution immediatement */
   evolveReward(id: string): Observable<RewardEvolutionPreview> {
     return this.http.post<RewardEvolutionPreview>(`${this.base}/${id}/evolve`, {});
   }
 
+  /**
+   * POST /api/ai/rewards/generate (sur le meme service Spring).
+   * Note: la base 'rewardServiceUrl' finit par /api/rewards, donc on retire ce suffixe.
+   */
   generateRewardsWithAi(body: RewardAIGenerateRequest): Observable<RewardAISuggestion[]> {
     const baseUrl = this.base.replace(/\/api\/rewards\/?$/, '');
     return this.http.post<RewardAISuggestion[]>(`${baseUrl}/api/ai/rewards/generate`, body);
   }
 
+  /** GET {base}/dashboard -> stats (total, byType, byTeam, avg/max points) avec filtres optionnels */
   getDashboard(params: {
     teamId?: string;
     q?: string;
