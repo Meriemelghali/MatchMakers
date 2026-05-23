@@ -17,10 +17,19 @@
 }
 
 .ev-card:hover {
+  transform: translateY(-2px);
+}
+
+.ev-card.card-competition:hover {
   border-color: var(--brand-line);
   box-shadow: 0 0 0 1px var(--brand-line),
               0 12px 32px rgba(232, 80, 10, 0.12);
-  transform: translateY(-2px);
+}
+
+.ev-card.card-simple:hover {
+  border-color: #7BA7FF; /* Blue border for simple events */
+  box-shadow: 0 0 0 1px #7BA7FF,
+              0 12px 32px rgba(123, 167, 255, 0.12);
 }
 
 .ev-card-stripe {
@@ -356,4 +365,68 @@
   justify-content: center;
   height: 38px;
   font-size: 13px;
+}
+
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: var(--layer-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 32px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--red);
+  background: rgba(255, 0, 0, 0.1);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--red);
+  color: white;
+  transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

@@ -39,4 +39,10 @@ public class Reservation {
 
     @NotNull(message = "User ID is required")
     private String idUser;
+
+    @Builder.Default
+    private boolean reminderSent = false;
+
+    @org.springframework.data.annotation.CreatedDate
+    private LocalDateTime createdAt;
 }

@@ -16,47 +16,75 @@
             </div>
         </div>
 
-        <div class="loader" *ngIf="loading">
-            <div class="spinner"></div>
-        </div>
+        <div class="loader" *ngIf="loading"><div class="spinner"></div></div>
         <div class="alert alert-err mb-16" *ngIf="error">{{ error }}</div>
 
         <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
+            <div style="display:flex; gap:32px; align-items:flex-start;">
 
-            <!-- 2-Column Split Layout for Elite Vibe -->
-            <div style="display: flex; gap: 32px; align-items: flex-start;">
-
-                <!-- Left Col: Main Match Details -->
-                <div style="flex: 2; display: flex; flex-direction: column; gap: 24px;">
+                <!-- ── Left Column ───────────────────────────────── -->
+                <div style="flex:2; display:flex; flex-direction:column; gap:24px;">
 
                     <div class="card">
                         <div class="section-head">
                             <div class="section-title-bar">Affiche du match</div>
                         </div>
+
                         <div class="field mb-16">
                             <label class="field-label">Titre de l'événement *</label>
                             <input class="field-input" formControlName="titre"
                                 placeholder="Ex: Finale Championnat Régional">
-                            <div class="field-error" *ngIf="f['titre'].touched && f['titre'].errors?.['required']">
-                                Saisie requise</div>
+                            <div class="field-error"
+                                *ngIf="f['titre'].touched && f['titre'].errors?.['required']">Saisie requise</div>
                         </div>
 
-                        <div class="form-grid mb-16">
+                        <!-- Teams row -->
+                        <div class="form-grid" style="margin-bottom:10px;">
                             <div class="field">
                                 <label class="field-label">Équipe domicile *</label>
-                                <input class="field-input" formControlName="equipe1"
-                                    placeholder="Nom de l'équipe recevante">
+                                <select class="field-input" formControlName="equipe1">
+                                    <option value="">— Sélectionner —</option>
+                                    <option *ngFor="let t of teams" [value]="t.name">
+                                        {{ t.name }}<ng-container *ngIf="t.city"> ({{ t.city }})</ng-container>
+                                    </option>
+                                </select>
                                 <div class="field-error"
                                     *ngIf="f['equipe1'].touched && f['equipe1'].errors?.['required']">Requis</div>
                             </div>
                             <div class="field">
                                 <label class="field-label">Équipe visiteur *</label>
-                                <input class="field-input" formControlName="equipe2"
-                                    placeholder="Nom de l'équipe visiteuse">
+                                <select class="field-input" formControlName="equipe2">
+                                    <option value="">— Sélectionner —</option>
+                                    <option *ngFor="let t of candidateTeams" [value]="t.name">
+                                        {{ t.name }}<ng-container *ngIf="t.city"> ({{ t.city }})</ng-container>
+                                    </option>
+                                </select>
                                 <div class="field-error"
                                     *ngIf="f['equipe2'].touched && f['equipe2'].errors?.['required']">Requis</div>
                             </div>
                         </div>
+
+                        <!-- AI Matchmaking strip -->
+                        <button type="button" class="mm-strip"
+                            [class.mm-strip--disabled]="!form.value.equipe1"
+                            [disabled]="!form.value.equipe1"
+                            (click)="runMatchmaking()">
+                            <span class="mm-strip-left">
+                                <span class="mm-strip-glow"></span>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                                <span class="mm-strip-label">Suggérer le meilleur adversaire avec Gemini AI</span>
+                            </span>
+                            <span class="mm-strip-hint" *ngIf="!form.value.equipe1">Choisir l'équipe domicile d'abord</span>
+                            <svg *ngIf="form.value.equipe1" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.5;">
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </button>
+
+                        <div style="margin-bottom:16px;"></div>
 
                         <div class="form-grid">
                             <div class="field">
@@ -65,8 +93,8 @@
                                     <option value="">— Sélectionner —</option>
                                     <option *ngFor="let t of types" [value]="t">{{ t }}</option>
                                 </select>
-                                <div class="field-error" *ngIf="f['type'].touched && f['type'].errors?.['required']">
-                                    Requis</div>
+                                <div class="field-error"
+                                    *ngIf="f['type'].touched && f['type'].errors?.['required']">Requis</div>
                             </div>
                             <div class="field">
                                 <label class="field-label">Arbitre désigné</label>
@@ -80,7 +108,6 @@
                         <div class="section-head">
                             <div class="section-title-bar">Calendrier & Lieu</div>
                         </div>
-
                         <div class="form-grid mb-16">
                             <div class="field">
                                 <label class="field-label">Date de début *</label>
@@ -95,14 +122,13 @@
                                     *ngIf="f['dateFin'].touched && f['dateFin'].errors?.['required']">Requis</div>
                             </div>
                         </div>
-
-                        <!-- THE FIX: Rich Terrain Selector -->
                         <div class="field mb-16">
-                            <label class="field-label flex items-center justify-between">
+                            <label class="field-label"
+                                style="display:flex; justify-content:space-between; align-items:center;">
                                 <span>Infrastructure / Terrain</span>
                                 <a routerLink="/terrains/new" target="_blank" class="t-brand"
-                                    style="text-transform:none; letter-spacing:0; font-weight:500; font-size:12px;">+
-                                    Nouveau terrain</a>
+                                    style="text-transform:none;letter-spacing:0;font-weight:500;font-size:12px;">
+                                    + Nouveau terrain</a>
                             </label>
                             <select class="field-input" formControlName="terrainId">
                                 <option [ngValue]="null">— Aucun terrain assigné —</option>
@@ -110,9 +136,85 @@
                                     {{ t.nom }} ({{ t.ville }} - {{ t.typeSport }}) - {{ t.prixParHeure }} TND/h
                                 </option>
                             </select>
-                            <div class="t-muted mt-8" style="font-size: 11.5px;">Seuls les terrains ayant le statut
-                                'DISPONIBLE' sont affichés.</div>
+                            <div class="t-muted mt-8" style="font-size:11.5px;">
+                                Seuls les terrains DISPONIBLE sont affichés.</div>
                         </div>
+
+                        <!-- ── Weather Guard ──────────────────────────────── -->
+                        <div *ngIf="weatherLoading || weatherForecast || weatherNoGps" class="weather-wrap mb-16">
+
+                            <!-- Loading -->
+                            <div *ngIf="weatherLoading" class="weather-loading">
+                                <div class="spinner" style="width:12px;height:12px;border-width:2px;flex-shrink:0;"></div>
+                                <span>Récupération de la météo pour ce créneau...</span>
+                            </div>
+
+                            <!-- No GPS coordinates on this terrain -->
+                            <div *ngIf="!weatherLoading && weatherNoGps" class="weather-loading" style="color:var(--text-3);">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.5;">
+                                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                </svg>
+                                <span>Ce terrain n'a pas de coordonnées GPS — météo indisponible.</span>
+                            </div>
+
+                            <!-- Forecast card -->
+                            <div *ngIf="!weatherLoading && weatherForecast" class="weather-card">
+
+                                <!-- Alert banner (warning or danger only) -->
+                                <div *ngIf="weatherForecast.alertLevel !== 'ok'" class="weather-alert"
+                                    [class.weather-alert--danger]="weatherForecast.alertLevel === 'danger'"
+                                    [class.weather-alert--warning]="weatherForecast.alertLevel === 'warning'">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                    </svg>
+                                    {{ weatherForecast.alertMessage }}
+                                </div>
+
+                                <!-- Main weather row -->
+                                <div class="weather-row">
+                                    <div class="weather-main">
+                                        <span class="weather-emoji">{{ weatherForecast.emoji }}</span>
+                                        <div>
+                                            <div class="weather-temp">{{ weatherForecast.temp }}°C</div>
+                                            <div class="weather-desc">{{ weatherForecast.description }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="weather-stats">
+                                        <div class="weather-stat">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                                <path d="M12 2v20M2 12h20"/>
+                                                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10"/>
+                                            </svg>
+                                            <span>{{ weatherForecast.rainProbability }}% pluie</span>
+                                        </div>
+                                        <div class="weather-stat">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                                <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
+                                                <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
+                                                <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
+                                            </svg>
+                                            <span>{{ weatherForecast.windSpeed }} km/h</span>
+                                        </div>
+                                        <div class="weather-tag">Météo IA</div>
+                                    </div>
+                                </div>
+
+                                <!-- Recommendations -->
+                                <div *ngIf="weatherForecast.recommendations?.length" class="weather-recs">
+                                    <div class="weather-recs-title">Recommandations</div>
+                                    <ul class="weather-recs-list">
+                                        <li *ngFor="let r of weatherForecast.recommendations">{{ r }}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ── /Weather Guard ─────────────────────────────── -->
 
                         <div class="field">
                             <label class="field-label">Capacité spectateurs</label>
@@ -131,58 +233,166 @@
                                 placeholder="Consignes particulières, logistique requise..."></textarea>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Right Col: Summary Panel -->
-                <div style="flex: 1; position: sticky; top: calc(var(--nav-h) + 32px);">
-                    <div class="card card-inset" style="background: var(--layer-1); border: 1px solid var(--border-s);">
+                <!-- ── Right Column (Summary) ────────────────────── -->
+                <div style="flex:1; position:sticky; top:calc(var(--nav-h) + 32px);">
+                    <div class="card card-inset"
+                        style="background:var(--layer-1); border:1px solid var(--border-s);">
                         <div class="mb-16">
-                            <div
-                                style="font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-1); line-height: 1.2;">
+                            <div style="font-family:var(--font-display);font-size:18px;font-weight:700;
+                                        color:var(--text-1);line-height:1.2;">
                                 {{ form.value.titre || 'Titre du match' }}
                             </div>
-                            <div
-                                style="font-size: 13px; color: var(--brand); font-weight: 600; margin-top: 4px; text-transform: uppercase;">
+                            <div style="font-size:13px;color:var(--brand);font-weight:600;
+                                        margin-top:4px;text-transform:uppercase;">
                                 {{ form.value.type || 'TYPE' }}
                             </div>
                         </div>
 
-                        <div class="score-block mb-16" style="border-radius: 12px;">
-                            <div class="score-team" style="padding: 16px 10px;">
-                                <div class="score-team-name" style="margin-bottom:0">{{ form.value.equipe1 || 'Dom.' }}
-                                </div>
+                        <div class="score-block mb-16" style="border-radius:12px;">
+                            <div class="score-team" style="padding:16px 10px;">
+                                <div class="score-team-name" style="margin-bottom:0">
+                                    {{ form.value.equipe1 || 'Dom.' }}</div>
                             </div>
-                            <div class="score-sep" style="padding: 16px 10px;">
+                            <div class="score-sep" style="padding:16px 10px;">
                                 <div class="score-vs">VS</div>
                             </div>
-                            <div class="score-team" style="padding: 16px 10px;">
-                                <div class="score-team-name" style="margin-bottom:0">{{ form.value.equipe2 || 'Ext.' }}
-                                </div>
+                            <div class="score-team" style="padding:16px 10px;">
+                                <div class="score-team-name" style="margin-bottom:0">
+                                    {{ form.value.equipe2 || 'Ext.' }}</div>
                             </div>
                         </div>
 
-                        <div class="info-grid" style="gap: 8px 12px;">
+                        <div class="info-grid" style="gap:8px 12px;">
                             <div class="info-key">Date</div>
-                            <div class="info-val t-mono" style="font-size:12px;">{{ form.value.dateDebut ?
-                                (form.value.dateDebut | date:'dd/MM/yy HH:mm') : '—' }}</div>
+                            <div class="info-val t-mono" style="font-size:12px;">
+                                {{ form.value.dateDebut ? (form.value.dateDebut | date:'dd/MM/yy HH:mm') : '—' }}
+                            </div>
                             <div class="info-key">Terrain</div>
-                            <div class="info-val" style="font-size:12.5px;">{{ form.value.terrainId ? 'ID: ' +
-                                form.value.terrainId : 'Non assigné' }}</div>
+                            <div class="info-val" style="font-size:12.5px;">
+                                {{ form.value.terrainId ? 'ID: ' + form.value.terrainId : 'Non assigné' }}
+                            </div>
                             <div class="info-key">Arbitre</div>
-                            <div class="info-val" style="font-size:12.5px;">{{ form.value.arbitre || '—' }}</div>
+                            <div class="info-val" style="font-size:12.5px;">
+                                {{ form.value.arbitre || '—' }}
+                            </div>
                         </div>
 
                         <div class="divider"></div>
 
                         <button type="submit" class="btn btn-primary w-full btn-lg" [disabled]="submitting">
-                            {{ submitting ? 'Enregistrement...' : (isEdit ? 'Confirmer la modification' : 'Créer et
-                            publier') }}
+                            {{ submitting ? 'Enregistrement...' : (isEdit ? 'Confirmer la modification' : 'Créer et publier') }}
                         </button>
-                        <button type="button" routerLink="/matches" class="btn btn-ghost w-full mt-12">Annuler</button>
+                        <button type="button" routerLink="/matches"
+                            class="btn btn-ghost w-full mt-12">Annuler</button>
                     </div>
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     AI MATCHMAKING MODAL
+     ══════════════════════════════════════════════════════════════ -->
+<div class="mm-overlay" *ngIf="showMatchmakingModal" (click)="closeMatchmakingModal()">
+    <div class="mm-modal" (click)="$event.stopPropagation()">
+
+        <!-- Header -->
+        <div class="mm-header">
+            <div>
+                <div class="mm-eyebrow">
+                    <div class="mm-eyebrow-dot"></div>
+                    MatchMakers Copilot · Matchmaking
+                </div>
+                <div class="mm-title">Meilleur adversaire pour {{ form.value.equipe1 }}</div>
+                <div class="mm-subtitle" *ngIf="!matchmakingLoading">
+                    {{ matchmakingSuggestions.length }} suggestions classées par compatibilité
+                </div>
+                <div class="mm-subtitle" *ngIf="matchmakingLoading">
+                    Analyse en cours...
+                </div>
+            </div>
+            <button class="mm-close" (click)="closeMatchmakingModal()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="mm-body">
+
+            <!-- Loading state -->
+            <div class="mm-loading" *ngIf="matchmakingLoading">
+                <div class="mm-orbs">
+                    <div class="mm-orb"></div>
+                    <div class="mm-orb"></div>
+                    <div class="mm-orb"></div>
+                </div>
+                <div class="mm-loading-label">Gemini analyse les équipes disponibles...</div>
+            </div>
+
+            <!-- Error -->
+            <div *ngIf="!matchmakingLoading && matchmakingError"
+                style="text-align:center; padding:40px 0; color:#ef4444; font-size:14px;">
+                {{ matchmakingError }}
+            </div>
+
+            <!-- Results -->
+            <ng-container *ngIf="!matchmakingLoading && matchmakingSuggestions.length > 0">
+
+                <!-- 3 Cards -->
+                <div class="mm-cards">
+                    <div *ngFor="let s of matchmakingSuggestions; let i = index"
+                        class="mm-card"
+                        [class.mm-top]="i === 0"
+                        (click)="applySuggestion(s)">
+
+                        <div class="mm-rank">#{{ i + 1 }}</div>
+
+                        <!-- Score ring -->
+                        <div class="mm-ring-wrap">
+                            <svg viewBox="0 0 36 36">
+                                <circle class="mm-ring-track" cx="18" cy="18" r="15.9155"/>
+                                <circle class="mm-ring-fill" cx="18" cy="18" r="15.9155"
+                                    [attr.stroke]="scoreColor(s.score)"
+                                    [attr.stroke-dasharray]="scoreDash(s.score)"
+                                    stroke-dashoffset="0"/>
+                            </svg>
+                            <div class="mm-ring-value">{{ s.score }}</div>
+                        </div>
+
+                        <div class="mm-team-name">{{ s.teamName }}</div>
+                        <div class="mm-team-reason">{{ s.reason }}</div>
+
+                        <button class="mm-pick-btn" type="button">
+                            Sélectionner
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analysis -->
+                <div class="mm-analysis" *ngIf="matchmakingAnalysis">
+                    <div class="mm-analysis-icon">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="#fff" stroke-width="2.5" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 16v-4M12 8h.01"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);
+                                    text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">
+                            Analyse Copilot
+                        </div>
+                        <div class="mm-analysis-text">{{ matchmakingAnalysis }}</div>
+                    </div>
+                </div>
+
+            </ng-container>
+        </div>
     </div>
 </div>

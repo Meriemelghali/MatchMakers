@@ -205,7 +205,116 @@ input:-webkit-autofill:focus {
 }
 
 .overlay p {
-  font-size: 13px;
   color: #ddd;
   line-height: 1.5;
 }
+
+/* ── MFA Styles ── */
+.mfa-container {
+  text-align: center;
+}
+
+.mfa-container h2 {
+  color: #fff;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.mfa-container .subtitle {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+
+.mfa-code-input {
+  width: 100%;
+  padding: 15px;
+  font-size: 24px !important;
+  text-align: center;
+  letter-spacing: 12px;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  color: #fff;
+  outline: none;
+}
+
+.mfa-code-input:focus {
+  border-color: #ff6a00;
+}
+
+.btn-back {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 13px;
+  margin-top: 20px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-back:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* ── MFA Choice Step ── */
+.mfa-choice-container {
+  text-align: center;
+}
+
+.mfa-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mfa-option-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.mfa-option-card:hover {
+  border-color: #ff6a00;
+  background: #333;
+  transform: translateY(-2px);
+}
+
+.mfa-icon {
+  font-size: 24px;
+}
+
+.mfa-text h3 {
+  color: #fff;
+  font-size: 15px;
+  margin: 0;
+}
+
+.mfa-text p {
+  color: #888;
+  font-size: 12px;
+  margin: 2px 0 0 0;
+}
+
+.qr-code-wrapper {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.qr-code-wrapper img {
+  width: 150px;
+  height: 150px;
+}
+

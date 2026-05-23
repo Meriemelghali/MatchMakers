@@ -1,0 +1,37 @@
+<div class="eval-container animate-fade-in" *ngIf="evaluation && !loading">
+  <div class="card eval-card" [style.border-left]="'4px solid ' + getScoreColor(evaluation.score)">
+    <div class="flex items-center gap-16">
+      <div class="verdict-icon" [style.background]="getScoreColor(evaluation.score) + '22'" [style.color]="getScoreColor(evaluation.score)">
+        <i class="fas" [ngClass]="evaluation.score >= 0.6 ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
+      </div>
+      <div class="flex-grow">
+        <div class="verdict-text">{{ evaluation.verdict }}</div>
+        <div class="raisons-summary">
+          <span *ngFor="let r of evaluation.raisons" class="raison-bullet">{{ r }}</span>
+        </div>
+      </div>
+      <div class="score-percent" [style.color]="getScoreColor(evaluation.score)">
+        {{ (evaluation.score * 100) | number:'1.0-0' }}%
+      </div>
+    </div>
+  </div>
+
+  <!-- Best Alternative Slots -->
+  <div class="best-slots-box mt-16" *ngIf="bestSlots.length > 0 && evaluation.score < 0.8">
+    <div class="t-dim mb-8" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">
+      <i class="fas fa-clock mr-4"></i> Meilleurs créneaux pour ce terrain
+    </div>
+    <div class="slots-grid">
+      <div *ngFor="let slot of bestSlots" class="slot-pill">
+        <span class="slot-time">{{ formatDate(slot.date_heure) }}</span>
+        <span class="slot-rating" [style.color]="getScoreColor(slot.score)">
+          {{ (slot.score * 100) | number:'1.0-0' }}%
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="t-dim p-16 text-center" style="font-size: 12px;">
+  <i class="fas fa-circle-notch fa-spin mr-8"></i> Évaluation de votre choix...
+</div>

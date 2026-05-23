@@ -1,0 +1,150 @@
+.selection-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  padding: 20px;
+}
+
+.selection-card {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  height: 60px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  color: #000000;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+p {
+  color: #666;
+  font-size: 15px;
+}
+
+.roles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.role-item:hover {
+  border-color: #E8500A;
+  background: rgba(232, 80, 10, 0.02);
+  transform: translateX(5px);
+}
+
+.icon-box {
+  width: 50px;
+  height: 50px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  transition: all 0.3s;
+}
+
+.icon-box i {
+  font-size: 20px;
+  color: #333;
+}
+
+.role-item:hover .icon-box {
+  background: #E8500A;
+}
+
+.role-item:hover .icon-box i {
+  color: #ffffff;
+}
+
+.info h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #000000;
+  font-weight: 600;
+}
+
+.info p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+}
+
+.arrow {
+  margin-left: auto;
+  color: #ccc;
+  transition: all 0.3s;
+}
+
+.role-item:hover .arrow {
+  color: #E8500A;
+  transform: translateX(3px);
+}
+
+.footer {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.logout-link {
+  background: none;
+  border: none;
+  color: #E8500A;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.logout-link:hover {
+  background: rgba(232, 80, 10, 0.05);
+}
+
+/* Specific highlight for Admin if present */
+.role-item[data-role*="admin"]:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
