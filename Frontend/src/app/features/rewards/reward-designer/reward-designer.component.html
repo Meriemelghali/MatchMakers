@@ -1,0 +1,159 @@
+<div class="page" *ngIf="!loading && reward as r; else loadingTpl">
+  <div class="container-sm">
+
+    <a [routerLink]="['/rewards', r.id]" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      Retour à la récompense
+    </a>
+
+    <div class="page-head">
+      <div class="page-head-meta">
+        <div class="page-head-eyebrow">Designer</div>
+        <h1 class="page-head-title">Médaille — {{ r.name }}</h1>
+        <div class="page-head-sub">
+          Glisse une image, ajuste, exporte en PNG, puis sauvegarde.
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs mt-12">
+      <a class="tab" [routerLink]="['/rewards', r.id]">Update</a>
+      <a class="tab active" [routerLink]="['/rewards', r.id, 'designer']">Designer</a>
+    </div>
+
+    <div class="grid-2 mt-16">
+      <div class="card-inset">
+        <div class="section-head">
+          <div class="section-title-bar"><span>Canvas</span></div>
+          <span class="tag">512×512</span>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas #canvas class="designer-canvas"></canvas>
+        </div>
+
+        <div class="divider mt-16"></div>
+
+        <div
+          class="dropzone"
+          [class.over]="isOverDrop"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+        >
+          <div class="dz-title">Drag & Drop</div>
+          <div class="dz-sub">Dépose une image (PNG/JPG/SVG) pour la mettre au centre de la médaille.</div>
+          <div class="dz-actions">
+            <label class="btn btn-ghost btn-sm">
+              Choisir un fichier
+              <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden />
+            </label>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="removeImage()">Retirer</button>
+            <button class="btn btn-primary btn-sm" type="button" (click)="exportPng()">Exporter PNG</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-inset">
+        <div class="section-head">
+          <div class="section-title-bar"><span>Réglages</span></div>
+        </div>
+
+        <div class="field mt-12">
+          <label class="field-label">Ruban</label>
+          <select class="field-input" [(ngModel)]="ribbonStyle" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}">
+            <option value="CLASSIC">Classic</option>
+            <option value="NONE">Aucun</option>
+          </select>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label class="field-label">Accent</label>
+            <input class="field-input" type="color" [(ngModel)]="accent" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="field">
+            <label class="field-label">Accent 2</label>
+            <input class="field-input" type="color" [(ngModel)]="accent2" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+          </div>
+        </div>
+
+        <div class="form-grid mt-16" *ngIf="ribbonStyle === 'CLASSIC'">
+          <div class="field">
+            <label class="field-label">Ruban gauche</label>
+            <input class="field-input" type="color" [(ngModel)]="ribbonLeft" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+          </div>
+          <div class="field">
+            <label class="field-label">Ruban droit</label>
+            <input class="field-input" type="color" [(ngModel)]="ribbonRight" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+          </div>
+        </div>
+
+        <div class="divider mt-16"></div>
+
+        <div class="field">
+          <label class="field-label">
+            <input type="checkbox" [(ngModel)]="showText" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+            Texte sous la médaille
+          </label>
+        </div>
+
+        <div class="field mt-12" *ngIf="showText">
+          <label class="field-label">Titre</label>
+          <input class="field-input" type="text" [(ngModel)]="title" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+        </div>
+
+        <div class="field mt-12" *ngIf="showText">
+          <label class="field-label">Sous-titre</label>
+          <input class="field-input" type="text" [(ngModel)]="subtitle" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+        </div>
+
+        <div class="divider mt-16"></div>
+
+        <div class="field">
+          <label class="field-label">Zoom image</label>
+          <input class="range" type="range" min="0.4" max="3" step="0.05" [(ngModel)]="imageScale" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+        </div>
+
+        <div class="field mt-12">
+          <label class="field-label">Rotation image (°)</label>
+          <input class="range" type="range" min="-180" max="180" step="1" [(ngModel)]="imageRotateDeg" (ngModelChange)="queueDraw()" [ngModelOptions]="{standalone:true}" />
+        </div>
+
+        <div class="divider mt-16"></div>
+
+        <div class="t-muted" style="font-size:12px;">
+          Le PNG exporté est enregistré dans <code>imageUrl</code> (format <code>data:image/png;base64,...</code>).
+        </div>
+
+        <div class="flex gap-10 mt-14">
+          <button class="btn btn-primary" type="button" (click)="saveToReward()" [disabled]="saving || !exportUrl">
+            <span *ngIf="!saving">Save design</span>
+            <span *ngIf="saving">Saving…</span>
+          </button>
+          <a class="btn btn-ghost" [routerLink]="['/rewards', r.id]">Retour</a>
+        </div>
+
+        <div class="preview mt-16" *ngIf="exportUrl">
+          <div class="preview-title">Aperçu export</div>
+          <img class="preview-img" [src]="exportUrl" alt="Aperçu PNG" />
+        </div>
+
+        <div class="alert alert-err mt-16" *ngIf="error">{{ error }}</div>
+        <div class="alert alert-info mt-16" *ngIf="success">{{ success }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="page">
+    <div class="container-sm">
+      <div class="loader">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+</ng-template>
