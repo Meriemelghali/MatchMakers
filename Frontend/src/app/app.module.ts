@@ -41,7 +41,7 @@ import { CoachChatbotComponent } from './features/coach-chatbot/coach-chatbot.co
     AvatarEditorComponent,
     CoachChatbotComponent
   ],
-  
+
   imports: [
     BrowserModule,
     AppRoutingModule,

@@ -1,0 +1,42 @@
+
+Initial Chunk Files                                                           | Names                                     |  Raw Size
+vendor.js                                                                     | vendor                                    |   2.57 MB |
+main.js                                                                       | main                                      | 618.91 kB |
+polyfills.js                                                                  | polyfills                                 | 252.54 kB |
+styles.css, styles.js                                                         | styles                                    | 190.80 kB |
+runtime.js                                                                    | runtime                                   |  12.63 kB |
+
+| Initial Total                             |   3.62 MB
+
+Lazy Chunk Files                                                              | Names                                     |  Raw Size
+src_app_terrains_terrains_module_ts.js                                        | terrains-terrains-module                  |   1.69 MB |
+src_app_features_events_events_module_ts.js                                   | features-events-events-module             |   1.55 MB |
+default-node_modules_chart_js_dist_chart_js.js                                | features-teams-teams-module               | 491.01 kB |
+src_app_features_products_products_module_ts.js                               | features-products-products-module         | 427.15 kB |
+src_app_features_backoffice_backoffice_module_ts.js                           | features-backoffice-backoffice-module     | 295.88 kB |
+src_app_features_social_social_module_ts.js                                   | features-social-social-module             | 240.26 kB |
+src_app_matches_matches_module_ts.js                                          | matches-matches-module                    | 221.21 kB |
+src_app_features_clubs_clubs_module_ts.js                                     | features-clubs-clubs-module               | 183.31 kB |
+src_app_features_reservations_reservations_module_ts.js                       | features-reservations-reservations-module | 148.44 kB |
+src_app_features_teams_teams_module_ts.js                                     | features-teams-teams-module               | 144.54 kB |
+src_app_features_rewards_rewards_module_ts.js                                 | features-rewards-rewards-module           |  97.53 kB |
+src_app_features_leaderboard_leaderboard_module_ts.js                         | features-leaderboard-leaderboard-module   |  91.47 kB |
+default-src_app_features_products_product-admin_product-admin_component_ts.js | features-products-products-module         |  69.41 kB |
+common.js                                                                     | common                                    |  34.68 kB |
+src_app_features_reclamations_reclamations_module_ts.js                       | features-reclamations-reclamations-module |  25.15 kB |
+
+Build at: 2026-05-16T20:36:00.278Z - Hash: 30c2c32bc3bf04c2 - Time: 20110835ms
+
+** Angular Live Development Server is listening on 127.0.0.1:4200, open your browser on http://127.0.0.1:4200/ **
+
+
+× Failed to compile.
+
+Initial Chunk Files | Names   | Raw Size
+runtime.js          | runtime | 12.63 kB |
+
+19 unchanged chunks
+
+Build at: 2026-05-16T20:36:04.119Z - Hash: 17aa3248f1b8e858 - Time: 2939ms
+
+× Failed to compile.

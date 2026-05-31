@@ -1,0 +1,1276 @@
+- Generating browser application bundles (phase: setup)...
+✔ Browser application bundle generation complete.
+
+Warning: src/app/features/backoffice/roles/role-list/role-list.component.html:71:64 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+71                 <span class="badge-count">{{ role.permissions?.length || 0 }} permissions</span>
+                                                                  ~~~~~~
+
+  src/app/features/backoffice/roles/role-list/role-list.component.ts:8:16
+    8   templateUrl: './role-list.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RoleListComponent.
+
+
+Warning: src/app/features/backoffice/sports/sport-list/sport-list.component.html:81:47 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+81                     {{ sport.sportCategories?.length || 0 }} catégories
+                                                 ~~~~~~
+
+  src/app/features/backoffice/sports/sport-list/sport-list.component.ts:8:16
+    8   templateUrl: './sport-list.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component SportListComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:135:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+135                     <span class="stat-value">{{ teamStats[team.id!]?.winRate || 0 | number:'1.0-0' }}%</span>
+                                                                         ~~~~~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:142:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+142                     <span class="stat-value">{{ teamStats[team.id!]?.won || 0 }} Victoires</span>
+                                                                         ~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:149:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+149                     <span class="stat-value">{{ teamStats[team.id!]?.played || 0 }} Matchs</span>
+                                                                         ~~~~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/products/product-detail/product-detail.component.html:167:34 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+167                   {{ r.userName?.charAt(0)?.toUpperCase() }}
+                                     ~~~~~~
+
+  src/app/features/products/product-detail/product-detail.component.ts:10:16
+    10   templateUrl: './product-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ProductDetailComponent.
+
+
+Warning: src/app/features/products/product-order/product-order.component.html:190:28 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+190           {{ availability?.message }}
+                               ~~~~~~~
+
+  src/app/features/products/product-order/product-order.component.ts:20:16
+    20   templateUrl: './product-order.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ProductOrderComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:14:48 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+14         <h1 class="page-head-title">{{ reward?.name }}</h1>
+                                                  ~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:16:22 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ reward?.type }} • attribuée le {{ reward?.dateAwarded | date:'dd MMM yyyy' }}
+                        ~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:16:56 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ reward?.type }} • attribuée le {{ reward?.dateAwarded | date:'dd MMM yyyy' }}
+                                                          ~~~~~~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:17:54 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+17           <span *ngIf="reward?.rarity"> • {{ reward?.rarity }}</span>
+                                                        ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:18:54 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18           <span *ngIf="reward?.status"> • {{ reward?.status }}</span>
+                                                        ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:19:95 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+19           <span *ngIf="reward?.points !== undefined && reward?.points !== null"> • {{ reward?.points }} pts</span>
+                                                                                                 ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:14:46 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+14         <h1 class="page-head-title">{{ team?.name }}</h1>
+                                                ~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:16:20 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ team?.sport }} • {{ membersCount() }} joueur(s)
+                      ~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:54:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+54             <div class="info-val">{{ team?.sport }}</div>
+                                              ~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:57:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+57             <div class="info-val">{{ team?.createdAt | date:'dd MMM yyyy' }}</div>
+                                              ~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:63:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+63             <div class="info-val">{{ team?.city || '—' }}</div>
+                                              ~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:66:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+66             <div class="info-val">{{ team?.country || '—' }}</div>
+                                              ~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:69:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+69             <div class="info-val">{{ team?.foundedYear || '—' }}</div>
+                                              ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:72:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+72             <div class="info-val">{{ team?.coachName || '—' }}</div>
+                                              ~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:75:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+75             <div class="info-val">{{ team?.homeStadium || '—' }}</div>
+                                              ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:78:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+78             <div class="info-val">{{ team?.websiteUrl || '—' }}</div>
+                                              ~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:81:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+81             <div class="info-val">{{ team?.contactEmail || '—' }}</div>
+                                              ~~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:84:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+84             <div class="info-val">{{ team?.contactPhone || '—' }}</div>
+                                              ~~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:87:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+87             <div class="info-val">{{ team?.isPublic ? 'Oui' : 'Non' }}</div>
+                                              ~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:91:22 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+91             {{ team?.description || 'Aucune description pour cette équipe.' }}
+                        ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:18:64 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18                     <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
+                                                                  ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:18:91 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18                     <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
+                                                                                             ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:19:34 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+19                         terrain?.typeSurface?.replace('_', ' ') : '' }}</div>
+                                    ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:21:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+21                         {{ terrain?.nom }}</h1>
+                                       ~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:23:74 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+23                         <span class="badge" [class]="'badge-' + terrain?.statut?.toLowerCase()">{{ terrain?.statut
+                                                                            ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:23:109 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+23                         <span class="badge" [class]="'badge-' + terrain?.statut?.toLowerCase()">{{ terrain?.statut
+                                                                                                               ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:25:67 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+25                         <span class="t-muted text-sm">{{ terrain?.adresse }}, {{ terrain?.ville }}</span>
+                                                                     ~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:25:91 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+25                         <span class="t-muted text-sm">{{ terrain?.adresse }}, {{ terrain?.ville }}</span>
+                                                                                             ~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:30:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+30                     <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="btn btn-secondary"
+                                                               ~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:50:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+50                         {{ terrain?.prixParHeure | number:'1.0-2' }} <span
+                                       ~~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:58:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+58                         {{ terrain?.capacite || '—' }}</div>
+                                       ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:71:49 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+71                         [style.color]="terrain?.statut === 'DISPONIBLE' ? 'var(--green)' : 'var(--red)'">
+                                                   ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:72:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+72                         {{ terrain?.statut === 'DISPONIBLE' ? 'Maint. Ouvert' : 'Temporairement Fermé' }}
+                                       ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:92:57 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+92                 <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="stadium-3d-edit-btn">
+                                                           ~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:103:39 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+103                 [sportType]="terrain?.typeSport!"
+                                          ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:104:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+104                 [surface]="terrain?.typeSurface! || 'GAZON_NATUREL'"
+                                        ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:105:29 - warning NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed.
+
+105                 [capacite]="terrain?.capacite! ?? null"
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:105:38 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+105                 [capacite]="terrain?.capacite! ?? null"
+                                         ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:106:39 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+106                 [eclairage]="terrain?.eclairage!">
+                                          ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:265:59 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+265                             [class.btn-primary]="terrain?.statut === s" [class.btn-secondary]="terrain?.statut !== s"
+                                                              ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:265:105 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+265                             [class.btn-primary]="terrain?.statut === s" [class.btn-secondary]="terrain?.statut !== s"
+                                                                                                            ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:282:102 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+282                         <div class="info-val" style="font-weight: 500; font-size: 13px;">{{ terrain?.contact || '—' }}
+                                                                                                         ~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:286:93 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+286                         <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.latitude || '—' }}</div>
+                                                                                                ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:289:93 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+289                         <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.longitude || '—' }}</div>
+                                                                                                ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:310:38 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+310                             terrain?.description }}</p>
+                                         ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-list/terrain-list.component.html:77:106 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+77                         <span class="t-muted" style="font-size:11.5px">{{ t.typeSurface ? t.typeSurface?.replace('_', ' ') : '' }}</span>
+                                                                                                            ~~~~~~~
+
+  src/app/terrains/terrain-list/terrain-list.component.ts:11:18
+    11     templateUrl: './terrain-list.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainListComponent.
+
+
+Warning: D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\features\events\event-form\event-form.component.ts depends on 'leaflet'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.io/guide/build#configuring-commonjs-dependencies
+
+
+
+./src/app/core/services/websocket-service/websocket.service.ts:1:0-40 - Error: Module not found: Error: Can't resolve 'sockjs-client' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\core\services\websocket-service'
+
+./src/app/core/services/websocket-service/websocket.service.ts:2:0-40 - Error: Module not found: Error: Can't resolve '@stomp/stompjs' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\core\services\websocket-service'
+
+./src/app/features/products/services/payment.service.ts:1:0-47 - Error: Module not found: Error: Can't resolve '@stripe/stripe-js' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\features\products\services'
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:3:40 - error TS2307: Cannot find module '@stomp/stompjs' or its corresponding type declarations.
+
+3 import { Client, Message, Stomp } from '@stomp/stompjs';
+                                         ~~~~~~~~~~~~~~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:24:15 - error TS7006: Parameter 'str' implicitly has an 'any' type.
+
+24       debug: (str) => {
+                 ~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:32:35 - error TS7006: Parameter 'frame' implicitly has an 'any' type.
+
+32     this.stompClient.onConnect = (frame) => {
+                                     ~~~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:36:38 - error TS7006: Parameter 'frame' implicitly has an 'any' type.
+
+36     this.stompClient.onStompError = (frame) => {
+                                        ~~~~~
+
+
+Error: src/app/features/products/product-payment/product-payment.component.ts:5:59 - error TS2307: Cannot find module '@stripe/stripe-js' or its corresponding type declarations.
+
+5 import { Stripe, StripeCardElement, StripeElements } from '@stripe/stripe-js';
+                                                            ~~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/products/services/payment.service.ts:4:36 - error TS2307: Cannot find module '@stripe/stripe-js' or its corresponding type declarations.
+
+4 import { loadStripe, Stripe } from '@stripe/stripe-js';
+                                     ~~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/social/services/ai-generation.service.ts:16:46 - error TS2339: Property 'postgenerationkey' does not exist on type '{ production: boolean; userServiceUrl: string; reclamationServiceUrl: string; sportServiceUrl: string; clubServiceUrl: string; eventServiceUrl: string; matchServiceUrl: string; socialServiceUrl: string; ... 7 more ...; openRouterUrl: string; }'.
+
+16       'Authorization': `Bearer ${environment.postgenerationkey}`,
+                                                ~~~~~~~~~~~~~~~~~
+
+
+
+✔ Browser application bundle generation complete.
+
+Warning: src/app/features/backoffice/roles/role-list/role-list.component.html:71:64 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+71                 <span class="badge-count">{{ role.permissions?.length || 0 }} permissions</span>
+                                                                  ~~~~~~
+
+  src/app/features/backoffice/roles/role-list/role-list.component.ts:8:16
+    8   templateUrl: './role-list.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RoleListComponent.
+
+
+Warning: src/app/features/backoffice/sports/sport-list/sport-list.component.html:81:47 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+81                     {{ sport.sportCategories?.length || 0 }} catégories
+                                                 ~~~~~~
+
+  src/app/features/backoffice/sports/sport-list/sport-list.component.ts:8:16
+    8   templateUrl: './sport-list.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component SportListComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:135:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+135                     <span class="stat-value">{{ teamStats[team.id!]?.winRate || 0 | number:'1.0-0' }}%</span>
+                                                                         ~~~~~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:142:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+142                     <span class="stat-value">{{ teamStats[team.id!]?.won || 0 }} Victoires</span>
+                                                                         ~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/clubs/club-detail/club-detail.component.html:149:70 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+149                     <span class="stat-value">{{ teamStats[team.id!]?.played || 0 }} Matchs</span>
+                                                                         ~~~~~~
+
+  src/app/features/clubs/club-detail/club-detail.component.ts:13:16
+    13   templateUrl: './club-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ClubDetailComponent.
+
+
+Warning: src/app/features/products/product-detail/product-detail.component.html:167:34 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+167                   {{ r.userName?.charAt(0)?.toUpperCase() }}
+                                     ~~~~~~
+
+  src/app/features/products/product-detail/product-detail.component.ts:10:16
+    10   templateUrl: './product-detail.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ProductDetailComponent.
+
+
+Warning: src/app/features/products/product-order/product-order.component.html:190:28 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+190           {{ availability?.message }}
+                               ~~~~~~~
+
+  src/app/features/products/product-order/product-order.component.ts:20:16
+    20   templateUrl: './product-order.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component ProductOrderComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:14:48 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+14         <h1 class="page-head-title">{{ reward?.name }}</h1>
+                                                  ~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:16:22 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ reward?.type }} • attribuée le {{ reward?.dateAwarded | date:'dd MMM yyyy' }}
+                        ~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:16:56 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ reward?.type }} • attribuée le {{ reward?.dateAwarded | date:'dd MMM yyyy' }}
+                                                          ~~~~~~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:17:54 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+17           <span *ngIf="reward?.rarity"> • {{ reward?.rarity }}</span>
+                                                        ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:18:54 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18           <span *ngIf="reward?.status"> • {{ reward?.status }}</span>
+                                                        ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/rewards/reward-details/reward-details.component.html:19:95 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+19           <span *ngIf="reward?.points !== undefined && reward?.points !== null"> • {{ reward?.points }} pts</span>
+                                                                                                 ~~~~~~
+
+  src/app/features/rewards/reward-details/reward-details.component.ts:8:16
+    8   templateUrl: './reward-details.component.html',
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component RewardDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:14:46 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+14         <h1 class="page-head-title">{{ team?.name }}</h1>
+                                                ~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:16:20 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+16           {{ team?.sport }} • {{ membersCount() }} joueur(s)
+                      ~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:54:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+54             <div class="info-val">{{ team?.sport }}</div>
+                                              ~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:57:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+57             <div class="info-val">{{ team?.createdAt | date:'dd MMM yyyy' }}</div>
+                                              ~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:63:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+63             <div class="info-val">{{ team?.city || '—' }}</div>
+                                              ~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:66:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+66             <div class="info-val">{{ team?.country || '—' }}</div>
+                                              ~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:69:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+69             <div class="info-val">{{ team?.foundedYear || '—' }}</div>
+                                              ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:72:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+72             <div class="info-val">{{ team?.coachName || '—' }}</div>
+                                              ~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:75:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+75             <div class="info-val">{{ team?.homeStadium || '—' }}</div>
+                                              ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:78:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+78             <div class="info-val">{{ team?.websiteUrl || '—' }}</div>
+                                              ~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:81:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+81             <div class="info-val">{{ team?.contactEmail || '—' }}</div>
+                                              ~~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:84:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+84             <div class="info-val">{{ team?.contactPhone || '—' }}</div>
+                                              ~~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:87:44 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+87             <div class="info-val">{{ team?.isPublic ? 'Oui' : 'Non' }}</div>
+                                              ~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/features/teams/team-details/team-details.component.html:91:22 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+91             {{ team?.description || 'Aucune description pour cette équipe.' }}
+                        ~~~~~~~~~~~
+
+  src/app/features/teams/team-details/team-details.component.ts:12:16
+    12   templateUrl: './team-details.component.html',
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TeamDetailsComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:18:64 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18                     <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
+                                                                  ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:18:91 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+18                     <div class="page-head-eyebrow">{{ terrain?.typeSport }} • {{ terrain?.typeSurface ?
+                                                                                             ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:19:34 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+19                         terrain?.typeSurface?.replace('_', ' ') : '' }}</div>
+                                    ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:21:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+21                         {{ terrain?.nom }}</h1>
+                                       ~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:23:74 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+23                         <span class="badge" [class]="'badge-' + terrain?.statut?.toLowerCase()">{{ terrain?.statut
+                                                                            ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:23:109 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+23                         <span class="badge" [class]="'badge-' + terrain?.statut?.toLowerCase()">{{ terrain?.statut
+                                                                                                               ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:25:67 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+25                         <span class="t-muted text-sm">{{ terrain?.adresse }}, {{ terrain?.ville }}</span>
+                                                                     ~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:25:91 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+25                         <span class="t-muted text-sm">{{ terrain?.adresse }}, {{ terrain?.ville }}</span>
+                                                                                             ~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:30:61 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+30                     <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="btn btn-secondary"
+                                                               ~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:50:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+50                         {{ terrain?.prixParHeure | number:'1.0-2' }} <span
+                                       ~~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:58:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+58                         {{ terrain?.capacite || '—' }}</div>
+                                       ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:71:49 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+71                         [style.color]="terrain?.statut === 'DISPONIBLE' ? 'var(--green)' : 'var(--red)'">
+                                                   ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:72:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+72                         {{ terrain?.statut === 'DISPONIBLE' ? 'Maint. Ouvert' : 'Temporairement Fermé' }}
+                                       ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:92:57 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+92                 <a [routerLink]="['/terrains', terrain?.id, 'edit']" class="stadium-3d-edit-btn">
+                                                           ~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:103:39 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+103                 [sportType]="terrain?.typeSport!"
+                                          ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:104:37 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+104                 [surface]="terrain?.typeSurface! || 'GAZON_NATUREL'"
+                                        ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:105:29 - warning NG8102: The left side of this nullish coalescing operation does not include 'null' or 'undefined' in its type, therefore the '??' operator can be safely removed.
+
+105                 [capacite]="terrain?.capacite! ?? null"
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:105:38 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+105                 [capacite]="terrain?.capacite! ?? null"
+                                         ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:106:39 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+106                 [eclairage]="terrain?.eclairage!">
+                                          ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:265:59 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+265                             [class.btn-primary]="terrain?.statut === s" [class.btn-secondary]="terrain?.statut !== s"
+                                                              ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:265:105 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+265                             [class.btn-primary]="terrain?.statut === s" [class.btn-secondary]="terrain?.statut !== s"
+                                                                                                            ~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:282:102 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+282                         <div class="info-val" style="font-weight: 500; font-size: 13px;">{{ terrain?.contact || '—' }}
+                                                                                                         ~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:286:93 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+286                         <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.latitude || '—' }}</div>
+                                                                                                ~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:289:93 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+289                         <div class="info-val t-mono" style="font-size: 12.5px;">{{ terrain?.longitude || '—' }}</div>
+                                                                                                ~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-detail/terrain-detail.component.html:310:38 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+310                             terrain?.description }}</p>
+                                         ~~~~~~~~~~~
+
+  src/app/terrains/terrain-detail/terrain-detail.component.ts:12:18
+    12     templateUrl: './terrain-detail.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainDetailComponent.
+
+
+Warning: src/app/terrains/terrain-list/terrain-list.component.html:77:106 - warning NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.
+
+77                         <span class="t-muted" style="font-size:11.5px">{{ t.typeSurface ? t.typeSurface?.replace('_', ' ') : '' }}</span>
+                                                                                                            ~~~~~~~
+
+  src/app/terrains/terrain-list/terrain-list.component.ts:11:18
+    11     templateUrl: './terrain-list.component.html',
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Error occurs in the template of component TerrainListComponent.
+
+
+
+
+./src/app/core/services/websocket-service/websocket.service.ts:1:0-40 - Error: Module not found: Error: Can't resolve 'sockjs-client' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\core\services\websocket-service'
+
+./src/app/core/services/websocket-service/websocket.service.ts:2:0-40 - Error: Module not found: Error: Can't resolve '@stomp/stompjs' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\core\services\websocket-service'
+
+./src/app/features/products/services/payment.service.ts:1:0-47 - Error: Module not found: Error: Can't resolve '@stripe/stripe-js' in 'D:\school\3SDE1\PI3C-SDE2-2526\MatchMakers\Frontend\src\app\features\products\services'
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:3:40 - error TS2307: Cannot find module '@stomp/stompjs' or its corresponding type declarations.
+
+3 import { Client, Message, Stomp } from '@stomp/stompjs';
+                                         ~~~~~~~~~~~~~~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:24:15 - error TS7006: Parameter 'str' implicitly has an 'any' type.
+
+24       debug: (str) => {
+                 ~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:32:35 - error TS7006: Parameter 'frame' implicitly has an 'any' type.
+
+32     this.stompClient.onConnect = (frame) => {
+                                     ~~~~~
+
+
+Error: src/app/core/services/websocket-service/websocket.service.ts:36:38 - error TS7006: Parameter 'frame' implicitly has an 'any' type.
+
+36     this.stompClient.onStompError = (frame) => {
+                                        ~~~~~
+
+
+Error: src/app/features/products/product-payment/product-payment.component.ts:5:59 - error TS2307: Cannot find module '@stripe/stripe-js' or its corresponding type declarations.
+
+5 import { Stripe, StripeCardElement, StripeElements } from '@stripe/stripe-js';
+                                                            ~~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/products/services/payment.service.ts:4:36 - error TS2307: Cannot find module '@stripe/stripe-js' or its corresponding type declarations.
+
+4 import { loadStripe, Stripe } from '@stripe/stripe-js';
+                                     ~~~~~~~~~~~~~~~~~~~
+
+
+Error: src/app/features/social/services/ai-generation.service.ts:16:46 - error TS2339: Property 'postgenerationkey' does not exist on type '{ production: boolean; userServiceUrl: string; reclamationServiceUrl: string; sportServiceUrl: string; clubServiceUrl: string; eventServiceUrl: string; matchServiceUrl: string; socialServiceUrl: string; ... 7 more ...; openRouterUrl: string; }'.
+
+16       'Authorization': `Bearer ${environment.postgenerationkey}`,
+                                                ~~~~~~~~~~~~~~~~~
+
+
+

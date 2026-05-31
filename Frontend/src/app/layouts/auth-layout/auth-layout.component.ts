@@ -9,7 +9,7 @@ import { AuthService } from '../../core/services/AuthService/auth.service';
   templateUrl: './auth-layout.component.html',
   styleUrls: ['./auth-layout.component.css']
 })
-export class AuthLayoutComponent implements OnInit, OnDestroy{
+export class AuthLayoutComponent implements OnInit, OnDestroy {
   navOpen = false;
   now = new Date();
   private clockInterval: any;
@@ -58,6 +58,11 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
     },
     {
+      path: '/social/discussions',
+      label: 'Messagerie',
+      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>'
+    },
+    {
       path: '/reclamations',
       label: 'Réclamations',
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>'
@@ -80,6 +85,11 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     {
       path: '/leaderboard',
       label: 'Classement',
+      icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>'
+    },
+    {
+      path: '/products',
+      label: 'Boutique',
       icon: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>'
     },
     {
@@ -136,10 +146,10 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     this.showInspiration = false;
   }
   ngOnDestroy() { clearInterval(this.clockInterval); }
-    loadUserInfo(): void {
+  loadUserInfo(): void {
     const firstName = localStorage.getItem('firstName') || '';
-    const lastName  = localStorage.getItem('lastName')  || '';
-    const email     = localStorage.getItem('userEmail') || '';
+    const lastName = localStorage.getItem('lastName') || '';
+    const email = localStorage.getItem('userEmail') || '';
 
     if (firstName || lastName) {
       this.userName = `${firstName} ${lastName}`.trim();
@@ -165,6 +175,10 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     this.profileOpen = false;
     this.router.navigate(['/login']);
   }
+  myprofile(): void {
+    this.profileOpen = false;
+    this.router.navigate(['/profile']);
+  }
 
   get isAdmin(): boolean {
     const role = this.userRole?.toUpperCase() || '';
@@ -174,8 +188,6 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
   goToBackoffice(): void {
     this.router.navigate(['/admin-choice']);
   }
-
-  myprofile(): void {}
   getDropdownBottom(): string {
     const el = document.querySelector('.profile-card');
     if (el) {
@@ -184,7 +196,6 @@ export class AuthLayoutComponent implements OnInit, OnDestroy{
     }
     return '120px';
   }
-
   isCoachRoute(): boolean {
     return this.router.url.includes('/coach');
   }
