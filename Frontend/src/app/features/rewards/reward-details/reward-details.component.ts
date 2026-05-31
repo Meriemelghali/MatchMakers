@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, Validators } from '@angular/forms';
 import { RewardRarity, RewardService, Reward, RewardStatus, RewardType } from '../services/reward.service';
+import { Team, TeamService } from '../../teams/services/team.service';
 
 @Component({
   selector: 'app-reward-details',
@@ -16,6 +17,12 @@ export class RewardDetailsComponent implements OnInit {
   deleting = false;
   error = '';
   success = '';
+
+  designStyle: 'CALM' | 'PRESTIGE' | 'ENERGY' | 'MINIMAL' = 'CALM';
+
+  teams: Team[] = [];
+  teamsLoading = false;
+  teamsError = '';
 
   types: RewardType[] = [
     'TROPHY',
@@ -43,14 +50,15 @@ export class RewardDetailsComponent implements OnInit {
     username: [''],
     teamId: [''],
     teamName: [''],
-    eventId: ['']
+    eventId: [''],
   });
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private rewardService: RewardService
+    private rewardService: RewardService,
+    private teamService: TeamService
   ) { }
 
   private normalizePayload(raw: any): any {
@@ -64,6 +72,10 @@ export class RewardDetailsComponent implements OnInit {
     const revokedReason =
       status === 'REVOKED' ? ((raw.revokedReason ?? '').trim() || undefined) : undefined;
 
+    const teamId = (raw.teamId ?? '').toString().trim() || undefined;
+    const teamNameFromList = teamId ? (this.teams.find(t => (t.id ?? '').toString() === teamId)?.name ?? '') : '';
+    const teamName = (teamNameFromList || (raw.teamName ?? '').toString()).trim() || undefined;
+
     return {
       ...raw,
       points: Number.isFinite(points) ? points : undefined,
@@ -74,19 +86,56 @@ export class RewardDetailsComponent implements OnInit {
       awardedBy: (raw.awardedBy ?? '').trim() || undefined,
       description: (raw.description ?? '').trim() || undefined,
       username: (raw.username ?? '').trim() || undefined,
-      teamId: (raw.teamId ?? '').trim() || undefined,
-      teamName: (raw.teamName ?? '').trim() || undefined,
+      teamId,
+      teamName,
       eventId: (raw.eventId ?? '').trim() || undefined
     };
   }
 
   ngOnInit(): void {
+    this.loadTeams();
+
+    this.form.controls.teamId.valueChanges.subscribe((teamId) => {
+      const id = (teamId ?? '').toString().trim();
+      if (!id) {
+        this.form.patchValue({ teamName: '' }, { emitEvent: false });
+        return;
+      }
+      const t = this.teams.find(x => (x.id ?? '').toString() === id);
+      if (t?.name) {
+        this.form.patchValue({ teamName: t.name }, { emitEvent: false });
+      }
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.router.navigate(['/rewards']);
       return;
     }
     this.fetch(id);
+  }
+
+  private loadTeams(): void {
+    this.teamsLoading = true;
+    this.teamsError = '';
+    this.teamService.getTeams().subscribe({
+      next: (teams) => {
+        this.teams = (teams ?? []).filter(t => !!t && !!t.name)
+          .sort((a, b) => (a.name ?? '').localeCompare((b.name ?? ''), undefined, { sensitivity: 'base' }));
+        this.teamsLoading = false;
+
+        const currentId = (this.form.controls.teamId.value ?? '').toString().trim();
+        if (currentId) {
+          const t = this.teams.find(x => (x.id ?? '').toString() === currentId);
+          if (t?.name) this.form.patchValue({ teamName: t.name }, { emitEvent: false });
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.teamsError = "Impossible de charger la liste des equipes.";
+        this.teamsLoading = false;
+      }
+    });
   }
 
   private fetch(id: string): void {
@@ -170,5 +219,26 @@ export class RewardDetailsComponent implements OnInit {
         this.error = 'La suppression a échoué.';
       }
     });
+  }
+
+  presetLabel(): string {
+    if (this.designStyle === 'PRESTIGE') return 'Prestige';
+    if (this.designStyle === 'ENERGY') return 'Énergie';
+    if (this.designStyle === 'MINIMAL') return 'Minimal';
+    return 'Calme';
+  }
+
+  presetAccent(): string {
+    if (this.designStyle === 'PRESTIGE') return '#9775FA';
+    if (this.designStyle === 'ENERGY') return '#E8500A';
+    if (this.designStyle === 'MINIMAL') return '#8A95A8';
+    return '#0B7285';
+  }
+
+  presetBg(): string {
+    if (this.designStyle === 'PRESTIGE') return 'radial-gradient(1200px 240px at 20% 10%, rgba(151,117,250,0.22), transparent 60%), rgba(255,255,255,0.02)';
+    if (this.designStyle === 'ENERGY') return 'radial-gradient(1200px 240px at 20% 10%, rgba(232,80,10,0.22), transparent 60%), rgba(255,255,255,0.02)';
+    if (this.designStyle === 'MINIMAL') return 'linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))';
+    return 'radial-gradient(1200px 240px at 20% 10%, rgba(11,114,133,0.22), transparent 60%), rgba(255,255,255,0.02)';
   }
 }

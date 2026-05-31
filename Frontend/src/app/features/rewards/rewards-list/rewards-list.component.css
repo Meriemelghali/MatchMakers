@@ -2,3 +2,60 @@
   /* design global dans styles.css */
 }
 
+.rewards-ai-modal {
+  max-width: 780px;
+}
+
+.ai-ask {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.ai-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 86px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-primary, #F2F4F8);
+  outline: none;
+}
+
+.ai-textarea:focus {
+  border-color: rgba(232, 80, 10, 0.55);
+  box-shadow: 0 0 0 3px rgba(232, 80, 10, 0.12);
+}
+
+.ai-ask-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ai-answer {
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ai-answer-body {
+  margin-top: 8px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  font-size: 13px;
+  color: var(--text-secondary, #8A95A8);
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  max-height: 360px;
+  overflow: auto;
+}
+
+
