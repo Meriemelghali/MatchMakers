@@ -25,5 +25,18 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
 
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    image: matchmakers-frontend:latest
+    container_name: frontend
+    ports:
+      - "4200:4200"
+    restart: unless-stopped
+    depends_on:
+      - reservation-service
+      - social-service
+
 # Si d'autres services ont des Dockerfiles (ex: API Gateway, Eureka, etc.),
 # vous pourrez les ajouter ici plus tard.
