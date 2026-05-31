@@ -193,7 +193,7 @@ Start-Svc "MatchService" (Join-Path $root "Backend\\MatchService")
 Start-Svc "TerrainService" (Join-Path $root "Backend\\TerrainService")
 Start-Svc "ReservationService" (Join-Path $root "Backend\\ReservationService")
 Start-Svc "SocialService" (Join-Path $root "Backend\\SocialService")
-Start-Svc "FinanceService" (Join-Path $root "Backend\\FinanceService")
+Start-Svc "SponsorService" (Join-Path $root "Backend\\SponsorService")
 Start-Svc "ProductService" (Join-Path $root "Backend\\ProductService")
 
 # Wait a bit for ports to open
@@ -208,7 +208,7 @@ $services = @(
   @{ name="terrain"; port=8088 },
   @{ name="reservations"; port=8089 },
   @{ name="social"; port=8090 },
-  @{ name="finance"; port=8091 },
+  @{ name="sponsor"; port=8091 },
   @{ name="products"; port=8092 }
 )
 

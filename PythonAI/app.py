@@ -1463,3 +1463,96 @@ def similar(req: SimilarRequest):
     """
     scored = _compute_similar(req.targetProduct, req.candidates)
     return scored[:req.topK]
+
+ # ───── SPONSOR AI ENDPOINTS ─────
+
+class SponsorDescReq(BaseModel):
+    campaignName: str
+    targetSport: Optional[str] = None
+    targetAudience: Optional[str] = None
+
+class SponsorMatchReq(BaseModel):
+    sponsorName: str
+    sponsorDescription: str
+    eventName: str
+    eventSport: str
+
+class SponsorAnalyzeReq(BaseModel):
+    campaigns: List[dict]  # list of {title, views, clicks, budget}
+
+class SponsorSuggestReq(BaseModel):
+    eventDescription: str
+    eventSport: str
+    sponsors: List[dict] # list of {id, name, description, sport}
+
+async def _call_llm(prompt: str) -> str:
+    # helper for OpenRouter then Ollama
+    if OPENROUTER_API_KEY:
+        try:
+            from openai import OpenAI
+            client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+            resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            ))
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"OpenRouter Error: {e}")
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.post(
+                f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
+                json={"model": OLLAMA_MODEL, "messages": [{"role": "user", "content": prompt}], "stream": False},
+            )
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f"Ollama Error: {e}")
+        return ""
+
+
+@app.post("/api/sponsor-ai/generate-description")
+async def generate_sponsor_description(req: SponsorDescReq):
+    sport = req.targetSport or "tous sports"
+    prompt = f"Rédige une description marketing très accrocheuse (2 phrases max) pour une campagne publicitaire nommée '{req.campaignName}' ciblant le public '{sport}'."
+    res = await _call_llm(prompt)
+    if not res: res = f"Découvrez notre nouvelle campagne {req.campaignName} spécialement conçue pour les passionnés de {sport} !"
+    return {"description": res}
+
+@app.post("/api/sponsor-ai/match-score")
+async def match_score(req: SponsorMatchReq):
+    prompt = f"""
+    Sponsor : {req.sponsorName} ({req.sponsorDescription})
+    Événement : {req.eventName} ({req.eventSport})
+    Donne UNIQUEMENT un score de pertinence entre 0 et 100 pour ce partenariat. Réponds juste par le nombre, rien d'autre.
+    """
+    res = await _call_llm(prompt)
+    score = 50
+    try:
+        import re
+        nums = re.findall(r'\d+', res)
+        if nums: score = min(100, int(nums[0]))
+    except: pass
+    return {"score": score}
+
+@app.post("/api/sponsor-ai/analyze")
+async def analyze_campaigns(req: SponsorAnalyzeReq):
+    stats = "\n".join([f"- {c.get('campaignName', 'Campagne')}: Vues={c.get('views',0)}, Clics={c.get('clicks',0)}" for c in req.campaigns])
+    prompt = f"En tant qu'expert marketing, analyse brièvement ces campagnes et donne 2 recommandations fortes (sans blabla) :\n{stats}"
+    res = await _call_llm(prompt)
+    if not res: res = "1. Augmentez le budget des campagnes avec le meilleur CTR.\n2. Revoyez les visuels des campagnes ayant beaucoup de vues mais peu de clics."
+    return {"analysis": res}
+
+@app.post("/api/sponsor-ai/suggest")
+async def suggest_sponsors(req: SponsorSuggestReq):
+    sponsors_str = "\n".join([f"- {s.get('companyName')} ({s.get('targetSport', 'Général')}): {s.get('description', '')}" for s in req.sponsors])
+    prompt = f"""
+    Événement : {req.eventDescription} ({req.eventSport})
+    Sponsors disponibles :
+    {sponsors_str}
+    Suggère les 2 meilleurs sponsors pour cet événement et explique très brièvement pourquoi.
+    """
+    res = await _call_llm(prompt)
+    if not res: res = "Nous suggérons les sponsors ciblant le même sport que votre événement."
+    return {"suggestion": res}
