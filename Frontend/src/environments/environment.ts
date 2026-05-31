@@ -1,8 +1,5 @@
 export const environment = {
   production: false,
-  userServiceUrl: 'http://localhost:8081',
-  sportServiceUrl: 'http://localhost:8084/sports',
-  eventServiceUrl: 'http://localhost:8083/eventsCompetitions',
   userServiceUrl:    'http://localhost:8081',
   reclamationServiceUrl: 'http://localhost:8082/reclamations/api/reclamations',
   sportServiceUrl:   'http://localhost:8084/sports',
@@ -18,9 +15,8 @@ export const environment = {
   // Use 127.0.0.1 to avoid IPv6 localhost (::1) issues on some Windows setups.
   aiServiceUrl: 'http://127.0.0.1:8001',
   postgenerationkey: '', // User should replace this
-  openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions'
+  openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions',
   productServiceUrl: 'http://localhost:8092/products/api/products',
-  aiServiceUrl: 'http://127.0.0.1:8001',
   // Gemini AI service – matchmaking & match summary. See /GeminiAI for the FastAPI service.
   geminiAiServiceUrl: 'http://127.0.0.1:8002',
   
