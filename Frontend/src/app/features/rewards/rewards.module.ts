@@ -6,12 +6,16 @@ import { SharedModule } from '../../shared/shared.module';
 import { RewardsListComponent } from './rewards-list/rewards-list.component';
 import { CreateRewardComponent } from './create-reward/create-reward.component';
 import { RewardDetailsComponent } from './reward-details/reward-details.component';
+import { RewardsAiGeneratorComponent } from './ai-generator/rewards-ai-generator.component';
+import { RewardDesignerComponent } from './reward-designer/reward-designer.component';
 
 @NgModule({
   declarations: [
     RewardsListComponent,
     CreateRewardComponent,
-    RewardDetailsComponent
+    RewardDetailsComponent,
+    RewardsAiGeneratorComponent,
+    RewardDesignerComponent
   ],
   imports: [
     CommonModule,

@@ -2,3 +2,83 @@
   /* styles globaux hérités du thème */
 }
 
+.reward-design-preview {
+  border-width: 1px;
+}
+
+.design-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.design-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  color: var(--text-primary, #F2F4F8);
+  font-weight: 700;
+}
+
+.design-meta {
+  display: grid;
+  gap: 2px;
+}
+
+.design-bottom {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.design-pill {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.12);
+  display: grid;
+  gap: 2px;
+}
+
+.design-pill-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #F2F4F8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.design-help {
+  margin: 10px 0 0 16px;
+  display: grid;
+  gap: 6px;
+  color: var(--text-secondary, #8A95A8);
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab.active {
+  background: rgba(245, 159, 0, 0.12);
+  border-color: rgba(245, 159, 0, 0.26);
+  color: rgba(255, 255, 255, 0.95);
+}
+
