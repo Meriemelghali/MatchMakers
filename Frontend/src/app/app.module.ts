@@ -1,6 +1,7 @@
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
+import { CommonModule } from '@angular/common'; // Import CommonModule
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { AppRoutingModule } from './app-routing.module';
@@ -21,6 +22,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AiChatbotComponent } from './layouts/ai-chatbot/ai-chatbot.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -35,7 +37,7 @@ import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashbo
     RoleSelectionComponent,
     ProfileComponent,
     AiChatbotComponent,
-    CoachDashboardComponent
+    CoachDashboardComponent,
   ],
 
   imports: [
@@ -44,7 +46,8 @@ import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashbo
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    CommonModule, // Add CommonModule to imports
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

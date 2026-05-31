@@ -26,88 +26,90 @@
           </svg>
           Mes commandes
         </button>
-    
       </div>
     </div>
+
+    <!-- ✅ Bannière sponsor globale -->
+    <app-sponsor-banner></app-sponsor-banner>
 
     <!-- ✅ SECTION RECOMMANDATIONS -->
-<div class="reco-section" *ngIf="recommendations.length > 0">
+    <div class="reco-section" *ngIf="recommendations.length > 0">
 
-  <div class="reco-header">
-    <div class="reco-label-group">
-      <span class="reco-eyebrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" width="11" height="11">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14
-                           18.18 21.02 12 17.77 5.82 21.02
-                           7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
-        IA · Recommandé pour vous
-      </span>
-      <h2 class="reco-title">Sélection du moment</h2>
-    </div>
-    <span class="reco-count-badge">{{ recommendations.length }} produits</span>
-  </div>
-
-  <div class="reco-scroll">
-    <div class="reco-card" *ngFor="let r of recommendations; let i = index"
-         [routerLink]="['/products/detail', r.id]">
-
-      <!-- Badge rang -->
-      <div class="reco-rank"
-           [class.gold]="i === 0"
-           [class.silver]="i === 1"
-           [class.bronze]="i === 2">
-        #{{ i + 1 }}
+      <div class="reco-header">
+        <div class="reco-label-group">
+          <span class="reco-eyebrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" width="11" height="11">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14
+                               18.18 21.02 12 17.77 5.82 21.02
+                               7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            IA · Recommandé pour vous
+          </span>
+          <h2 class="reco-title">Sélection du moment</h2>
+        </div>
+        <span class="reco-count-badge">{{ recommendations.length }} produits</span>
       </div>
 
-      <!-- Image -->
-      <div class="reco-img">
-        <img *ngIf="r.imageUrl" [src]="r.imageUrl" [alt]="r.name">
-        <div *ngIf="!r.imageUrl" class="reco-img-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="1.5" width="24" height="24">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </div>
-      </div>
+      <div class="reco-scroll">
+        <div class="reco-card" *ngFor="let r of recommendations; let i = index"
+             [routerLink]="['/products/detail', r.id]">
 
-      <!-- Contenu -->
-      <div class="reco-body">
-        <div class="reco-sport-tag">{{ r.sport }}</div>
-        <div class="reco-name">{{ r.name }}</div>
-
-        <div class="reco-reason">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" width="10" height="10">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v4l3 3"/>
-          </svg>
-          {{ r.reason }}
-        </div>
-
-        <div class="reco-footer">
-          <div class="reco-price">
-            <span *ngIf="r.type !== 'RENTAL'">{{ r.price | number:'1.0-0' }} TND</span>
-            <span *ngIf="r.type === 'RENTAL'" class="reco-price-rent">
-              {{ r.rentalPricePerHour | number:'1.0-0' }} TND/h
-            </span>
+          <!-- Badge rang -->
+          <div class="reco-rank"
+               [class.gold]="i === 0"
+               [class.silver]="i === 1"
+               [class.bronze]="i === 2">
+            #{{ i + 1 }}
           </div>
-          <div class="reco-score">{{ (r.score * 100) | number:'1.0-0' }}%</div>
-        </div>
 
-        <!-- Barre score -->
-        <div class="reco-bar">
-          <div class="reco-bar-fill" [style.width.%]="r.score * 100"></div>
+          <!-- Image -->
+          <div class="reco-img">
+            <img *ngIf="r.imageUrl" [src]="r.imageUrl" [alt]="r.name">
+            <div *ngIf="!r.imageUrl" class="reco-img-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1.5" width="24" height="24">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Contenu -->
+          <div class="reco-body">
+            <div class="reco-sport-tag">{{ r.sport }}</div>
+            <div class="reco-name">{{ r.name }}</div>
+
+            <div class="reco-reason">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" width="10" height="10">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 8v4l3 3"/>
+              </svg>
+              {{ r.reason }}
+            </div>
+
+            <div class="reco-footer">
+              <div class="reco-price">
+                <span *ngIf="r.type !== 'RENTAL'">{{ r.price | number:'1.0-0' }} TND</span>
+                <span *ngIf="r.type === 'RENTAL'" class="reco-price-rent">
+                  {{ r.rentalPricePerHour | number:'1.0-0' }} TND/h
+                </span>
+              </div>
+              <div class="reco-score">{{ (r.score * 100) | number:'1.0-0' }}%</div>
+            </div>
+
+            <!-- Barre score -->
+            <div class="reco-bar">
+              <div class="reco-bar-fill" [style.width.%]="r.score * 100"></div>
+            </div>
+          </div>
+
         </div>
       </div>
 
     </div>
-  </div>
-
-</div>
 
     <!-- Filtres -->
     <div class="filter-strip">
@@ -199,7 +201,7 @@
             </span>
           </div>
 
-          <!-- ✅ Note moyenne -->
+          <!-- Note moyenne -->
           <div class="product-rating" *ngIf="p.averageRating && p.averageRating > 0"
                style="margin-bottom:8px">
             <app-star-rating
@@ -234,10 +236,8 @@
 
         <!-- Footer actions -->
         <div class="tc-footer" (click)="$event.stopPropagation()">
-
           <div class="flex gap-6">
 
-            <!-- ✅ Voir détails -->
             <a [routerLink]="['/products/detail', p.id]"
                class="btn btn-ghost btn-sm">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
@@ -249,7 +249,6 @@
               Détails
             </a>
 
-            <!-- Commander -->
             <a *ngIf="p.available && p.type !== 'RENTAL'"
                [routerLink]="['/products/order', p.id]"
                class="btn btn-primary btn-sm">
@@ -262,7 +261,6 @@
               Commander
             </a>
 
-            <!-- Louer -->
             <a *ngIf="p.available && p.type !== 'SALE'"
                [routerLink]="['/products/order', p.id]"
                class="btn btn-secondary btn-sm">
@@ -274,14 +272,12 @@
               Louer
             </a>
 
-            <!-- Indisponible -->
             <span *ngIf="!p.available"
                   class="badge badge-unavail" style="font-size:11px">
               Indisponible
             </span>
 
           </div>
-
         </div>
 
       </div>

@@ -1,0 +1,65 @@
+<!-- Rien si pas de campagne -->
+<ng-container *ngIf="!loading && campaigns.length > 0">
+
+  <div class="sponsor-banner-wrap">
+
+    <!-- Bannière principale -->
+    <div class="sponsor-banner"
+         (click)="onBannerClick()"
+         (mouseenter)="onBannerVisible()">
+
+      <!-- Image bannière -->
+      <img *ngIf="current?.bannerUrl"
+           [src]="current!.bannerUrl"
+           [alt]="current!.sponsorName"
+           class="banner-img">
+
+      <!-- Fallback sans image -->
+      <div *ngIf="!current?.bannerUrl" class="banner-fallback">
+        <img *ngIf="current?.sponsorLogoUrl"
+             [src]="current!.sponsorLogoUrl"
+             [alt]="current!.sponsorName"
+             class="banner-logo">
+        <div class="banner-text">
+          <div class="banner-name">{{ current?.sponsorName }}</div>
+          <div class="banner-badge">{{ current?.badge || 'Sponsorisé' }}</div>
+        </div>
+      </div>
+
+      <!-- Badge sponsorisé -->
+      <div class="banner-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="12" height="12">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14
+                           18.18 21.02 12 17.77 5.82 21.02
+                           7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        {{ current?.badge || 'Sponsorisé' }}
+      </div>
+
+      <!-- Flèches navigation (si plusieurs) -->
+      <button *ngIf="campaigns.length > 1"
+              class="banner-arrow banner-arrow-left"
+              (click)="$event.stopPropagation(); goTo((currentIndex - 1 + campaigns.length) % campaigns.length)">
+        ‹
+      </button>
+      <button *ngIf="campaigns.length > 1"
+              class="banner-arrow banner-arrow-right"
+              (click)="$event.stopPropagation(); goTo((currentIndex + 1) % campaigns.length)">
+        ›
+      </button>
+
+    </div>
+
+    <!-- Indicateurs points -->
+    <div class="banner-dots" *ngIf="campaigns.length > 1">
+      <button *ngFor="let c of campaigns; let i = index"
+              class="banner-dot"
+              [class.active]="i === currentIndex"
+              (click)="goTo(i)">
+      </button>
+    </div>
+
+  </div>
+
+</ng-container>

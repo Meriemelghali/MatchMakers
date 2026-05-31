@@ -11,6 +11,7 @@ import { ToastService, ToastMessage } from '../../core/services/toast.service';
 import { AIService, SportInspiration } from '../../core/services/UserService/ai.service';
 import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
+import { Router } from '@angular/router';
 
 export interface AvatarSuggestion {
   id: string;
@@ -65,7 +66,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private aiService: AIService,
     private reclamationService: ReclamationService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router
+
   ) {
     this.initForms();
     this.avatarCreatorUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://demo.readyplayer.me/avatar?frameApi&clearCache=true');
@@ -217,6 +220,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   setTab(tab: string) {
     this.activeTab = tab;
   }
+  goToSponsorProfile() {
+  this.router.navigate(['/sponsor/profile']);
+}
 
   toggleSport(sportName: string) {
     const currentSports = this.profileForm.get('favoriteSports')?.value as string[] || [];
