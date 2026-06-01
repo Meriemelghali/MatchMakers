@@ -39,4 +39,12 @@ public class WebClientConfig {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
+
+    @Bean("aiWebClient")
+    public WebClient aiWebClient() {
+        return WebClient.builder()
+                .baseUrl("http://localhost:8002")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
 }

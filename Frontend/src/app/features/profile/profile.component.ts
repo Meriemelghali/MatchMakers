@@ -11,6 +11,8 @@ import { ToastService, ToastMessage } from '../../core/services/toast.service';
 import { AIService, SportInspiration } from '../../core/services/UserService/ai.service';
 import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
+import { Router } from '@angular/router';
+import { AvatarService } from '../../core/services/UserService/avatar.service';
 
 export interface AvatarSuggestion {
   id: string;
@@ -26,13 +28,14 @@ export interface AvatarSuggestion {
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit {
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
   userProfile?: UserProfile;
   activeTab = 'general';
   sportInspiration?: SportInspiration;
   isLoadingInspiration = false;
+  safeAvatarUrl: SafeResourceUrl | null = null;
   
   availableSports: Sport[] = [];
   
@@ -49,9 +52,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   showAvatarCreator = false;
-  avatarCreatorUrl: SafeResourceUrl;
+  avatarCreatorUrl?: SafeResourceUrl;
   
-  // Suggestion System
   suggestedAvatars: AvatarSuggestion[] = [];
   isCustomMode = false; // Toggle between suggestions and full creator
   showSanctionBanner = false;
@@ -59,7 +61,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private messageHandler = this.handleIframeMessage.bind(this);
 
   constructor(
-    private fb: FormBuilder,
     private profileService: ProfileService,
     private authService: AuthService,
     private sportService: SportService,
@@ -67,10 +68,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private themeService: ThemeService,
     private aiService: AIService,
     private reclamationService: ReclamationService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router,
+    private fb: FormBuilder,
+    private avatarService: AvatarService
   ) {
     this.initForms();
-    this.avatarCreatorUrl = this.sanitizer.bypassSecurityTrustResourceUrl('https://demo.readyplayer.me/avatar?frameApi&clearCache=true');
   }
 
   ngOnInit(): void {
@@ -130,6 +133,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.userProfile = res.profile;
         this.profileForm.patchValue(res.profile);
         
+        if (res.profile.avatar3dUrl) {
+          this.safeAvatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(res.profile.avatar3dUrl);
+        }
+        
         if (res.profile.theme) {
           this.themeService.setTheme(res.profile.theme as ThemeType, true);
         }
@@ -144,7 +151,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading data', err);
+        console.error('Error loading data for ID:', userId);
+        console.error('Full Http Error:', err);
         this.isLoading = false;
         this.toastService.error('Erreur lors du chargement du profil');
       }
@@ -239,6 +247,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   setTab(tab: string) {
     this.activeTab = tab;
   }
+  goToSponsorProfile() {
+  this.router.navigate(['/sponsor/profile']);
+}
 
   toggleSport(sportName: string) {
     const currentSports = this.profileForm.get('favoriteSports')?.value as string[] || [];
@@ -285,7 +296,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- READY PLAYER ME AVATAR ---
+  // --- AVATAR ---
   openAvatarCreator() {
     this.showAvatarCreator = true;
     this.isCustomMode = false;
@@ -299,6 +310,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
     console.log('Modal closing requested');
     this.showAvatarCreator = false;
+  }
+
+  handleIframeMessage(event: MessageEvent) {
+    const data = event.data;
+    try {
+      const json = typeof data === 'string' ? JSON.parse(data) : data;
+      if (json?.source === 'readyplayerme') {
+        if (json.eventName === 'v1.avatar.exported') {
+          this.selectAvatar(json.data.url);
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors for other window messages
+    }
+  }
+
+  switchToCustomMode() {
+    this.isCustomMode = true;
+    const url = this.avatarService.getCustomCreatorUrl();
+    this.avatarCreatorUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   generateAvatarSuggestions() {
@@ -334,37 +365,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
   selectAvatar(url: string) {
     this.profileForm.patchValue({ avatar3dUrl: url });
     this.profileForm.markAsDirty();
+
     if (this.userProfile) {
       this.userProfile.avatar3dUrl = url;
-    }
-    this.toastService.success("Modèle suggéré appliqué ! N'oubliez pas d'enregistrer.");
-    this.closeAvatarCreator();
-  }
-
-  switchToCustomMode() {
-    this.isCustomMode = true;
-  }
-
-  handleIframeMessage(event: MessageEvent) {
-    if (!event.origin.includes('.readyplayer.me') && event.origin !== 'https://readyplayer.me') {
-      return;
+      this.safeAvatarUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     }
 
-    try {
-      const json = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-      if (json?.source !== 'readyplayerme') return;
-
-      if (json.eventName === 'v1.avatar.exported') {
-        const avatarUrl = json.data.url;
-        this.profileForm.patchValue({ avatar3dUrl: avatarUrl });
-        this.profileForm.markAsDirty();
-        if (this.userProfile) {
-          this.userProfile.avatar3dUrl = avatarUrl;
-        }
-        this.closeAvatarCreator();
-        this.toastService.success("Avatar 3D récupéré avec succès ! N'oubliez pas d'enregistrer.");
-      }
-    } catch (e) { }
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.profileService.updateProfile(userId, this.profileForm.getRawValue()).subscribe({
+        next: () => {
+          this.toastService.success('Avatar 3D sauvegardé avec succès !');
+          this.closeAvatarCreator();
+        },
+        error: () => this.toastService.error('Erreur de sauvegarde')
+      });
+    } else {
+      this.closeAvatarCreator();
+    }
   }
 
   getStatusLabel(status: string | undefined): string {

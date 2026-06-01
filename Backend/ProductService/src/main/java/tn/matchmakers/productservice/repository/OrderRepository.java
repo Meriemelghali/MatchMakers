@@ -5,7 +5,6 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import tn.matchmakers.productservice.entity.Order;
 import tn.matchmakers.productservice.entity.OrderStatus;
-import tn.matchmakers.productservice.entity.OrderType;
 import java.time.LocalDateTime;                                    
 import java.util.List;
 

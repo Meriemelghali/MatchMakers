@@ -105,4 +105,12 @@ export class AIService {
     const payload = { sport, eventType, participants };
     return this.http.post<any>(`http://localhost:8083/eventsCompetitions/api/ai/predict-event`, payload);
   }
+
+  generateClubLogo(name: string, desc: string, sports: string[]): Observable<{imageUrl: string}> {
+    const payload = { name, description: desc, sports: sports.join(', ') };
+    return this.http.post<{imageUrl: string}>(
+      'http://localhost:8002/api/ai/generate-logo',
+      payload
+    );
+  }
 }

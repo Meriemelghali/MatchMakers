@@ -25,6 +25,10 @@ public class TeamDto {
     private String contactPhone;
     private Boolean isPublic;
 
+    private Integer energy;
+    private Integer fatigue;
+    private Integer morale;
+
     private List<TeamMemberDto> members;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

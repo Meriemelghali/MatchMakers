@@ -1,0 +1,399 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="list-header">
+    <div class="header-main">
+      <h1>Gestion des Sponsors</h1>
+      <p class="subtitle">Validez et gérez les partenaires de la plateforme</p>
+    </div>
+    <div class="stats-mini">
+      <span class="count">{{ sponsors.length }}</span>
+      <span class="label">Sponsors</span>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="admin-kpis">
+    <div class="kpi-card"
+         *ngFor="let f of filters"
+         (click)="setFilter(f.value)"
+         [class.kpi-active]="activeFilter === f.value">
+      <div class="kpi-label">{{ f.label }}</div>
+      <div class="kpi-value"
+           [class.orange]="f.value === SponsorStatus.PENDING
+                        && countByStatus(SponsorStatus.PENDING) > 0">
+        {{ countByStatus(f.value) }}
+      </div>
+      <div class="kpi-sub">cliquer pour filtrer</div>
+    </div>
+  </div>
+
+  <!-- ALERT -->
+  <div class="alert-err" *ngIf="error">{{ error }}</div>
+
+  <!-- TABLE CARD -->
+  <div class="admin-table-card">
+
+    <div class="admin-table-header">
+      <span class="admin-table-title">
+        Sponsors ({{ filtered.length }})
+      </span>
+      <button class="btn-reset" (click)="load()" [disabled]="loading">
+        <span *ngIf="!loading">↻ Actualiser</span>
+        <span *ngIf="loading">Chargement...</span>
+      </button>
+    </div>
+
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Entreprise</th>
+            <th>Sport ciblé</th>
+            <th>Contact</th>
+            <th>Statut</th>
+            <th>Créé le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr *ngIf="loading">
+            <td colspan="6" class="loading-state">Chargement...</td>
+          </tr>
+
+          <tr *ngIf="!loading && filtered.length === 0">
+            <td colspan="6" class="empty-state">Aucun sponsor trouvé.</td>
+          </tr>
+
+          <tr *ngFor="let s of filtered">
+
+            <!-- Entreprise -->
+            <td>
+              <div class="product-cell">
+                <div class="product-thumb">
+                  <img *ngIf="s.logoUrl"
+                       [src]="s.logoUrl"
+                       [alt]="s.companyName"
+                       style="width:100%;height:100%;
+                              object-fit:cover;border-radius:10px">
+                  <span *ngIf="!s.logoUrl"
+                        style="color:#E8500A;font-size:18px">🏢</span>
+                </div>
+                <div>
+                  <div class="product-name">{{ s.companyName }}</div>
+                  <div class="product-desc">
+                    {{ s.description | slice:0:45 }}
+                    <span *ngIf="(s.description?.length || 0) > 45">...</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Sport -->
+            <td>
+              <span class="role-badge"
+                    style="background:#f0f0f0;color:#444">
+                {{ s.targetSport || 'Tous sports' }}
+              </span>
+            </td>
+
+            <!-- Contact -->
+            <td>
+              <div style="font-size:0.85rem;font-weight:600;color:#000">
+                {{ s.contactEmail }}
+              </div>
+              <div style="font-size:0.75rem;color:#999">
+                {{ s.contactPhone || '' }}
+              </div>
+            </td>
+
+            <!-- Statut -->
+            <td>
+              <span class="status-badge"
+                    [ngClass]="{
+                      'status-active':   s.status === SponsorStatus.ACTIVE,
+                      'status-pending':  s.status === SponsorStatus.PENDING,
+                      'status-rejected': s.status === SponsorStatus.REJECTED,
+                      'status-inactive': s.status === SponsorStatus.INACTIVE
+                    }">
+                {{ statusLabel(s.status) }}
+              </span>
+            </td>
+
+            <!-- Date -->
+            <td style="font-size:0.8rem;color:#666">
+              {{ s.createdAt | date:'dd/MM/yyyy' }}
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <div class="table-actions">
+
+                <button class="btn-action info"
+                        (click)="openDetail(s)"
+                        title="Détail">
+                  <svg width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8"  x2="12"    y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </button>
+
+                <button class="btn-action approve"
+                        *ngIf="s.status === SponsorStatus.PENDING
+                             || s.status === SponsorStatus.INACTIVE"
+                        (click)="approve(s.id)"
+                        title="Approuver">
+                  <svg width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </button>
+
+                <button class="btn-action reject"
+                        *ngIf="s.status === SponsorStatus.PENDING"
+                        (click)="openRejectModal(s.id!)"
+                        title="Rejeter">
+                  <svg width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6"  x2="6"  y2="18"/>
+                    <line x1="6"  y1="6"  x2="18" y2="18"/>
+                  </svg>
+                </button>
+
+                <button class="btn-action deactivate"
+                        *ngIf="s.status === SponsorStatus.ACTIVE"
+                        (click)="deactivate(s.id!)"
+                        title="Désactiver">
+                  <svg width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                  </svg>
+                </button>
+
+                <button class="btn-action delete"
+                        (click)="openDeleteModal(s.id!)"
+                        title="Supprimer">
+                  <svg width="16" height="16" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6
+                             m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REJET -->
+<div class="overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#fdecea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2.5" width="18" height="18">
+            <line x1="18" y1="6"  x2="6"  y2="18"/>
+            <line x1="6"  y1="6"  x2="18" y2="18"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Rejeter la candidature</div>
+          <div class="modal-sub">Le motif sera visible par le sponsor</div>
+        </div>
+      </div>
+      <button style="border:none;background:none;cursor:pointer;
+                     font-size:18px;color:#999"
+              (click)="closeRejectModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field-label"
+             style="display:block;margin-bottom:8px">
+        Motif du rejet *
+      </label>
+      <textarea class="field-input"
+                [(ngModel)]="rejectNote"
+                rows="4"
+                placeholder="Ex: Logo non conforme, secteur non compatible...">
+      </textarea>
+      <div style="font-size:0.75rem;color:#E8500A;
+                  margin-top:6px;font-weight:600"
+           *ngIf="!rejectNote.trim()">
+        Le motif est obligatoire.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeRejectModal()">
+        Annuler
+      </button>
+      <button class="btn-confirm-delete"
+              [disabled]="!rejectNote.trim() || rejectSubmitting"
+              (click)="confirmReject()">
+        {{ rejectSubmitting ? 'Envoi...' : 'Confirmer le rejet' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DÉTAIL -->
+<div class="overlay" *ngIf="showDetailModal" (click)="closeDetail()">
+  <div class="modal" style="max-width:520px"
+       (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon"
+             style="background:#000;border-radius:50%;
+                    width:42px;height:42px;overflow:hidden">
+          <span *ngIf="!detailSponsor?.logoUrl"
+                style="color:#E8500A;font-size:16px">🏢</span>
+          <img *ngIf="detailSponsor?.logoUrl"
+               [src]="detailSponsor!.logoUrl"
+               style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div>
+          <div class="modal-title">{{ detailSponsor?.companyName }}</div>
+          <div class="modal-sub">{{ detailSponsor?.userEmail }}</div>
+        </div>
+      </div>
+      <button style="border:none;background:none;cursor:pointer;
+                     font-size:18px;color:#999"
+              (click)="closeDetail()">✕</button>
+    </div>
+
+    <div class="modal-body" *ngIf="detailSponsor as d">
+
+      <div class="detail-row">
+        <span class="detail-label">Description</span>
+        <span>{{ d.description }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Site web</span>
+        <a *ngIf="d.website" [href]="d.website" target="_blank"
+           style="color:#E8500A;font-weight:700">
+          {{ d.website }}
+        </a>
+        <span *ngIf="!d.website" style="color:#ccc">—</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Email</span>
+        <span>{{ d.contactEmail }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Téléphone</span>
+        <span>{{ d.contactPhone || '—' }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Sport ciblé</span>
+        <span>{{ d.targetSport || 'Tous sports' }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Statut</span>
+        <span class="status-badge"
+              [ngClass]="{
+                'status-active':   d.status === SponsorStatus.ACTIVE,
+                'status-pending':  d.status === SponsorStatus.PENDING,
+                'status-rejected': d.status === SponsorStatus.REJECTED,
+                'status-inactive': d.status === SponsorStatus.INACTIVE
+              }">
+          {{ statusLabel(d.status) }}
+        </span>
+      </div>
+
+      <div class="detail-row" *ngIf="d.adminNote">
+        <span class="detail-label">Note admin</span>
+        <span style="color:#E8500A">{{ d.adminNote }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Créé le</span>
+        <span>{{ d.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+      </div>
+
+      <div class="detail-row" *ngIf="d.approvedAt">
+        <span class="detail-label">Approuvé le</span>
+        <span style="color:#1a7f3c;font-weight:700">
+          {{ d.approvedAt | date:'dd/MM/yyyy à HH:mm' }}
+        </span>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDetail()">Fermer</button>
+      <button class="btn-submit"
+              *ngIf="detailSponsor?.status === SponsorStatus.PENDING"
+              (click)="approve(detailSponsor!.id); closeDetail()">
+        ✓ Approuver
+      </button>
+      <button class="btn-confirm-delete"
+              *ngIf="detailSponsor?.status === SponsorStatus.PENDING"
+              (click)="closeDetail(); openRejectModal(detailSponsor!.id!)">
+        ✕ Rejeter
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL SUPPRESSION                   -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#fdecea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2.5" width="18" height="18">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6
+                     m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Supprimer le sponsor</div>
+          <div class="modal-sub">Cette action est irréversible</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeDeleteModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-warn">
+        Toutes les données de ce sponsor et de ses campagnes 
+        seront définitivement supprimées.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-confirm-delete"
+              [disabled]="deleting"
+              (click)="confirmDelete()">
+        {{ deleting ? 'Suppression...' : 'Oui, supprimer' }}
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -82,10 +82,11 @@ function Start-Svc([string]$name, [string]$dir) {
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting $name ... log: $out" | Out-Host
   $mvn = Get-MavenCmd
+  $jvmArgs = "-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true"
   if ($mvn) {
-    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`""
   } else {
-    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run"
+    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`""
   }
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
@@ -179,6 +180,19 @@ function Start-EventTypeAi() {
     New-Item -ItemType File -Force -Path $sentinel | Out-Null
   }
 
+  $envFile = Join-Path $dir ".env"
+  if (Test-Path $envFile) {
+    Get-Content $envFile | ForEach-Object {
+        $line = $_.Trim()
+      if (-not $line -or $line.StartsWith('#')) { return }
+        $eq = $line.IndexOf('=')
+        if ($eq -lt 1) { return }
+        $key = $line.Substring(0, $eq).Trim()
+        $val = $line.Substring($eq + 1).Trim()
+        if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+    }
+  }
+
   Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $venvPy `
     -ArgumentList "-m","uvicorn","main:app","--host","0.0.0.0","--port","8002" `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
@@ -198,7 +212,7 @@ Start-Svc "MatchService" (Join-Path $root "Backend\\MatchService")
 Start-Svc "TerrainService" (Join-Path $root "Backend\\TerrainService")
 Start-Svc "ReservationService" (Join-Path $root "Backend\\ReservationService")
 Start-Svc "SocialService" (Join-Path $root "Backend\\SocialService")
-Start-Svc "FinanceService" (Join-Path $root "Backend\\FinanceService")
+Start-Svc "SponsorService" (Join-Path $root "Backend\\SponsorService")
 Start-Svc "ProductService" (Join-Path $root "Backend\\ProductService")
 
 # Wait a bit for ports to open
@@ -213,7 +227,7 @@ $services = @(
   @{ name="terrain"; port=8088 },
   @{ name="reservations"; port=8089 },
   @{ name="social"; port=8090 },
-  @{ name="finance"; port=8091 },
+  @{ name="sponsor"; port=8091 },
   @{ name="products"; port=8092 }
 )
 

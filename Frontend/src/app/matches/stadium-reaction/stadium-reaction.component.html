@@ -1,0 +1,44 @@
+<div class="sr-overlay" [class.sr-overlay--on]="visible" (click)="dismiss()">
+
+  <!-- Three.js stadium background -->
+  <canvas #threeCanvas class="sr-canvas sr-canvas--three"></canvas>
+
+  <!-- Particle canvas layer -->
+  <canvas #particleCanvas class="sr-canvas sr-canvas--particles"></canvas>
+
+  <!-- Vignette -->
+  <div class="sr-vignette"></div>
+
+  <!-- Scanline texture overlay -->
+  <div class="sr-scanlines"></div>
+
+  <!-- Central event badge -->
+  <div class="sr-badge"
+       [class.sr-badge--on]="badgeVisible"
+       [style.--accent]="getAccent(currentEvent?.type || '')"
+       (click)="$event.stopPropagation()"
+       *ngIf="currentEvent">
+
+    <!-- Minute chip -->
+    <div class="sr-minute">{{ currentEvent.minute }}'</div>
+
+    <!-- Glow ring behind label -->
+    <div class="sr-glow-ring"></div>
+
+    <!-- Main label -->
+    <div class="sr-label">{{ getLabel(currentEvent.type) }}</div>
+
+    <!-- Score (goals only) -->
+    <div class="sr-score" *ngIf="isGoal(currentEvent.type)">
+      {{ currentScore1 }} &ndash; {{ currentScore2 }}
+    </div>
+
+    <!-- Player + team -->
+    <div class="sr-player" *ngIf="currentEvent.joueur">{{ currentEvent.joueur }}</div>
+    <div class="sr-team"   *ngIf="currentTeam">{{ currentTeam }}</div>
+
+    <!-- Dismiss hint -->
+    <div class="sr-hint">Appuyer pour fermer</div>
+  </div>
+
+</div>

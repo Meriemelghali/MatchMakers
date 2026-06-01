@@ -1,0 +1,278 @@
+/* ═══════════════════════════════════════════════════════════
+   Stadium Reaction – Elite Full-Screen Overlay
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Overlay shell ─────────────────────────────────────────── */
+.sr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.sr-overlay--on {
+  opacity: 1;
+  pointer-events: all;
+  cursor: pointer;
+}
+
+/* ── Canvas layers ─────────────────────────────────────────── */
+.sr-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sr-canvas--particles {
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sr-canvas--three {
+  z-index: 1;
+}
+
+/* ── Atmosphere layers ─────────────────────────────────────── */
+.sr-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: radial-gradient(ellipse at center,
+    transparent 28%,
+    rgba(0,0,0,0.55) 65%,
+    rgba(0,0,0,0.88) 100%
+  );
+  pointer-events: none;
+}
+
+.sr-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 3px,
+    rgba(0,0,0,0.06) 3px,
+    rgba(0,0,0,0.06) 4px
+  );
+  animation: sr-scanlines-scroll 8s linear infinite;
+}
+
+@keyframes sr-scanlines-scroll {
+  from { background-position-y: 0; }
+  to   { background-position-y: 40px; }
+}
+
+/* ── Badge container ───────────────────────────────────────── */
+.sr-badge {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 42px 56px 32px;
+  min-width: 320px;
+  max-width: 520px;
+  text-align: center;
+
+  background: linear-gradient(
+    160deg,
+    rgba(8, 12, 22, 0.82) 0%,
+    rgba(4,  8, 18, 0.90) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.07);
+  border-top: 3px solid var(--accent, #FFD700);
+  border-radius: 20px;
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 40px 80px rgba(0,0,0,0.7),
+    0 0 60px rgba(0,0,0,0.5),
+    0 0 120px rgba(0,0,0,0.3);
+
+  /* Entry: translates up + scales from 0.75 */
+  transform: translateY(-80px) scale(0.75);
+  opacity: 0;
+  transition:
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity   0.4s ease;
+}
+
+.sr-badge--on {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Accent glow behind border-top */
+.sr-badge::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: var(--accent, #FFD700);
+  border-radius: 0 0 4px 4px;
+  filter: blur(8px);
+  opacity: 0.8;
+}
+
+/* ── Minute chip ───────────────────────────────────────────── */
+.sr-minute {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--accent, #FFD700);
+  opacity: 0.85;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+/* ── Glow ring ─────────────────────────────────────────────── */
+.sr-glow-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent, #FFD700) 20%, transparent) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: sr-ring-pulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes sr-ring-pulse {
+  from { opacity: 0.5; transform: translate(-50%, -50%) scale(0.85); }
+  to   { opacity: 1;   transform: translate(-50%, -50%) scale(1.15); }
+}
+
+/* ── Main label ────────────────────────────────────────────── */
+.sr-label {
+  position: relative;
+  font-size: clamp(36px, 7vw, 64px);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow:
+    0 0 20px var(--accent, #FFD700),
+    0 0 50px color-mix(in srgb, var(--accent, #FFD700) 60%, transparent),
+    0 0 90px color-mix(in srgb, var(--accent, #FFD700) 30%, transparent);
+  animation: sr-label-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sr-label-in {
+  from {
+    transform: scale(1.5) translateY(10px);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Glitch flicker on entry */
+.sr-badge--on .sr-label {
+  animation:
+    sr-label-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both,
+    sr-glitch 0.4s steps(1) 0.1s;
+}
+
+@keyframes sr-glitch {
+  0%   { clip-path: inset(0 0 90% 0); transform: scale(1) translateX(-4px); }
+  20%  { clip-path: inset(30% 0 60% 0); transform: scale(1) translateX(4px); }
+  40%  { clip-path: inset(60% 0 30% 0); transform: scale(1) translateX(-2px); }
+  60%  { clip-path: inset(90% 0 0 0); transform: scale(1) translateX(2px); }
+  80%  { clip-path: none; transform: scale(1) translateX(0); }
+  100% { clip-path: none; transform: scale(1) translateX(0); }
+}
+
+/* ── Score ─────────────────────────────────────────────────── */
+.sr-score {
+  font-size: clamp(26px, 5vw, 42px);
+  font-weight: 800;
+  color: var(--accent, #FFD700);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 30px var(--accent, #FFD700);
+  animation: sr-score-in 0.4s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes sr-score-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+.sr-badge::after {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent, #FFD700), transparent);
+  border-radius: 2px;
+  order: 4;
+  opacity: 0.55;
+  margin: 2px 0;
+}
+
+/* ── Player & Team ─────────────────────────────────────────── */
+.sr-player {
+  font-size: clamp(16px, 2.8vw, 22px);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  animation: sr-player-in 0.4s 0.22s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.sr-team {
+  font-size: clamp(11px, 1.5vw, 13px);
+  font-weight: 600;
+  color: var(--accent, #FFD700);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.82;
+  animation: sr-player-in 0.4s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes sr-player-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Dismiss hint ──────────────────────────────────────────── */
+.sr-hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  animation: sr-player-in 0.4s 0.45s ease both;
+}

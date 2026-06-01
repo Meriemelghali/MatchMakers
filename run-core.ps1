@@ -48,7 +48,8 @@ function Stop-PortIfSafe([int]$port) {
 function Start-Svc([string]$name, [string]$dir) {
   $out = Join-Path $logs "$name.log"
   "Starting $name ... log: $out" | Out-Host
-  $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run *>> `"$out`""
+  $jvmArgs = "-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true"
+  $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`" *>> `"$out`""
   Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd | Out-Null
 }
 

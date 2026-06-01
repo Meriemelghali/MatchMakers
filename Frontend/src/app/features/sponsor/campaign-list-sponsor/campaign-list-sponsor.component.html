@@ -1,0 +1,416 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Sponsor · Mes campagnes</div>
+      <h1>Campagnes publicitaires</h1>
+      <p class="page-head-sub">
+        Gérez et suivez vos campagnes sur MatchMakers.
+      </p>
+    </div>
+    <button class="btn-submit" (click)="newCampaign()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" width="15" height="15">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Nouvelle campagne
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-value">{{ campaigns.length }}</div>
+      <div class="kpi-label">Total campagnes</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value orange">{{ activeCount }}</div>
+      <div class="kpi-label">Actives</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ totalViews | number }}</div>
+      <div class="kpi-label">Vues totales</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ totalClicks | number }}</div>
+      <div class="kpi-label">Clics totaux</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value">{{ ctr }}%</div>
+      <div class="kpi-label">Taux de clic</div>
+    </div>
+  </div>
+
+  <!-- Alerte profil manquant -->
+  <div class="alert alert-err" *ngIf="error">{{ error }}</div>
+
+  <!-- Loader -->
+  <div class="spinner-wrap" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div *ngIf="!loading && !error">
+
+    <!-- FILTRES -->
+    <div class="filter-tabs">
+      <button *ngFor="let f of filters"
+              class="filter-tab"
+              [class.active]="activeFilter === f.value"
+              (click)="setFilter(f.value)">
+        {{ f.label }}
+        <span class="filter-count">{{ countByStatus(f.value) }}</span>
+      </button>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state-wrap" *ngIf="filtered.length === 0">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" width="40" height="40">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <div class="empty-title">Aucune campagne</div>
+      <div class="empty-sub">
+        {{ activeFilter === 'ALL'
+          ? 'Créez votre première campagne pour booster votre visibilité.'
+          : 'Aucune campagne avec ce statut.' }}
+      </div>
+      <button class="btn-submit" style="margin-top:16px"
+              *ngIf="activeFilter === 'ALL'"
+              (click)="newCampaign()">
+        Créer une campagne
+      </button>
+    </div>
+
+    <!-- LISTE CAMPAGNES -->
+    <div class="campaign-list" *ngIf="filtered.length > 0">
+      <div class="campaign-card"
+           *ngFor="let c of filtered"
+           (click)="openDetail(c)">
+
+        <!-- Bannière -->
+        <div class="campaign-banner">
+          <img *ngIf="c.bannerUrl" [src]="c.bannerUrl" [alt]="c.campaignName || 'Bannière'">
+          <div *ngIf="!c.bannerUrl" class="campaign-banner-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="1.5" width="28" height="28">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <!-- Statut badge -->
+          <div class="campaign-status-badge"
+               [class.s-active]="c.status === CampaignStatus.ACTIVE"
+               [class.s-pending]="c.status === CampaignStatus.PENDING"
+               [class.s-paused]="c.status === CampaignStatus.PAUSED"
+               [class.s-expired]="c.status === CampaignStatus.EXPIRED"
+               [class.s-cancelled]="c.status === CampaignStatus.CANCELLED">
+            <span class="s-dot"></span>
+            {{ statusLabel(c.status) }}
+          </div>
+        </div>
+
+        <!-- Infos -->
+        <div class="campaign-body">
+
+          <div class="campaign-top">
+            <div>
+              <div class="campaign-name">{{ c.campaignName || 'Campagne sans titre' }}</div>
+              <div class="campaign-meta">
+                <span class="meta-chip">{{ c.target }}</span>
+                <span class="meta-chip">{{ c.position }}</span>
+                <span class="meta-chip badge-chip" *ngIf="c.badge">{{ c.badge }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="campaign-dates">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" width="12" height="12">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+            </svg>
+            {{ c.startDate | date:'dd/MM/yyyy' }} →
+            {{ c.endDate   | date:'dd/MM/yyyy' }}
+          </div>
+
+          <!-- Stats -->
+          <div class="campaign-stats">
+            <div class="stat-item">
+              <div class="stat-val">{{ c.views || 0 | number }}</div>
+              <div class="stat-lbl">Vues</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat-item">
+              <div class="stat-val">{{ c.clicks || 0 | number }}</div>
+              <div class="stat-lbl">Clics</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat-item">
+              <div class="stat-val">
+                {{ c.views ? ((c.clicks || 0) / c.views * 100 | number:'1.1-1') : '0' }}%
+              </div>
+              <div class="stat-lbl">CTR</div>
+            </div>
+          </div>
+
+          <!-- Barre CTR -->
+          <div class="ctr-bar">
+            <div class="ctr-fill"
+                 [style.width.%]="c.views ? ((c.clicks || 0) / c.views * 100) : 0">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer actions -->
+        <div class="campaign-footer" (click)="$event.stopPropagation()">
+
+          <!-- Note admin si rejeté -->
+          <div class="admin-note" *ngIf="c.status === CampaignStatus.CANCELLED && c.adminNote">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" width="11" height="11">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ c.adminNote }}
+          </div>
+
+          <div class="action-row">
+            <!-- Modifier -->
+            <button *ngIf="canEdit(c)"
+                    class="btn-action-sm edit"
+                    (click)="editCampaign(c.id!)"
+                    title="Modifier">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.5" width="13" height="13">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Modifier
+            </button>
+
+            <!-- Pause -->
+            <button *ngIf="canPause(c)"
+                    class="btn-action-sm pause"
+                    (click)="pause(c.id!, $event)"
+                    title="Mettre en pause">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.5" width="13" height="13">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+              Pause
+            </button>
+
+            <!-- Reprendre -->
+            <button *ngIf="canResume(c)"
+                    class="btn-action-sm resume"
+                    (click)="resume(c.id!, $event)"
+                    title="Reprendre">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.5" width="13" height="13">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              Reprendre
+            </button>
+
+            <!-- Supprimer -->
+            <button *ngIf="canDelete(c)"
+                    class="btn-action-sm delete"
+                    (click)="openDeleteModal(c.id!, $event)"
+                    title="Supprimer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2.5" width="13" height="13">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+              </svg>
+              Supprimer
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ══════════ MODAL DÉTAIL ══════════ -->
+<div class="overlay" *ngIf="showDetailModal && selectedCampaign"
+     (click)="closeDetail()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2" width="18" height="18">
+            <rect x="2" y="3" width="20" height="14" rx="2"/>
+            <path d="M8 21h8M12 17v4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">{{ selectedCampaign.campaignName || 'Détail campagne' }}</div>
+          <div class="modal-sub">#{{ selectedCampaign.id }}</div>
+        </div>
+      </div>
+      <button class="btn-icon-close" (click)="closeDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="16" height="16">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Bannière -->
+      <div class="detail-banner" *ngIf="selectedCampaign.bannerUrl">
+        <img [src]="selectedCampaign.bannerUrl" alt="Bannière">
+      </div>
+
+      <!-- Statut + badges -->
+      <div class="detail-badges">
+        <span class="campaign-status-badge"
+              [class.s-active]="selectedCampaign.status === CampaignStatus.ACTIVE"
+              [class.s-pending]="selectedCampaign.status === CampaignStatus.PENDING"
+              [class.s-paused]="selectedCampaign.status === CampaignStatus.PAUSED"
+              [class.s-expired]="selectedCampaign.status === CampaignStatus.EXPIRED"
+              [class.s-cancelled]="selectedCampaign.status === CampaignStatus.CANCELLED">
+          <span class="s-dot"></span>
+          {{ statusLabel(selectedCampaign.status) }}
+        </span>
+        <span class="meta-chip">{{ selectedCampaign.target }}</span>
+        <span class="meta-chip">{{ selectedCampaign.position }}</span>
+        <span class="meta-chip badge-chip" *ngIf="selectedCampaign.badge">
+          {{ selectedCampaign.badge }}
+        </span>
+      </div>
+
+      <!-- Grille infos -->
+      <div class="detail-grid">
+        <div class="detail-block">
+          <div class="detail-block-title">Période</div>
+          <div class="detail-row">
+            <span class="dk">Début</span>
+            <span class="dv">{{ selectedCampaign.startDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dk">Fin</span>
+            <span class="dv">{{ selectedCampaign.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+        <div class="detail-block">
+          <div class="detail-block-title">Performance</div>
+          <div class="detail-row">
+            <span class="dk">Vues</span>
+            <span class="dv">{{ selectedCampaign.views || 0 | number }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dk">Clics</span>
+            <span class="dv">{{ selectedCampaign.clicks || 0 | number }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="dk">CTR</span>
+            <span class="dv">
+              {{ selectedCampaign.views
+                ? ((selectedCampaign.clicks || 0) / selectedCampaign.views * 100 | number:'1.1-1')
+                : '0' }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note admin -->
+      <div class="admin-note"
+           *ngIf="selectedCampaign.status === CampaignStatus.CANCELLED && selectedCampaign.adminNote">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="13" height="13" style="flex-shrink:0">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <strong>Motif du rejet :</strong> {{ selectedCampaign.adminNote }}
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDetail()">Fermer</button>
+      <button *ngIf="canEdit(selectedCampaign)"
+              class="btn-submit"
+              (click)="editCampaign(selectedCampaign.id!); closeDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" width="14" height="14">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Modifier
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ MODAL SUPPRESSION ══════════ -->
+<div class="overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#FCEBEB">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E24B4A"
+               stroke-width="2" width="18" height="18">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Supprimer la campagne</div>
+          <div class="modal-sub">Cette action est irréversible</div>
+        </div>
+      </div>
+      <button class="btn-icon-close" (click)="closeDeleteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="16" height="16">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-warn">
+        Êtes-vous sûr de vouloir supprimer cette campagne ?
+        Toutes les statistiques (vues, clics) seront perdues définitivement.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-submit"
+              style="background:#E24B4A;border-color:#E24B4A"
+              (click)="confirmDelete()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" width="14" height="14">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+        </svg>
+        Oui, supprimer
+      </button>
+    </div>
+
+  </div>
+</div>

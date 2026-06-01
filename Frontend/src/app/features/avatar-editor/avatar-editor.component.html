@@ -1,0 +1,109 @@
+<div class="editor-layout">
+  
+  <!-- Panneau de personnalisation (Gauché) -->
+  <div class="editor-controls">
+    <h4><i class="fas fa-user-cog"></i> Personnalisation</h4>
+
+    <!-- Genre -->
+    <div class="control-section">
+      <label>Genre</label>
+      <div class="btn-group">
+        <button [class.active]="config.gender === 'male'" (click)="setGender('male')">
+          <i class="fas fa-mars"></i> Homme
+        </button>
+        <button [class.active]="config.gender === 'female'" (click)="setGender('female')">
+          <i class="fas fa-venus"></i> Femme
+        </button>
+      </div>
+    </div>
+
+    <!-- Couleur de peau -->
+    <div class="control-section">
+      <label>Teint de peau</label>
+      <div class="color-grid">
+        <button *ngFor="let skin of avatarConfigService.skinColors"
+                class="color-swatch"
+                [class.active]="config.skinColor === skin.value"
+                [style.background]="skin.value"
+                (click)="setSkinColor(skin.value)">
+        </button>
+      </div>
+    </div>
+
+    <!-- Couleur des cheveux -->
+    <div class="control-section">
+      <label>Couleur des cheveux</label>
+      <div class="color-grid">
+        <button *ngFor="let hair of avatarConfigService.hairColors"
+                class="color-swatch"
+                [class.active]="config.hairColor === hair.value"
+                [style.background]="hair.value"
+                (click)="setHairColor(hair.value)">
+        </button>
+      </div>
+    </div>
+
+    <!-- Tenue -->
+    <div class="control-section">
+      <label>Discipline</label>
+      <div class="outfit-grid">
+        <button [class.active]="config.outfit === 'football'" (click)="setOutfit('football')">⚽ Foot</button>
+        <button [class.active]="config.outfit === 'basketball'" (click)="setOutfit('basketball')">🏀 Basket</button>
+        <button [class.active]="config.outfit === 'cycling'" (click)="setOutfit('cycling')">🚲 Vélo</button>
+        <button [class.active]="config.outfit === 'casual'" (click)="setOutfit('casual')">👕 Casual</button>
+      </div>
+    </div>
+
+    <!-- Couleur du maillot -->
+    <div class="control-section">
+      <label>Couleur d'équipe</label>
+      <div class="color-grid">
+        <button class="color-swatch" style="background: #E8500A" (click)="setPrimaryColor('#E8500A')"></button>
+        <button class="color-swatch" style="background: #2D3748" (click)="setPrimaryColor('#2D3748')"></button>
+        <button class="color-swatch" style="background: #3182CE" (click)="setPrimaryColor('#3182CE')"></button>
+        <button class="color-swatch" style="background: #38A169" (click)="setPrimaryColor('#38A169')"></button>
+        <button class="color-swatch" style="background: #E53E3E" (click)="setPrimaryColor('#E53E3E')"></button>
+        <button class="color-swatch" style="background: #FFFFFF" (click)="setPrimaryColor('#FFFFFF')"></button>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="editor-actions">
+      <button class="btn-save" (click)="save()">
+        <i class="fas fa-check"></i> Enregistrer
+      </button>
+    </div>
+  </div>
+
+  <!-- Zone d'aperçu 3D (Droite) -->
+  <div class="editor-preview">
+    <model-viewer
+      #viewer
+      [src]="currentModelUrl"
+      (load)="onModelLoad()"
+      auto-rotate
+      camera-controls
+      touch-action="pan-y"
+      shadow-intensity="1"
+      environment-image="neutral"
+      camera-orbit="0deg 75deg 2m"
+      class="viewer-3d">
+      
+      <!-- Loading Poster -->
+      <div slot="poster" class="loading-poster">
+        <div class="spinner"></div>
+        <p>Chargement de l'athlète...</p>
+      </div>
+    </model-viewer>
+
+    <!-- Accessoire (Ballon / Vélo) -->
+    <div class="prop-overlay" *ngIf="props[config.outfit]">
+      <div class="prop-icon">{{ props[config.outfit] }}</div>
+    </div>
+
+    <div class="preview-overlay">
+      <span class="badge">{{ config.gender === 'male' ? 'Athlète' : 'Athlète' }}</span>
+    </div>
+  </div>
+
+</div>

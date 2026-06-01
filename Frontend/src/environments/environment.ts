@@ -7,7 +7,6 @@ export const environment = {
   matchServiceUrl: 'http://localhost:8087/matchs',
   socialServiceUrl: 'http://localhost:8090/social/api',
   reservationServiceUrl: 'http://localhost:8089/reservations/api/reservations',
-  apiUrl: 'http://localhost:8088/api/v1/auth',
   terrainServiceUrl: 'http://localhost:8088/terrain',
   teamServiceUrl: 'http://localhost:8085/teams/api/teams',
   rewardServiceUrl: 'http://localhost:8086/rewards/api/rewards',

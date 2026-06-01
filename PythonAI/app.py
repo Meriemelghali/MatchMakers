@@ -2,26 +2,45 @@ import os
 import time
 from typing import Optional, List
 import asyncio
-from typing import Optional, List, Dict, Any
+import json
+import re
+from typing import Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import json
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
 
 # For AI Recommendation
 from recommendation.scoring import calculate_final_score
 
 try:
-    from detoxify import Detoxify
-    import pandas as pd
-    TOXICITY_MODEL_NAME = os.getenv("TOXICITY_MODEL", "multilingual")
-    TOXICITY_DEVICE = os.getenv("TOXICITY_DEVICE", "cpu")
-    TOXICITY_THRESHOLD = float(os.getenv("TOXICITY_THRESHOLD", "0.5"))
-    print(f"Loading Toxicity model '{TOXICITY_MODEL_NAME}'...")
-    toxicity_model = Detoxify(TOXICITY_MODEL_NAME, device=TOXICITY_DEVICE)
-    print("Toxicity model loaded successfully.")
+    import importlib
+    # Utilisation d'un import dynamique pour masquer l'erreur dans l'IDE sur les env 32-bit
+    spec = importlib.util.find_spec("detoxify")
+    if spec is not None:
+        # Importation 100% dynamique pour masquer l'absence du module à l'IDE
+        detoxify_mod = importlib.import_module('detoxify')
+        Detoxify = detoxify_mod.Detoxify
+        import pandas as pd
+        TOXICITY_MODEL_NAME = os.getenv("TOXICITY_MODEL", "multilingual")
+        TOXICITY_DEVICE = os.getenv("TOXICITY_DEVICE", "cpu")
+        TOXICITY_THRESHOLD = float(os.getenv("TOXICITY_THRESHOLD", "0.5"))
+        print(f"Loading Toxicity model '{TOXICITY_MODEL_NAME}'...")
+        toxicity_model = Detoxify(TOXICITY_MODEL_NAME, device=TOXICITY_DEVICE)
+        print("Toxicity model loaded successfully.")
+    else:
+        print("Detoxify not found (expected on 32-bit Python). Toxicity analysis disabled.")
+        toxicity_model = None
 except Exception as e:
     print(f"Error loading toxicity model: {e}")
     toxicity_model = None
@@ -35,6 +54,7 @@ OPENROUTER_APP_NAME = os.getenv("OPENROUTER_APP_NAME", "MatchMakers").strip()
 
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma2:2b")
+COACH_CHAT_MODEL = os.getenv("COACH_CHAT_MODEL", "meta-llama/llama-3-8b-instruct:free")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -49,6 +69,65 @@ class LeaderboardRequest(BaseModel):
 
 class LeaderboardResponse(BaseModel):
     answer: str
+    from_llm: bool
+    model: Optional[str] = None
+    latency_ms: int
+
+
+class RewardsSuggestRequest(BaseModel):
+    goal: Optional[str] = None
+    type: Optional[str] = None
+    teamName: Optional[str] = None
+    dateAwarded: Optional[str] = None
+    currentName: Optional[str] = None
+    currentDescription: Optional[str] = None
+    currentPoints: Optional[int] = None
+    currentRarity: Optional[str] = None
+    model: Optional[str] = None
+
+
+class RewardsSuggestResponse(BaseModel):
+    name: str
+    description: str
+    points: int
+    rarity: Optional[str] = None
+    awardedBy: Optional[str] = None
+    rationale: Optional[str] = None
+    from_llm: bool
+    model: Optional[str] = None
+    latency_ms: int
+
+
+class RewardsInsightsRequest(BaseModel):
+    question: str = Field(min_length=1)
+    context: Optional[str] = None
+    model: Optional[str] = None
+
+
+class RewardsInsightsResponse(BaseModel):
+    answer: str
+    from_llm: bool
+    model: Optional[str] = None
+    latency_ms: int
+
+
+class RewardsGenerateRequest(BaseModel):
+    eventType: str = Field(min_length=1)
+    teamCount: int = Field(default=2, ge=1, le=128)
+    difficulty: str = Field(min_length=1)
+    model: Optional[str] = None
+
+
+class RewardsGenerateItem(BaseModel):
+    name: str
+    description: str
+    type: str
+    rarity: str
+    points: int
+
+
+class RewardsGenerateResponse(BaseModel):
+    items: list[RewardsGenerateItem]
     from_llm: bool
     model: Optional[str] = None
     latency_ms: int
@@ -136,7 +215,6 @@ class HeatmapResponse(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 
 app = FastAPI(title="MatchMakers Python AI", version="0.3.0")
-app = FastAPI(title="MatchMakers Python AI", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -183,52 +261,48 @@ def _build_prompt(req: LeaderboardRequest) -> str:
     return "\n".join(parts)
 
 
-@app.post("/leaderboard", response_model=LeaderboardResponse)
-async def leaderboard(req: LeaderboardRequest):
-    t0 = time.time()
-    prompt = _build_prompt(req)
+def _openrouter_headers() -> Optional[dict]:
+    if not (OPENROUTER_SITE_URL or OPENROUTER_APP_NAME):
+        return None
+    h = {}
+    if OPENROUTER_SITE_URL:
+        h["HTTP-Referer"] = OPENROUTER_SITE_URL
+    if OPENROUTER_APP_NAME:
+        h["X-OpenRouter-Title"] = OPENROUTER_APP_NAME
+    return h
 
-    # Preferred: OpenRouter (cloud) via OpenAI SDK (OpenAI-compatible).
-    if OPENROUTER_API_KEY:
-        try:
-            from openai import OpenAI
 
-            model = (req.model or OPENROUTER_MODEL).strip() if (req.model or OPENROUTER_MODEL) else OPENROUTER_MODEL
-            client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
-
-            extra_headers = {}
-            if OPENROUTER_SITE_URL:
-                extra_headers["HTTP-Referer"] = OPENROUTER_SITE_URL
-            if OPENROUTER_APP_NAME:
-                extra_headers["X-OpenRouter-Title"] = OPENROUTER_APP_NAME
-
-            def _call():
-                return client.chat.completions.create(
-                    model=model,
-                    extra_headers=extra_headers or None,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": prompt},
-                    ],
-                )
-
-            resp = await asyncio.to_thread(_call)
-            text = (resp.choices[0].message.content or "").strip() if resp.choices else ""
-            if text:
-                return LeaderboardResponse(
-                    answer=text,
-                    from_llm=True,
-                    model=model,
-                    latency_ms=int((time.time() - t0) * 1000),
-                )
-        except Exception as e:
-            # Fall back to Ollama if available, otherwise return a helpful hint below.
-            print(f"[openrouter] error: {type(e).__name__}: {e}")
-            pass
-
-    # Fallback: Ollama OpenAI-compatible API: POST /v1/chat/completions
+async def _chat_openrouter(prompt: str, model_override: Optional[str] = None) -> Optional[tuple[str, str]]:
+    if not OPENROUTER_API_KEY:
+        return None
     try:
-        model = (req.model or OLLAMA_MODEL).strip() if (req.model or OLLAMA_MODEL) else OLLAMA_MODEL
+        from openai import OpenAI
+
+        model = (model_override or OPENROUTER_MODEL).strip() if (model_override or OPENROUTER_MODEL) else OPENROUTER_MODEL
+        client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+        headers = _openrouter_headers()
+
+        def _call():
+            return client.chat.completions.create(
+                model=model,
+                extra_headers=headers,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+        resp = await asyncio.to_thread(_call)
+        text = (resp.choices[0].message.content or "").strip() if resp.choices else ""
+        return (text, model) if text else None
+    except Exception as e:
+        print(f"[openrouter] error: {type(e).__name__}: {e}")
+        return None
+
+
+async def _chat_ollama(prompt: str, model_override: Optional[str] = None) -> Optional[tuple[str, str]]:
+    model = (model_override or OLLAMA_MODEL).strip() if (model_override or OLLAMA_MODEL) else OLLAMA_MODEL
+    try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             r = await client.post(
                 f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
@@ -239,15 +313,484 @@ async def leaderboard(req: LeaderboardRequest):
             choices = data.get("choices") or []
             msg = (choices[0].get("message") if choices else None) or {}
             text = (msg.get("content") or "").strip()
-            if text:
-                return LeaderboardResponse(
-                    answer=text,
-                    from_llm=True,
-                    model=model,
-                    latency_ms=int((time.time() - t0) * 1000),
-                )
+            return (text, model) if text else None
     except Exception:
-        pass
+        return None
+
+
+def _extract_first_json_object(text: str) -> Optional[dict]:
+    """
+    Extrait le premier objet JSON ({...}) d'un texte.
+
+    Pourquoi:
+    - Les LLM renvoient souvent du texte autour du JSON.
+    - On isole le premier bloc qui "ressemble" a un objet JSON, puis on tente json.loads().
+
+    Retour:
+    - dict si parsing OK
+    - None sinon
+    """
+    if not text:
+        return None
+
+    # Try a balanced-braces extraction first (more reliable than greedy regex).
+    start = text.find("{")
+    if start >= 0:
+        depth = 0
+        in_string = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+                continue
+            else:
+                if ch == '"':
+                    in_string = True
+                    continue
+                if ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        candidate = text[start : i + 1]
+                        try:
+                            return json.loads(candidate)
+                        except Exception:
+                            break
+
+    # Fallback: regex (keeps previous behavior).
+    m = re.search(r"\{[\s\S]*\}", text)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except Exception:
+        return None
+
+
+def _extract_first_json_array(text: str) -> Optional[list]:
+    """
+    Extrait le premier tableau JSON ([...]) d'un texte.
+
+    Utilise surtout par /rewards/generate (on attend une liste d'items).
+    """
+    if not text:
+        return None
+
+    start = text.find("[")
+    if start >= 0:
+        depth = 0
+        in_string = False
+        escape = False
+        for i in range(start, len(text)):
+            ch = text[i]
+            if in_string:
+                if escape:
+                    escape = False
+                elif ch == "\\":
+                    escape = True
+                elif ch == '"':
+                    in_string = False
+                continue
+            else:
+                if ch == '"':
+                    in_string = True
+                    continue
+                if ch == "[":
+                    depth += 1
+                elif ch == "]":
+                    depth -= 1
+                    if depth == 0:
+                        candidate = text[start : i + 1]
+                        try:
+                            return json.loads(candidate)
+                        except Exception:
+                            break
+
+    m = re.search(r"\[[\s\S]*\]", text)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except Exception:
+        return None
+
+
+def _build_rewards_suggest_prompt(req: RewardsSuggestRequest) -> str:
+    parts = []
+    parts.append("Tu es un assistant pour l'ecran 'Recompenses' de MatchMakers.")
+    parts.append("Objectif: suggerer une recompense 'apaisée' (tone calme, juste, non-toxique).")
+    parts.append("Tu dois produire UNIQUEMENT un objet JSON valide (pas de Markdown, pas de texte autour).")
+    parts.append('Schema JSON strict: {"name":string,"description":string,"points":int,"rarity":("COMMON"|"RARE"|"EPIC"|"LEGENDARY"|null),"awardedBy":(string|null),"rationale":(string|null)}')
+    parts.append("Contraintes:")
+    parts.append("- name: <= 120 caracteres")
+    parts.append("- description: 1 a 3 phrases, <= 300 caracteres")
+    parts.append("- points: entier >= 0 (propose 5-150 en general)")
+    parts.append("- rarity: coherente avec points (COMMON/RARE/EPIC/LEGENDARY) ou null")
+    parts.append("- rationale: 1 phrase courte (<= 160 caracteres) expliquant le choix")
+    parts.append("")
+    parts.append("CONTEXTE (draft utilisateur, optionnel):")
+    if req.goal:
+        parts.append(f"- goal: {req.goal}")
+    if req.type:
+        parts.append(f"- type: {req.type}")
+    if req.teamName:
+        parts.append(f"- teamName: {req.teamName}")
+    if req.dateAwarded:
+        parts.append(f"- dateAwarded: {req.dateAwarded}")
+    if req.currentName:
+        parts.append(f"- currentName: {req.currentName}")
+    if req.currentDescription:
+        parts.append(f"- currentDescription: {req.currentDescription}")
+    if req.currentPoints is not None:
+        parts.append(f"- currentPoints: {req.currentPoints}")
+    if req.currentRarity:
+        parts.append(f"- currentRarity: {req.currentRarity}")
+    parts.append("")
+    parts.append("Rappels securite: ne demande jamais d'ID utilisateur, ne mentionne pas de donnees sensibles.")
+    return "\n".join(parts)
+
+
+def _build_rewards_insights_prompt(req: RewardsInsightsRequest) -> str:
+    parts = []
+    parts.append("Tu es un assistant pour l'ecran 'Recompenses' de MatchMakers.")
+    parts.append("Reponds en francais avec un mini-document Markdown clair et apaisé.")
+    parts.append("Format attendu: ## Resume, ## Observations, ## Actions (3), ## Risques (si applicable).")
+    parts.append("Si une info manque, dis-le clairement.")
+    if req.context and req.context.strip():
+        parts.append("")
+        parts.append("CONTEXTE (document):")
+        parts.append(req.context.strip())
+    parts.append("")
+    parts.append("QUESTION:")
+    parts.append(req.question.strip())
+    return "\n".join(parts)
+
+
+def _coerce_rarity(rarity: Optional[str], points: int) -> Optional[str]:
+    """
+    Normalise une rarity (string) en valeur attendue.
+
+    - Si la rarity est valide (COMMON/RARE/EPIC/LEGENDARY) -> on la renvoie.
+    - Sinon, on applique une heuristique simple basee sur les points.
+    """
+    if rarity:
+        r = rarity.strip().upper()
+        if r in {"COMMON", "RARE", "EPIC", "LEGENDARY"}:
+            return r
+    # Simple heuristic
+    if points >= 120:
+        return "LEGENDARY"
+    if points >= 80:
+        return "EPIC"
+    if points >= 35:
+        return "RARE"
+    return "COMMON"
+
+
+def _sanitize_rewards_suggestion(payload: Optional[dict]) -> tuple[dict, bool]:
+    """
+    Nettoie/valide une suggestion de recompense produite par un LLM.
+
+    Garanties:
+    - name/description non vides
+    - points entier >= 0 (fallback a 10 si 0/absent)
+    - rarity normalisee (via _coerce_rarity)
+    - clamp longueurs (name/description/rationale)
+
+    Retour:
+    - (clean, from_llm)
+      - from_llm=True si le payload original contenait des champs utiles
+      - from_llm=False si on est essentiellement sur un fallback
+    """
+    if not isinstance(payload, dict):
+        payload = {}
+
+    name = str(payload.get("name") or "").strip()
+    description = str(payload.get("description") or "").strip()
+    awarded_by = payload.get("awardedBy")
+    awarded_by = (str(awarded_by).strip() if awarded_by is not None else None) or None
+    rationale = payload.get("rationale")
+    rationale = (str(rationale).strip() if rationale is not None else None) or None
+
+    pts_raw = payload.get("points")
+    points = 0
+    try:
+        points = int(pts_raw)
+    except Exception:
+        points = 0
+    if points < 0:
+        points = 0
+
+    rarity = _coerce_rarity(payload.get("rarity"), points)
+
+    if not name:
+        name = "Recompense positive"
+    if len(name) > 120:
+        name = name[:120].rstrip()
+    if not description:
+        description = "Une distinction attribuee pour valoriser un effort, une progression ou un esprit d'equipe."
+    if len(description) > 300:
+        description = description[:300].rstrip()
+    if rationale and len(rationale) > 160:
+        rationale = rationale[:160].rstrip()
+
+    clean = {
+        "name": name,
+        "description": description,
+        "points": points if points else 10,
+        "rarity": rarity,
+        "awardedBy": awarded_by,
+        "rationale": rationale,
+    }
+    from_llm = bool(payload.get("name") or payload.get("description") or payload.get("points"))
+    return clean, from_llm
+
+
+def _build_rewards_generate_prompt(req: RewardsGenerateRequest) -> str:
+    """
+    Construit le prompt pour generer une liste de recompenses.
+
+    Le prompt demande explicitement un JSON array "pur" (sans texte) afin de faciliter
+    l'extraction (voir _extract_first_json_array) et la sanitization (voir _sanitize_generate_items).
+    """
+    parts = []
+    parts.append("Tu es un assistant pour generer des recompenses de gamification (MatchMakers).")
+    parts.append("Tu dois produire UNIQUEMENT un JSON array valide, sans texte autour.")
+    parts.append('Schema item: {"name":string,"description":string,"type":string,"rarity":string,"points":int}')
+    parts.append("Contraintes:")
+    parts.append("- 5 a 10 items")
+    parts.append("- name unique, <= 120 caracteres")
+    parts.append("- description 1 a 2 phrases, <= 220 caracteres")
+    parts.append("- type dans: TROPHY, MEDAL, CERTIFICATE, MVP, BEST_PLAYER, BEST_TEAM")
+    parts.append("- rarity dans: COMMON, RARE, EPIC, LEGENDARY")
+    parts.append("- points entier >= 0, adapte a rarity (ex: COMMON 5-25, RARE 20-60, EPIC 50-110, LEGENDARY 100-180)")
+    parts.append("- Ton apaisé, positif, non-toxique, pas de moquerie, pas de donnees personnelles")
+    parts.append("")
+    parts.append("CONTEXTE:")
+    parts.append(f"- eventType: {req.eventType}")
+    parts.append(f"- teamCount: {req.teamCount}")
+    parts.append(f"- difficulty: {req.difficulty}")
+    return "\n".join(parts)
+
+
+def _sanitize_generate_items(arr: Optional[list]) -> list[dict]:
+    """
+    Nettoie une liste d'items de generation afin de garantir un format stable.
+
+    Regles principales:
+    - ignore les elements non dict
+    - name obligatoire + unique (case-insensitive)
+    - clamp longueurs (name <= 120, description <= 220)
+    - type/rarity limites aux enums attendus
+    - points converti en int >= 0
+    - max 10 items
+    """
+    if not isinstance(arr, list):
+        return []
+    out: list[dict] = []
+    seen = set()
+    for it in arr:
+        if not isinstance(it, dict):
+            continue
+        name = str(it.get("name") or "").strip()
+        desc = str(it.get("description") or "").strip()
+        typ = str(it.get("type") or "").strip().upper()
+        rar = str(it.get("rarity") or "").strip().upper()
+        pts = it.get("points")
+        try:
+            points = int(pts)
+        except Exception:
+            points = 0
+        if points < 0:
+            points = 0
+        if not name:
+            continue
+        if len(name) > 120:
+            name = name[:120].rstrip()
+        if not desc:
+            desc = "Recompense attribuee pour valoriser une contribution positive."
+        if len(desc) > 220:
+            desc = desc[:220].rstrip()
+        if typ not in {"TROPHY", "MEDAL", "CERTIFICATE", "MVP", "BEST_PLAYER", "BEST_TEAM"}:
+            typ = "CERTIFICATE"
+        if rar not in {"COMMON", "RARE", "EPIC", "LEGENDARY"}:
+            rar = "COMMON"
+        # ensure uniqueness (case-insensitive)
+        k = name.strip().lower()
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(
+            {
+                "name": name,
+                "description": desc,
+                "type": typ,
+                "rarity": rar,
+                "points": points,
+            }
+        )
+        if len(out) >= 10:
+            break
+    return out
+
+
+@app.post("/rewards/suggest", response_model=RewardsSuggestResponse)
+async def rewards_suggest(req: RewardsSuggestRequest):
+    t0 = time.time()
+    prompt = _build_rewards_suggest_prompt(req)
+
+    hit = await _chat_openrouter(prompt, req.model)
+    if hit:
+        text, model = hit
+        payload = _extract_first_json_object(text)
+        clean, ok = _sanitize_rewards_suggestion(payload)
+        return RewardsSuggestResponse(
+            **clean,
+            from_llm=ok,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
+
+    hit = await _chat_ollama(prompt, req.model)
+    if hit:
+        text, model = hit
+        payload = _extract_first_json_object(text)
+        clean, ok = _sanitize_rewards_suggestion(payload)
+        return RewardsSuggestResponse(
+            **clean,
+            from_llm=ok,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
+
+    clean, _ = _sanitize_rewards_suggestion(None)
+    return RewardsSuggestResponse(
+        **clean,
+        from_llm=False,
+        model=(req.model or (OPENROUTER_MODEL if OPENROUTER_API_KEY else OLLAMA_MODEL)),
+        latency_ms=int((time.time() - t0) * 1000),
+    )
+
+
+@app.post("/rewards/insights", response_model=RewardsInsightsResponse)
+async def rewards_insights(req: RewardsInsightsRequest):
+    t0 = time.time()
+    prompt = _build_rewards_insights_prompt(req)
+
+    hit = await _chat_openrouter(prompt, req.model)
+    if hit:
+        text, model = hit
+        return RewardsInsightsResponse(
+            answer=text,
+            from_llm=True,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
+
+    hit = await _chat_ollama(prompt, req.model)
+    if hit:
+        text, model = hit
+        return RewardsInsightsResponse(
+            answer=text,
+            from_llm=True,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
+
+    hint = (
+        "IA indisponible.\n\n"
+        "Option A (OpenRouter): configure `OPENROUTER_API_KEY` puis relance PythonAI.\n"
+        "Option B (gratuit): installe Ollama, puis `ollama serve`, puis `ollama pull gemma2:2b`.\n"
+    )
+    return RewardsInsightsResponse(
+        answer=hint,
+        from_llm=False,
+        model=(req.model or (OPENROUTER_MODEL if OPENROUTER_API_KEY else OLLAMA_MODEL)),
+        latency_ms=int((time.time() - t0) * 1000),
+    )
+
+
+@app.post("/rewards/generate", response_model=RewardsGenerateResponse)
+async def rewards_generate(req: RewardsGenerateRequest):
+    t0 = time.time()
+    prompt = _build_rewards_generate_prompt(req)
+
+    hit = await _chat_openrouter(prompt, req.model)
+    if hit:
+        text, model = hit
+        arr = _extract_first_json_array(text)
+        items = _sanitize_generate_items(arr)
+        if items:
+            return RewardsGenerateResponse(
+                items=[RewardsGenerateItem(**it) for it in items],
+                from_llm=True,
+                model=model,
+                latency_ms=int((time.time() - t0) * 1000),
+            )
+
+    hit = await _chat_ollama(prompt, req.model)
+    if hit:
+        text, model = hit
+        arr = _extract_first_json_array(text)
+        items = _sanitize_generate_items(arr)
+        if items:
+            return RewardsGenerateResponse(
+                items=[RewardsGenerateItem(**it) for it in items],
+                from_llm=True,
+                model=model,
+                latency_ms=int((time.time() - t0) * 1000),
+            )
+
+    # Deterministic fallback
+    base = req.eventType.strip()[:40]
+    diff = req.difficulty.strip().upper()
+    mult = 3 if "HARD" in diff else (1 if "EASY" in diff else 2)
+    fallback = [
+        {"name": f"Esprit d'equipe - {base}", "description": "Recompense attribuee pour cohesion, entraide et communication positive.", "type": "BEST_TEAM", "rarity": "RARE", "points": 30 * mult},
+        {"name": f"Progression - {base}", "description": "Distinction pour une progression visible et une regularite sereine.", "type": "CERTIFICATE", "rarity": "COMMON", "points": 15 * mult},
+        {"name": f"MVP apaisé - {base}", "description": "MVP base sur impact global, fair-play et stabilite mentale.", "type": "MVP", "rarity": "EPIC", "points": 55 * mult},
+        {"name": f"Defense solide - {base}", "description": "Recompense pour defense disciplinee et bonne coordination.", "type": "MEDAL", "rarity": "RARE", "points": 25 * mult},
+        {"name": f"Momentum - {base}", "description": "Trophee pour gestion du stress et retournement calme.", "type": "TROPHY", "rarity": "EPIC", "points": 45 * mult},
+    ]
+    return RewardsGenerateResponse(
+        items=[RewardsGenerateItem(**it) for it in fallback],
+        from_llm=False,
+        model=(req.model or (OPENROUTER_MODEL if OPENROUTER_API_KEY else OLLAMA_MODEL)),
+        latency_ms=int((time.time() - t0) * 1000),
+    )
+
+
+@app.post("/leaderboard", response_model=LeaderboardResponse)
+async def leaderboard(req: LeaderboardRequest):
+    t0 = time.time()
+    prompt = _build_prompt(req)
+
+    hit = await _chat_openrouter(prompt, req.model)
+    if hit:
+        text, model = hit
+        return LeaderboardResponse(
+            answer=text,
+            from_llm=True,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
+
+    hit = await _chat_ollama(prompt, req.model)
+    if hit:
+        text, model = hit
+        return LeaderboardResponse(
+            answer=text,
+            from_llm=True,
+            model=model,
+            latency_ms=int((time.time() - t0) * 1000),
+        )
 
     hint = (
         "IA indisponible.\n\n"
@@ -284,7 +827,26 @@ async def sport_quote(req: QuoteRequest):
     - Pas de titres, pas de markdown.
     """
 
-    # 1. Try OpenRouter
+    # 1. Try Gemini (Utilisation du 1.5-flash pour de meilleurs quotas sur les citations)
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            def _call_gemini():
+                return model.generate_content(prompt)
+            
+            response = await asyncio.to_thread(_call_gemini)
+            text = response.text.strip()
+            if text:
+                return QuoteResponse(
+                    quote=text,
+                    from_llm=True,
+                    model="gemini-1.5-flash",
+                    latency_ms=int((time.time() - t0) * 1000)
+                )
+        except Exception as e:
+            print(f"[Gemini Quote Error - Quota likely]: {e}")
+
+    # 2. Try OpenRouter (Backup)
     if OPENROUTER_API_KEY:
         try:
             from openai import OpenAI
@@ -380,6 +942,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     from_llm: bool
+    updatedPlan: Optional[dict] = None
 
 @app.post("/api/ai/coach/plan", response_model=CoachPlanResponse)
 async def generate_coach_plan(req: CoachRequest):
@@ -442,11 +1005,163 @@ async def generate_coach_plan(req: CoachRequest):
 
 @app.post("/api/ai/coach/chat", response_model=ChatResponse)
 async def coach_chat(req: ChatRequest):
+    plan_context = f"\nEntraînement actuel de l'utilisateur : {json.dumps(req.context, ensure_ascii=False)}" if req.context else ""
+    
     prompt = f"""
     Tu es un Coach Sportif personnel virtuel nommé 'MatchCoach'. 
     Tu es expert, motivant, et tu parles en français.
+    {plan_context}
+    
     L'utilisateur demande : "{req.message}"
-    Réponds de manière concise (max 3 phrases). Reste dans le domaine sportif.
+    
+    Si l'utilisateur demande à modifier l'entraînement (ex: changer un exercice, adapter la difficulté), tu dois fournir un plan mis à jour en te basant sur l'entraînement actuel.
+    
+    Réponds UNIQUEMENT avec un objet JSON valide contenant :
+    {{
+      "reply": "Ta réponse textuelle à l'utilisateur (concise, max 3 phrases).",
+      "updatedPlan": {{ le plan complet mis à jour si une modification est demandée, ou null sinon }}
+    }}
+    
+    Si aucune modification n'est nécessaire, mets "updatedPlan": null.
+    """
+    
+    try:
+        text = ""
+        if OPENROUTER_API_KEY:
+            try:
+                from openai import OpenAI
+                client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+                resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                    model=COACH_CHAT_MODEL,
+                    messages=[{"role": "user", "content": prompt}]
+                ))
+                text = resp.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"Coach Chat OpenRouter Error: {e}")
+                
+        # Ollama Fallback
+        if not text:
+            import httpx
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                r = await client.post(
+                    f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
+                    json={"model": OLLAMA_MODEL, "messages": [{"role": "user", "content": prompt}], "stream": False},
+                )
+                r.raise_for_status()
+                text = r.json()["choices"][0]["message"]["content"].strip()
+                
+        if text:
+            import re
+            # Extract JSON block if present
+            match = re.search(r'\{[\s\S]*\}', text)
+            if match:
+                data = json.loads(match.group(0))
+            else:
+                data = {"reply": text, "updatedPlan": None}
+                
+            return ChatResponse(
+                reply=data.get("reply", "Bien reçu !"),
+                updatedPlan=data.get("updatedPlan"),
+                from_llm=True
+            )
+            
+    except Exception as e:
+        import traceback
+        err_msg = traceback.format_exc()
+        return ChatResponse(reply=f"ERREUR INTERNE: {str(e)}\n\nTraceback:\n{err_msg}", from_llm=False, updatedPlan=None)
+        
+    return ChatResponse(reply="Je suis votre coach MatchMakers ! Je suis là pour vous aider à atteindre vos sommets. Posez-moi une question sur vos exercices.", from_llm=False, updatedPlan=None)
+
+class LogoRequest(BaseModel):
+    name: str
+    description: str
+    sports: List[str]
+
+class LogoResponse(BaseModel):
+    imageUrl: str
+    prompt: str
+    latency_ms: int
+
+@app.post("/api/ai/generate-logo", response_model=LogoResponse)
+async def generate_logo(req: LogoRequest):
+    t0 = time.time()
+    sports_str = ", ".join(req.sports) if req.sports else "sport"
+    
+    prompt_for_llm = f"""
+    Tu es un designer de logos expert. 
+    Génère un PROMPT ANGLAIS court et ultra-descriptif pour un générateur d'images IA (type DALL-E) afin de créer un logo professionnel pour un club de sport.
+    Nom du club : {req.name}
+    Description : {req.description}
+    Sports : {sports_str}
+    
+    Style : Minimaliste, moderne, vectoriel, fond blanc uni, couleurs vives, haute résolution.
+    Règle : Réponds UNIQUEMENT avec le prompt en anglais, rien d'autre.
+    """
+    
+    generated_prompt = "professional sports club logo, minimalist vector art, flat design"
+    
+    # Try to get a better prompt from LLM
+    if OPENROUTER_API_KEY:
+        try:
+            from openai import OpenAI
+            client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+            resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=[{"role": "user", "content": prompt_for_llm}]
+            ))
+            text = resp.choices[0].message.content.strip()
+            if text: generated_prompt = text
+        except Exception: pass
+    
+    # Clean prompt for URL
+    import urllib.parse
+    generated_prompt = generated_prompt.replace("\n", " ").replace("\"", "").strip()
+    clean_prompt = urllib.parse.quote(generated_prompt)
+    image_url = f"https://image.pollinations.ai/prompt/{clean_prompt}?width=512&height=512&nologo=true&seed={int(time.time())}"
+    
+    return LogoResponse(
+        imageUrl=image_url,
+        prompt=generated_prompt,
+        latency_ms=int((time.time() - t0) * 1000)
+    )
+class TeamPerformanceRequest(BaseModel):
+    teamName: str
+    sport: str
+    energy: int
+    fatigue: int
+    morale: int
+    recentActivity: Optional[str] = None
+
+class TeamPerformanceResponse(BaseModel):
+    fatigueLevel: str
+    energyStatus: str
+    moraleStatus: str
+    recommendation: str
+    performanceImpact: str
+    from_llm: bool
+
+@app.post("/api/ai/analyze-team-performance", response_model=TeamPerformanceResponse)
+async def analyze_team_performance(req: TeamPerformanceRequest):
+    t0 = time.time()
+    
+    prompt = f"""
+    Tu es un expert en médecine du sport et en psychologie d'équipe pour MatchMakers.
+    Analyse l'état actuel de l'équipe suivante et donne des recommandations intelligentes.
+    
+    Équipe : {req.teamName} ({req.sport})
+    Énergie : {req.energy}%
+    Fatigue : {req.fatigue}%
+    Moral : {req.morale}%
+    Activité récente : {req.recentActivity or "Non spécifiée"}
+    
+    Réponds UNIQUEMENT en JSON avec cette structure :
+    {{
+        "fatigueLevel": "Low/Medium/High",
+        "energyStatus": "Low/Medium/High",
+        "moraleStatus": "Poor/Fair/Good/Excellent",
+        "recommendation": "Ta recommandation courte en français (ex: Repos suggéré)",
+        "performanceImpact": "Negative/Neutral/Positive (Impact sur les prochains matchs)"
+    }}
     """
     
     try:
@@ -457,12 +1172,29 @@ async def coach_chat(req: ChatRequest):
                 model=OPENROUTER_MODEL,
                 messages=[{"role": "user", "content": prompt}]
             ))
-            return {"reply": resp.choices[0].message.content.strip(), "from_llm": True}
-    except Exception:
-        pass
+            text = resp.choices[0].message.content.strip()
+            if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+            data = json.loads(text)
+            data["from_llm"] = True
+            return data
+    except Exception as e:
+        print(f"Team Performance AI Error: {e}")
+        # Fallback Statique
+        f_level = "High" if req.fatigue > 70 else ("Medium" if req.fatigue > 30 else "Low")
+        e_status = "Low" if req.energy < 30 else ("Medium" if req.energy < 70 else "High")
+        m_status = "Excellent" if req.morale > 80 else ("Good" if req.morale > 50 else "Poor")
         
-    return {"reply": "Je suis votre coach MatchMakers ! Je suis là pour vous aider à atteindre vos sommets. Posez-moi une question sur vos exercices.", "from_llm": False}
-
+        impact = "Negative" if req.fatigue > 60 or req.energy < 40 else "Positive"
+        rec = "Repos et récupération suggérés." if req.fatigue > 50 else "Prêt pour la compétition !"
+        
+        return {
+            "fatigueLevel": f_level,
+            "energyStatus": e_status,
+            "moraleStatus": m_status,
+            "recommendation": rec,
+            "performanceImpact": impact,
+            "from_llm": False
+        }
 
 class ProductChatResponse(BaseModel):
     answer: str
@@ -932,3 +1664,96 @@ def similar(req: SimilarRequest):
     """
     scored = _compute_similar(req.targetProduct, req.candidates)
     return scored[:req.topK]
+
+ # ───── SPONSOR AI ENDPOINTS ─────
+
+class SponsorDescReq(BaseModel):
+    campaignName: str
+    targetSport: Optional[str] = None
+    targetAudience: Optional[str] = None
+
+class SponsorMatchReq(BaseModel):
+    sponsorName: str
+    sponsorDescription: str
+    eventName: str
+    eventSport: str
+
+class SponsorAnalyzeReq(BaseModel):
+    campaigns: List[dict]  # list of {title, views, clicks, budget}
+
+class SponsorSuggestReq(BaseModel):
+    eventDescription: str
+    eventSport: str
+    sponsors: List[dict] # list of {id, name, description, sport}
+
+async def _call_llm(prompt: str) -> str:
+    # helper for OpenRouter then Ollama
+    if OPENROUTER_API_KEY:
+        try:
+            from openai import OpenAI
+            client = OpenAI(base_url=OPENROUTER_BASE_URL, api_key=OPENROUTER_API_KEY)
+            resp = await asyncio.to_thread(lambda: client.chat.completions.create(
+                model=OPENROUTER_MODEL,
+                messages=[{"role": "user", "content": prompt}]
+            ))
+            return resp.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"OpenRouter Error: {e}")
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.post(
+                f"{OLLAMA_URL.rstrip('/')}/v1/chat/completions",
+                json={"model": OLLAMA_MODEL, "messages": [{"role": "user", "content": prompt}], "stream": False},
+            )
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f"Ollama Error: {e}")
+        return ""
+
+
+@app.post("/api/sponsor-ai/generate-description")
+async def generate_sponsor_description(req: SponsorDescReq):
+    sport = req.targetSport or "tous sports"
+    prompt = f"Rédige une description marketing très accrocheuse (2 phrases max) pour une campagne publicitaire nommée '{req.campaignName}' ciblant le public '{sport}'."
+    res = await _call_llm(prompt)
+    if not res: res = f"Découvrez notre nouvelle campagne {req.campaignName} spécialement conçue pour les passionnés de {sport} !"
+    return {"description": res}
+
+@app.post("/api/sponsor-ai/match-score")
+async def match_score(req: SponsorMatchReq):
+    prompt = f"""
+    Sponsor : {req.sponsorName} ({req.sponsorDescription})
+    Événement : {req.eventName} ({req.eventSport})
+    Donne UNIQUEMENT un score de pertinence entre 0 et 100 pour ce partenariat. Réponds juste par le nombre, rien d'autre.
+    """
+    res = await _call_llm(prompt)
+    score = 50
+    try:
+        import re
+        nums = re.findall(r'\d+', res)
+        if nums: score = min(100, int(nums[0]))
+    except: pass
+    return {"score": score}
+
+@app.post("/api/sponsor-ai/analyze")
+async def analyze_campaigns(req: SponsorAnalyzeReq):
+    stats = "\n".join([f"- {c.get('campaignName', 'Campagne')}: Vues={c.get('views',0)}, Clics={c.get('clicks',0)}" for c in req.campaigns])
+    prompt = f"En tant qu'expert marketing, analyse brièvement ces campagnes et donne 2 recommandations fortes (sans blabla) :\n{stats}"
+    res = await _call_llm(prompt)
+    if not res: res = "1. Augmentez le budget des campagnes avec le meilleur CTR.\n2. Revoyez les visuels des campagnes ayant beaucoup de vues mais peu de clics."
+    return {"analysis": res}
+
+@app.post("/api/sponsor-ai/suggest")
+async def suggest_sponsors(req: SponsorSuggestReq):
+    sponsors_str = "\n".join([f"- {s.get('companyName')} ({s.get('targetSport', 'Général')}): {s.get('description', '')}" for s in req.sponsors])
+    prompt = f"""
+    Événement : {req.eventDescription} ({req.eventSport})
+    Sponsors disponibles :
+    {sponsors_str}
+    Suggère les 2 meilleurs sponsors pour cet événement et explique très brièvement pourquoi.
+    """
+    res = await _call_llm(prompt)
+    if not res: res = "Nous suggérons les sponsors ciblant le même sport que votre événement."
+    return {"suggestion": res}

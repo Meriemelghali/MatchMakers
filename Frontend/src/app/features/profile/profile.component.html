@@ -14,9 +14,9 @@
           {{ userProfile?.firstName?.charAt(0) }}{{ userProfile?.lastName?.charAt(0) }}
           <div class="status-indicator"></div>
         </div>
-        <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl">
+        <div class="avatar-3d-container" *ngIf="userProfile?.avatar3dUrl && safeAvatarUrl">
           <model-viewer
-            [src]="getSafeUrl(userProfile?.avatar3dUrl!)"
+            [src]="safeAvatarUrl!"
             camera-controls
             auto-rotate
             shadow-intensity="1"
@@ -111,6 +111,9 @@
       <button [class.active]="activeTab === 'activity'" (click)="setTab('activity')">
         <i class="fas fa-running"></i> Mes Activités
       </button>
+      <button class="sponsor-btn" (click)="goToSponsorProfile()">
+  <i class="fas fa-bullhorn"></i> Profil Sponsor
+</button>
     </nav>
   </div>
 
@@ -373,7 +376,7 @@
 
   <!-- Modal Ready Player Me -->
   <div class="avatar-modal-overlay" *ngIf="showAvatarCreator">
-    <div class="avatar-modal" [class.wide-modal]="!isCustomMode">
+    <div class="avatar-modal wide-modal">
       <div class="avatar-modal-header">
         <h3>{{ isCustomMode ? "Éditeur d'Avatar Custom" : "Suggestions pour " + (userProfile?.favoriteSports?.[0] || 'vous') }}</h3>
         <button type="button" class="close-btn" (click)="closeAvatarCreator($event)"><i class="fas fa-times"></i></button>

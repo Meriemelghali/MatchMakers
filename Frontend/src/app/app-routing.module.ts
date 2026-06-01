@@ -14,6 +14,8 @@ import { RoleSelectionComponent } from './core/Auth/role-selection/role-selectio
 import { ProfileComponent } from './features/profile/profile.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
 import { UserReclamationsComponent } from './features/profile/user-reclamations/user-reclamations.component';
+import { SponsorAdminComponent } from './features/sponsor/components/sponsor-admin/sponsor-admin.component';
+import { CampaignListComponent } from './features/sponsor/campaign-list/campaign-list.component';
 
 
 const routes: Routes = [
@@ -79,6 +81,10 @@ const routes: Routes = [
       loadChildren: () =>
         import('./features/products/products.module').then(m => m.ProductsModule)
     },
+    {
+      path: 'sponsor',
+      loadChildren: () => import('./features/sponsor/sponsor.module').then(m => m.SponsorModule)
+    },
       {
         path: 'profile',
         component: ProfileComponent
@@ -116,7 +122,16 @@ const routes: Routes = [
         import('./features/products/products.module')
         .then(m => m.ProductsModule)
     },
-      { path: 'commande', component: AdminOrdersComponent }
+    {
+  path: 'sponsors',
+  component: SponsorAdminComponent
+},
+ {
+  path: 'Campaigns',
+  component: CampaignListComponent
+},
+
+      { path: 'commande', component: AdminOrdersComponent },
 
     ]
   }

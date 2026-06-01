@@ -1,0 +1,44 @@
+<div class="ticker-wrap" *ngIf="liveMatches.length > 0">
+
+  <!-- Label -->
+  <div class="ticker-label">
+    <span class="ticker-dot"></span>
+    <span>EN DIRECT</span>
+  </div>
+
+  <!-- Scrolling track -->
+  <div class="ticker-track">
+    <div class="ticker-inner" [style.animation-duration]="(liveMatches.length * 8) + 's'">
+
+      <!-- Primary pass -->
+      <ng-container *ngFor="let m of liveMatches; trackBy: trackById">
+        <span class="ticker-item" (click)="navigate(m.id)" title="{{ m.equipe1 }} vs {{ m.equipe2 }}">
+          <span class="ticker-min">{{ liveMinutes[m.id!] ?? 0 }}'</span>
+          <span class="ticker-t1">{{ m.equipe1 }}</span>
+          <span class="ticker-score">{{ m.scoreEquipe1 }}</span>
+          <span class="ticker-dash">–</span>
+          <span class="ticker-score">{{ m.scoreEquipe2 }}</span>
+          <span class="ticker-t2">{{ m.equipe2 }}</span>
+        </span>
+        <span class="ticker-sep">│</span>
+      </ng-container>
+
+      <!-- Mirror pass for seamless loop -->
+      <ng-container *ngFor="let m of liveMatches; trackBy: trackById">
+        <span class="ticker-item" (click)="navigate(m.id)">
+          <span class="ticker-min">{{ liveMinutes[m.id!] ?? 0 }}'</span>
+          <span class="ticker-t1">{{ m.equipe1 }}</span>
+          <span class="ticker-score">{{ m.scoreEquipe1 }}</span>
+          <span class="ticker-dash">–</span>
+          <span class="ticker-score">{{ m.scoreEquipe2 }}</span>
+          <span class="ticker-t2">{{ m.equipe2 }}</span>
+        </span>
+        <span class="ticker-sep">│</span>
+      </ng-container>
+
+    </div>
+  </div>
+
+  <!-- Right fade -->
+  <div class="ticker-fade"></div>
+</div>

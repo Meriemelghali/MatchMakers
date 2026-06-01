@@ -6,7 +6,6 @@ import tn.matchmakers.productservice.dto.ProductRequestDTO;
 import tn.matchmakers.productservice.dto.ProductResponseDTO;
 import tn.matchmakers.productservice.entity.Product;
 import tn.matchmakers.productservice.repository.ProductRepository;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -1,0 +1,781 @@
+<div class="page-container">
+
+  <!-- HEADER -->
+  <div class="list-header">
+    <div class="header-main">
+      <h1>Gestion des Campagnes</h1>
+      <p class="subtitle">Suivez et administrez les campagnes publicitaires des sponsors</p>
+    </div>
+    <div class="header-right">
+      <div class="stats-mini">
+        <span class="count">{{ campaigns.length }}</span>
+        <span class="label">Campagnes</span>
+      </div>
+      <button class="btn-ai" (click)="analyzeCampaigns()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-right: 12px;">
+        ✨ {{ isAnalyzing ? 'Analyse en cours...' : 'Diagnostic IA' }}
+      </button>
+      <button class="btn-add" (click)="openCreate()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Nouvelle campagne
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="admin-kpis">
+    <div class="kpi-card"
+         *ngFor="let f of filters"
+         (click)="setFilter(f.value)"
+         [class.kpi-active]="activeFilter === f.value">
+      <div class="kpi-label">{{ f.label }}</div>
+      <div class="kpi-value" 
+           [class.orange]="f.value === CampaignStatus.PENDING && countByStatus(CampaignStatus.PENDING) > 0">
+        {{ countByStatus(f.value) }}
+      </div>
+      <div class="kpi-sub">cliquer pour filtrer</div>
+    </div>
+    
+    <!-- KPI Facturation -->
+    <div class="kpi-card" style="border-left: 3px solid #10b981;">
+      <div class="kpi-label">Revenu Total</div>
+      <div class="kpi-value" style="color: #10b981;">{{ totalBudget }} TND</div>
+      <div class="kpi-sub">Budgets des campagnes</div>
+    </div>
+  </div>
+
+  <!-- ERREUR -->
+  <div class="alert-err" *ngIf="error">{{ error }}</div>
+
+  <!-- TABLE CARD -->
+  <div class="admin-table-card">
+
+    <div class="admin-table-header">
+      <span class="admin-table-title">
+        Campagnes ({{ filtered.length }})
+      </span>
+      <button class="btn-reset" (click)="load()" [disabled]="loading">
+        <span *ngIf="!loading">↻ Actualiser</span>
+        <span *ngIf="loading">Chargement...</span>
+      </button>
+    </div>
+
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Campagne</th>
+            <th>Sponsor</th>
+            <th>Cible</th>
+            <th>Statut</th>
+            <th>Budget</th>
+            <th>Stats</th>
+            <th>Période</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr *ngIf="loading">
+            <td colspan="7" class="loading-state">Chargement...</td>
+          </tr>
+
+          <tr *ngIf="!loading && filtered.length === 0">
+            <td colspan="7" class="empty-state">Aucune campagne trouvée.</td>
+          </tr>
+
+          <tr *ngFor="let c of filtered">
+
+            <!-- Campagne -->
+            <td>
+              <div class="product-cell">
+                <div class="campaign-thumb">
+                  <img *ngIf="c.bannerUrl" [src]="c.bannerUrl" [alt]="c.campaignName">
+                  <span *ngIf="!c.bannerUrl">📢</span>
+                </div>
+                <div>
+                  <div class="product-name">{{ c.campaignName }}</div>
+                  <div class="product-desc">
+                    {{ c.description | slice:0:40 }}
+                    <span *ngIf="c.description && c.description.length > 40">...</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Sponsor -->
+            <td>
+              <span class="role-badge" style="background:#f0f0f0;color:#444">
+                {{ c.sponsorName || c.sponsorId | slice:0:8 }}
+              </span>
+            </td>
+
+            <!-- Cible -->
+            <td>
+              <span class="target-badge"
+                    [ngClass]="{
+                      'target-global':  c.target === 'GLOBAL',
+                      'target-product': c.target === 'PRODUCT',
+                      'target-event':   c.target === 'EVENT'
+                    }">
+                {{ targetLabel(c.target) }}
+              </span>
+            </td>
+
+            <!-- Statut -->
+            <td>
+              <span class="status-badge"
+                    [ngClass]="{
+                      'status-active':   c.status === CampaignStatus.ACTIVE,
+                      'status-pending':  c.status === CampaignStatus.PENDING,
+                      'status-rejected': c.status === CampaignStatus.CANCELLED,
+                      'status-inactive': c.status === CampaignStatus.PAUSED,
+                      'status-expired':  c.status === CampaignStatus.EXPIRED
+                    }">
+                {{ statusLabel(c.status) }}
+              </span>
+            </td>
+
+            <!-- Budget -->
+            <td>
+              <div style="font-weight: 700; color: #10b981;">
+                {{ c.budget || 0 }} TND
+              </div>
+            </td>
+
+            <!-- Stats -->
+            <td>
+              <div class="stats-cell">
+                <div class="stat-item">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  {{ c.views || 0 }}
+                </div>
+                <div class="stat-item">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                  </svg>
+                  {{ c.clicks || 0 }}
+                </div>
+                <div class="stat-ctr">CTR {{ ctr(c) }}</div>
+              </div>
+            </td>
+
+            <!-- Période -->
+            <td style="font-size:0.78rem;color:#666">
+              <div *ngIf="c.startDate">
+                {{ c.startDate | date:'dd/MM/yy' }}
+              </div>
+              <div *ngIf="c.endDate" style="color:#999">
+                → {{ c.endDate | date:'dd/MM/yy' }}
+              </div>
+              <div *ngIf="!c.startDate && !c.endDate" style="color:#ccc">
+                —
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <div class="table-actions">
+
+                <!-- Détail -->
+                <button class="btn-action info"
+                        (click)="openDetail(c)" title="Détail">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8"  x2="12"    y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                </button>
+
+                <!-- Facturer -->
+                <button class="btn-action info"
+                        *ngIf="c.budget && c.budget > 0"
+                        (click)="facturer(c)" title="Générer Facture">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="#10b981" stroke-width="2.5">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </button>
+
+                <!-- Éditer -->
+                <button class="btn-action edit"
+                        (click)="openEdit(c)" title="Modifier">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14
+                             a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                  </svg>
+                </button>
+
+                <!-- Approuver -->
+                <button class="btn-action approve"
+                        *ngIf="c.status === 'PENDING'"
+                        (click)="approve(c.id)" title="Approuver">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </button>
+
+                <!-- Rejeter -->
+                <button class="btn-action reject"
+                        *ngIf="c.status === 'PENDING'"
+                        (click)="openRejectModal(c.id!)" title="Rejeter">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <line x1="18" y1="6"  x2="6"  y2="18"/>
+                    <line x1="6"  y1="6"  x2="18" y2="18"/>
+                  </svg>
+                </button>
+
+                <!-- Pause -->
+                <button class="btn-action pause"
+                        *ngIf="c.status === 'ACTIVE'"
+                        (click)="pause(c.id)" title="Mettre en pause">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                </button>
+
+                <!-- Reprendre -->
+                <button class="btn-action approve"
+                        *ngIf="c.status === 'PAUSED'"
+                        (click)="resume(c.id)" title="Reprendre">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                </button>
+
+                <!-- Supprimer -->
+                <button class="btn-action delete"
+                        (click)="openDeleteModal(c.id!)" title="Supprimer">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2.5">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6
+                             m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL FORMULAIRE (créer / éditer)   -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showFormModal" (click)="closeFormModal()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#000">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2" width="18" height="18">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">
+            {{ editTarget ? 'Modifier la campagne' : 'Nouvelle campagne' }}
+          </div>
+          <div class="modal-sub">Renseignez les informations de la campagne</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeFormModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="form">
+        <div class="form-grid">
+
+          <div class="field">
+            <label class="field-label">Titre *</label>
+            <input class="field-input" formControlName="campaignName"
+                   placeholder="Ex: Promo Été...">
+            <div class="field-error"
+                 *ngIf="form.get('campaignName')?.invalid && form.get('campaignName')?.touched">
+              Titre obligatoire (min. 3 caractères).
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">ID Sponsor *</label>
+            <input class="field-input" formControlName="sponsorId"
+                   placeholder="ID du sponsor">
+            <span class="field-error"
+                  *ngIf="form.get('sponsorId')?.invalid && form.get('sponsorId')?.touched">
+              Sponsor obligatoire.
+            </span>
+          </div>
+
+          <div class="field full">
+            <label class="field-label">Description</label>
+            <textarea class="field-input" formControlName="description"
+                      rows="3" placeholder="Description de la campagne...">
+            </textarea>
+          </div>
+
+          <div class="field full">
+            <label class="field-label">URL de la bannière</label>
+            <input class="field-input" formControlName="bannerUrl"
+                   placeholder="https://...">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Cible</label>
+            <select class="field-input" formControlName="target">
+              <option *ngFor="let t of targets" [value]="t.value">
+                {{ t.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field"
+               *ngIf="form.get('target')?.value !== 'GLOBAL'">
+            <label class="field-label">ID de la cible</label>
+            <input class="field-input" formControlName="targetId"
+                   placeholder="ID du produit ou de l'événement">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Date de début</label>
+            <input class="field-input" type="date" formControlName="startDate">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Date de fin</label>
+            <input class="field-input" type="date" formControlName="endDate">
+          </div>
+
+        </div>
+
+        <!-- Prévisualisation bannière -->
+        <div class="banner-preview" *ngIf="form.get('bannerUrl')?.value">
+          <div class="preview-label">Aperçu bannière</div>
+          <img [src]="form.get('bannerUrl')?.value" alt="Bannière"
+               style="max-height:120px;border-radius:10px;
+                      object-fit:cover;width:100%">
+        </div>
+
+        <div class="alert-err" *ngIf="formError" style="margin-top:12px">
+          {{ formError }}
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeFormModal()">Annuler</button>
+      <button class="btn-submit"
+              [disabled]="form.invalid || formSubmitting"
+              (click)="submitForm()">
+        {{ formSubmitting
+           ? 'Enregistrement...'
+           : (editTarget ? 'Enregistrer' : 'Créer la campagne') }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL REJET                         -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#fdecea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2.5" width="18" height="18">
+            <line x1="18" y1="6"  x2="6"  y2="18"/>
+            <line x1="6"  y1="6"  x2="18" y2="18"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Rejeter la campagne</div>
+          <div class="modal-sub">Le motif sera communiqué au sponsor</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeRejectModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field-label" style="display:block;margin-bottom:8px">
+        Motif du rejet *
+      </label>
+      <textarea class="field-input" [(ngModel)]="rejectNote"
+                rows="4"
+                placeholder="Ex: Contenu non conforme, visuel inapproprié...">
+      </textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeRejectModal()">Annuler</button>
+      <button class="btn-confirm-delete"
+              [disabled]="!rejectNote.trim() || rejectSubmitting"
+              (click)="confirmReject()">
+        {{ rejectSubmitting ? 'Envoi...' : 'Confirmer le rejet' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL DÉTAIL                        -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showDetailModal" (click)="closeDetail()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#000">
+          <span style="color:#E8500A;font-size:16px">📢</span>
+        </div>
+        <div>
+          <div class="modal-title">{{ detailCampaign?.campaignName }}</div>
+          <div class="modal-sub">{{ targetLabel(detailCampaign?.target) }}</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeDetail()">✕</button>
+    </div>
+
+    <div class="modal-body" *ngIf="detailCampaign as d">
+
+      <!-- Bannière -->
+      <div *ngIf="d.bannerUrl" style="margin-bottom:16px">
+        <img [src]="d.bannerUrl" alt="Bannière"
+             style="width:100%;max-height:150px;object-fit:cover;
+                    border-radius:12px;border:1px solid #f0f0f0">
+      </div>
+
+      <!-- Stats visuelles -->
+      <div class="stats-cards">
+        <div class="stat-card">
+          <div class="stat-card-value">{{ d.views || 0 }}</div>
+          <div class="stat-card-label">Vues</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-value">{{ d.clicks || 0 }}</div>
+          <div class="stat-card-label">Clics</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-value orange">{{ ctr(d) }}</div>
+          <div class="stat-card-label">CTR</div>
+        </div>
+      </div>
+
+      <div class="detail-row">
+        <span class="detail-label">Description</span>
+        <span>{{ d.description || '—' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Sponsor ID</span>
+        <span style="font-family:monospace;font-size:0.8rem">
+          {{ d.sponsorId }}
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Cible</span>
+        <span class="target-badge"
+              [ngClass]="{
+                'target-global':  d.target === 'GLOBAL',
+                'target-product': d.target === 'PRODUCT',
+                'target-event':   d.target === 'EVENT'
+              }">
+          {{ targetLabel(d.target) }}
+        </span>
+      </div>
+      <div class="detail-row" *ngIf="d.targetId">
+        <span class="detail-label">ID cible</span>
+        <span style="font-family:monospace;font-size:0.8rem">{{ d.targetId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Statut</span>
+        <span class="status-badge"
+              [ngClass]="{
+                'status-active':   d.status === CampaignStatus.ACTIVE,
+                'status-pending':  d.status === CampaignStatus.PENDING,
+                'status-rejected': d.status === CampaignStatus.CANCELLED,
+                'status-inactive': d.status === CampaignStatus.PAUSED,
+                'status-expired':  d.status === CampaignStatus.EXPIRED
+              }">
+          {{ statusLabel(d.status) }}
+        </span>
+      </div>
+      <div class="detail-row" *ngIf="d.adminNote">
+        <span class="detail-label">Note admin</span>
+        <span style="color:#E8500A">{{ d.adminNote }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Période</span>
+        <span>
+          {{ d.startDate ? (d.startDate | date:'dd/MM/yyyy') : '—' }}
+          →
+          {{ d.endDate   ? (d.endDate   | date:'dd/MM/yyyy') : '—' }}
+        </span>
+      </div>
+      <div class="detail-row" *ngIf="d.createdAt">
+        <span class="detail-label">Créé le</span>
+        <span>{{ d.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDetail()">Fermer</button>
+      <button class="btn-submit"
+              *ngIf="detailCampaign?.status === 'PENDING'"
+              (click)="approve(detailCampaign!.id); closeDetail()">
+        ✓ Approuver
+      </button>
+      <button class="btn-confirm-delete"
+              *ngIf="detailCampaign?.status === 'PENDING'"
+              (click)="closeDetail(); openRejectModal(detailCampaign!.id!)">
+        ✕ Rejeter
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL SUPPRESSION                   -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#fdecea">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E8500A"
+               stroke-width="2.5" width="18" height="18">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6
+                     m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Supprimer la campagne</div>
+          <div class="modal-sub">Cette action est irréversible</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeDeleteModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-warn">
+        Toutes les données de cette campagne (vues, clics, statistiques)
+        seront définitivement supprimées.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Annuler</button>
+      <button class="btn-confirm-delete"
+              [disabled]="deleting"
+              (click)="confirmDelete()">
+        {{ deleting ? 'Suppression...' : 'Oui, supprimer' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL ANALYSE IA                     -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showAnalysisModal" (click)="closeAnalysisModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#f3e8ff">
+          <span style="font-size:18px">✨</span>
+        </div>
+        <div>
+          <div class="modal-title">Diagnostic IA des Campagnes</div>
+          <div class="modal-sub">Analyse intelligente de vos performances</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeAnalysisModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background: #f9fafb; padding: 16px; border-radius: 8px; font-size: 0.95rem; line-height: 1.6; color: #374151; white-space: pre-wrap;">
+        {{ aiAnalysisResult }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-submit" (click)="closeAnalysisModal()">J'ai compris</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ -->
+<!-- MODAL FACTURE                        -->
+<!-- ════════════════════════════════════ -->
+<div class="overlay" *ngIf="showInvoiceModal" (click)="closeInvoiceModal()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()" style="max-width:640px">
+
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="modal-icon" style="background:#ecfdf5">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#10b981"
+               stroke-width="2" width="18" height="18">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Facture de Campagne</div>
+          <div class="modal-sub">{{ invoiceNumber }}</div>
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeInvoiceModal()">✕</button>
+    </div>
+
+    <!-- Contenu imprimable -->
+    <div class="modal-body" *ngIf="invoiceCampaign as inv">
+      <div id="invoice-printable" style="padding:8px 0">
+
+        <!-- En-tête facture -->
+        <div class="inv-header" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #f0f0f0">
+          <div>
+            <div class="inv-title" style="font-size:24px;font-weight:800;color:#E8500A">MatchMakers</div>
+            <div style="font-size:12px;color:#888;margin-top:4px">Plateforme de sponsoring sportif</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:700;color:#111">FACTURE</div>
+            <div style="font-size:13px;color:#888;margin-top:4px">{{ invoiceNumber }}</div>
+            <div style="font-size:12px;color:#aaa;margin-top:2px">{{ today | date:'dd/MM/yyyy' }}</div>
+          </div>
+        </div>
+
+        <!-- Infos sponsor -->
+        <div style="display:flex;gap:32px;margin-bottom:28px">
+          <div style="flex:1">
+            <div style="font-size:11px;text-transform:uppercase;color:#aaa;margin-bottom:6px;letter-spacing:.05em">Facturé par</div>
+            <div style="font-weight:700">MatchMakers Platform</div>
+            <div style="font-size:13px;color:#666">contact@matchmakers.tn</div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:11px;text-transform:uppercase;color:#aaa;margin-bottom:6px;letter-spacing:.05em">Facturé à</div>
+            <div style="font-weight:700">{{ inv.sponsorName || 'Sponsor' }}</div>
+            <div style="font-size:12px;color:#888;font-family:monospace">ID: {{ inv.sponsorId }}</div>
+          </div>
+        </div>
+
+        <!-- Tableau de la prestation -->
+        <table style="width:100%;border-collapse:collapse;margin-bottom:24px">
+          <thead>
+            <tr style="background:#f9fafb">
+              <th style="padding:10px 12px;text-align:left;font-size:11px;color:#888;text-transform:uppercase;font-weight:600">Description</th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;color:#888;text-transform:uppercase;font-weight:600">Cible</th>
+              <th style="padding:10px 12px;text-align:center;font-size:11px;color:#888;text-transform:uppercase;font-weight:600">Période</th>
+              <th style="padding:10px 12px;text-align:right;font-size:11px;color:#888;text-transform:uppercase;font-weight:600">Montant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:14px 12px;border-bottom:1px solid #f0f0f0">
+                <div style="font-weight:600">{{ inv.campaignName || 'Campagne publicitaire' }}</div>
+                <div style="font-size:12px;color:#888;margin-top:3px">{{ inv.description | slice:0:80 }}</div>
+              </td>
+              <td style="padding:14px 12px;text-align:center;border-bottom:1px solid #f0f0f0;font-size:13px">
+                {{ targetLabel(inv.target) }}
+              </td>
+              <td style="padding:14px 12px;text-align:center;border-bottom:1px solid #f0f0f0;font-size:12px;color:#666">
+                {{ inv.startDate ? (inv.startDate | date:'dd/MM/yy') : '—' }}
+                →
+                {{ inv.endDate   ? (inv.endDate   | date:'dd/MM/yy') : '—' }}
+              </td>
+              <td style="padding:14px 12px;text-align:right;border-bottom:1px solid #f0f0f0;font-weight:700;color:#111">
+                {{ inv.budget || 0 }} TND
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Total -->
+        <div style="display:flex;justify-content:flex-end;margin-bottom:28px">
+          <div style="min-width:220px">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;color:#666;border-bottom:1px solid #f0f0f0">
+              <span>Sous-total HT</span>
+              <span>{{ inv.budget || 0 }} TND</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;color:#666;border-bottom:1px solid #f0f0f0">
+              <span>TVA (19%)</span>
+              <span>{{ ((inv.budget || 0) * 0.19) | number:'1.2-2' }} TND</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:800;font-size:16px;color:#E8500A">
+              <span>TOTAL TTC</span>
+              <span>{{ ((inv.budget || 0) * 1.19) | number:'1.2-2' }} TND</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats performance -->
+        <div style="background:#f9fafb;border-radius:10px;padding:16px;margin-bottom:20px">
+          <div style="font-size:11px;text-transform:uppercase;color:#aaa;margin-bottom:12px;letter-spacing:.05em">Performances de la campagne</div>
+          <div style="display:flex;gap:24px">
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:700">{{ inv.views || 0 }}</div>
+              <div style="font-size:11px;color:#888">Vues</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:700">{{ inv.clicks || 0 }}</div>
+              <div style="font-size:11px;color:#888">Clics</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:700;color:#E8500A">{{ ctr(inv) }}</div>
+              <div style="font-size:11px;color:#888">CTR</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pied de facture -->
+        <div style="font-size:11px;color:#aaa;text-align:center;padding-top:12px;border-top:1px solid #f0f0f0">
+          Merci de votre confiance — MatchMakers Platform &copy; {{ today | date:'yyyy' }}
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeInvoiceModal()">Fermer</button>
+      <button class="btn-submit" (click)="printInvoice()"
+              style="display:flex;align-items:center;gap:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 6 2 18 2 18 9"/>
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Télécharger / Imprimer
+      </button>
+    </div>
+
+  </div>
+</div>

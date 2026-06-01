@@ -1,7 +1,6 @@
 <div class="backoffice-container">
-  <!-- Sidebar simplifiée (Placeholder) -->
 
-  <!-- Links -->
+  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="logo-box">
@@ -14,13 +13,36 @@
     </div>
 
     <nav class="nav-container">
-      <a *ngFor="let link of navLinksBackoffice" 
-         [routerLink]="link.path" 
-         routerLinkActive="active"
-         class="nav-item">
-        <span [innerHTML]="link.icon" class="nav-icon"></span>
-        <span class="nav-label">{{ link.label }}</span>
-      </a>
+      <div *ngFor="let group of navGroups" class="nav-group">
+
+        <!-- Group header (clickable) -->
+        <div class="nav-group-header"
+             [class.active]="isGroupActive(group)"
+             [class.open]="group.expanded"
+             (click)="toggle(group)">
+          <span [innerHTML]="group.icon" class="nav-icon"></span>
+          <span class="nav-label">{{ group.label }}</span>
+          <svg *ngIf="group.children?.length"
+               class="arrow" [class.rotated]="group.expanded"
+               width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+
+        <!-- Sub-items (accordion) -->
+        <div class="nav-children" [class.expanded]="group.expanded">
+          <a *ngFor="let child of group.children"
+             [routerLink]="child.path"
+             routerLinkActive="child-active"
+             class="nav-child">
+            <span class="child-dot"></span>
+            {{ child.label }}
+          </a>
+        </div>
+
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -32,20 +54,89 @@
       </button>
     </div>
   </aside>
-  
 
-  <!-- Main Content Area -->
+  <!-- Main Content -->
   <main class="main-content">
     <header class="topbar">
       <h1>Dashboard Admin</h1>
-      <div class="user-profile">
-        <span>{{ userName }}</span>
-        <div class="avatar"><i class="fas fa-user-shield"></i></div>
+      <div class="user-profile-menu-container">
+
+        <div class="user-profile-trigger" (click)="toggleDropdown($event)">
+          <span class="user-name-label">{{ userName }}</span>
+          <span class="theme-quick-icon">
+            <i class="fas"
+               [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST' || currentTheme === 'SYSTEM'"
+               [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'"></i>
+          </span>
+          <div class="avatar"><i class="fas fa-user-shield"></i></div>
+          <i class="fas fa-chevron-down trigger-arrow" [class.rotated]="dropdownOpen"></i>
+        </div>
+
+        <!-- Dropdown menu -->
+        <div class="profile-dropdown-menu" *ngIf="dropdownOpen" (click)="$event.stopPropagation()">
+
+          <div class="dropdown-profile-header">
+            <div class="avatar-initials">ME</div>
+            <div class="profile-meta">
+              <span class="meta-name">{{ userName }}</span>
+              <span class="meta-role">ADMINISTRATEUR</span>
+            </div>
+          </div>
+
+          <div class="dropdown-divider"></div>
+
+          <div class="dropdown-menu-list theme-section">
+            <div class="theme-submenu-trigger" (click)="toggleThemeList($event)">
+              <span class="trigger-label">
+                <i class="fas"
+                   [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST'"
+                   [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'"
+                   [class.fa-desktop]="currentTheme === 'SYSTEM'"></i> Thème
+              </span>
+              <span class="trigger-active-val">
+                {{ getThemeLabel(currentTheme) }}
+                <i class="fas fa-chevron-right arrow-sub" [class.rotated]="themeListExpanded"></i>
+              </span>
+            </div>
+
+            <!-- Theme options (collapsible) -->
+            <div class="theme-options-list" *ngIf="themeListExpanded">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'SYSTEM'"
+                   (click)="changeTheme('SYSTEM'); closeDropdown()">
+                <span class="option-label"><i class="fas fa-desktop"></i> Préférence Système</span>
+                <i class="fas fa-check check-icon" *ngIf="currentTheme === 'SYSTEM'"></i>
+              </div>
+              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT'"
+                   (click)="changeTheme('LIGHT'); closeDropdown()">
+                <span class="option-label"><i class="fas fa-sun"></i> Mode Clair</span>
+                <i class="fas fa-check check-icon" *ngIf="currentTheme === 'LIGHT'"></i>
+              </div>
+              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK'"
+                   (click)="changeTheme('DARK'); closeDropdown()">
+                <span class="option-label"><i class="fas fa-moon"></i> Mode Sombre</span>
+                <i class="fas fa-check check-icon" *ngIf="currentTheme === 'DARK'"></i>
+              </div>
+              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT_HIGH_CONTRAST'"
+                   (click)="changeTheme('LIGHT_HIGH_CONTRAST'); closeDropdown()">
+                <span class="option-label"><i class="fas fa-adjust"></i> Clair Contraste Élevé</span>
+                <i class="fas fa-check check-icon" *ngIf="currentTheme === 'LIGHT_HIGH_CONTRAST'"></i>
+              </div>
+              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK_HIGH_CONTRAST'"
+                   (click)="changeTheme('DARK_HIGH_CONTRAST'); closeDropdown()">
+                <span class="option-label"><i class="fas fa-circle-notch"></i> Sombre Contraste Élevé</span>
+                <i class="fas fa-check check-icon" *ngIf="currentTheme === 'DARK_HIGH_CONTRAST'"></i>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </header>
-    
+
     <div class="content-area">
       <router-outlet></router-outlet>
     </div>
   </main>
+
 </div>

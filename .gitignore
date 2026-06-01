@@ -1,0 +1,30 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Java / Maven
+**/target/
+*.class
+
+# Pip cache
+.pip-cache/
+
+# Temporary files
+.tmp/
+
+# Logs and runtime artifacts
+.logs/
+*.log
+hs_err_pid*
+replay_pid*
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+Frontend/src/assets/avatars/*.glb

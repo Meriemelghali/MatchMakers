@@ -1,0 +1,348 @@
+<div class="dashboard-wrapper">
+  <!-- Top Banner & Diagnostics Header -->
+  <header class="dashboard-header-bar">
+    <div class="welcome-box">
+      <div class="date-tag">{{ currentDate | titlecase }}</div>
+      <h1>Tableau de Bord Backoffice</h1>
+      <p class="subtitle">Aperçu en temps réel de votre écosystème MatchMakers</p>
+    </div>
+
+    <div class="system-status-widget" (click)="refreshDiagnostics()">
+      <div class="status-indicator" [class.healthy]="isSystemHealthy" [class.degraded]="!isSystemHealthy">
+        <span class="pulse-dot"></span>
+        <span class="status-text">
+          {{ isSystemHealthy ? 'Système Opérationnel' : 'Service Dégradé' }}
+          ({{ onlineServicesCount }}/{{ totalServicesCount }} En ligne)
+        </span>
+      </div>
+      <button class="diagnostic-btn" title="Lancer un diagnostic complet">
+        <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Loading State Skeleton -->
+  <div *ngIf="loading" class="skeleton-container">
+    <div class="skeleton-grid">
+      <div class="skeleton-card" *ngFor="let i of [1, 2, 3, 4, 5, 6, 7]"></div>
+    </div>
+    <div class="skeleton-split">
+      <div class="skeleton-pane large"></div>
+      <div class="skeleton-pane small"></div>
+    </div>
+  </div>
+
+  <!-- Main Content Loaded -->
+  <div *ngIf="!loading" class="dashboard-content-main">
+    
+    <!-- KPI Analytics Cards Grid -->
+    <section class="kpi-grid">
+      
+      <!-- Card 1: Users -->
+      <div class="kpi-card users-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">UTILISATEURS</span>
+            <h3 class="kpi-value">{{ usersCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.users.status">Actifs sur la plateforme</span>
+            <span class="kpi-helper offline" *ngIf="!health.users.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 2: Reservations -->
+      <div class="kpi-card reservations-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">RÉSERVATIONS</span>
+            <h3 class="kpi-value">{{ reservationsCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.reservations.status">Terrains réservés</span>
+            <span class="kpi-helper offline" *ngIf="!health.reservations.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 3: Urgent Reclamations -->
+      <div class="kpi-card reclamations-kpi" [class.alert-active]="reclamationsCount > 0">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">RÉCLAMATIONS</span>
+            <h3 class="kpi-value">{{ reclamationsCount }}</h3>
+            <span class="kpi-helper danger" *ngIf="health.reclamations.status && reclamationsCount > 0">
+              {{ reclamationsCount }} urgentes nécessitent attention
+            </span>
+            <span class="kpi-helper" *ngIf="health.reclamations.status && reclamationsCount === 0">
+              Aucune réclamation urgente
+            </span>
+            <span class="kpi-helper offline" *ngIf="!health.reclamations.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 4: Products -->
+      <div class="kpi-card products-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-shopping-bag"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">BOUTIQUE</span>
+            <h3 class="kpi-value">{{ productsCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.products.status">Produits enregistrés</span>
+            <span class="kpi-helper offline" *ngIf="!health.products.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 5: Sponsors -->
+      <div class="kpi-card sponsors-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-handshake"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">SPONSONS</span>
+            <h3 class="kpi-value">{{ sponsorsCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.sponsors.status">Partenaires officiels</span>
+            <span class="kpi-helper offline" *ngIf="!health.sponsors.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 6: Teams -->
+      <div class="kpi-card teams-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-users-cog"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">ÉQUIPES</span>
+            <h3 class="kpi-value">{{ teamsCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.teams.status">Clubs & Teams actifs</span>
+            <span class="kpi-helper offline" *ngIf="!health.teams.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+      <!-- Card 7: Sports -->
+      <div class="kpi-card sports-kpi">
+        <div class="card-inner">
+          <div class="kpi-icon-box">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">SPORTS</span>
+            <h3 class="kpi-value">{{ sportsCount | number }}</h3>
+            <span class="kpi-helper" *ngIf="health.sports.status">Disciplines supportées</span>
+            <span class="kpi-helper offline" *ngIf="!health.sports.status">Service indisponible</span>
+          </div>
+        </div>
+        <div class="kpi-bottom-glow"></div>
+      </div>
+
+    </section>
+
+    <!-- Detail Blocks Split Panels -->
+    <div class="dashboard-panels-split">
+      
+      <!-- Left column: Operational Data -->
+      <div class="panel-left-operational">
+        
+        <!-- Urgent Reclamations Panel -->
+        <div class="panel-card content-reclamations">
+          <div class="panel-header">
+            <h3><i class="fas fa-bell header-icon warning"></i> Réclamations Urgentes (Alertes)</h3>
+            <a routerLink="/backoffice/reclamations" class="view-all-link">Gérer <i class="fas fa-arrow-right"></i></a>
+          </div>
+          
+          <div class="table-container">
+            <table class="premium-table" *ngIf="health.reclamations.status && urgentReclamations.length > 0">
+              <thead>
+                <tr>
+                  <th>Titre</th>
+                  <th>Urgence</th>
+                  <th>Type</th>
+                  <th>Date de création</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let rec of urgentReclamations">
+                  <td class="bold-text">{{ rec.title }}</td>
+                  <td>
+                    <span class="badge-urgence" [class.haute]="rec.urgence === 'HAUTE'" [class.moyenne]="rec.urgence === 'MOYENNE'">
+                      {{ getUrgencyLabel(rec.urgence) }}
+                    </span>
+                  </td>
+                  <td><span class="type-text">{{ rec.type || 'Général' }}</span></td>
+                  <td class="date-cell">{{ rec.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="empty-state-card" *ngIf="health.reclamations.status && urgentReclamations.length === 0">
+              <i class="fas fa-check-circle success-icon animate-bounce"></i>
+              <p>Excellent ! Aucune alerte ou réclamation urgente en suspens.</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state-card" *ngIf="!health.reclamations.status">
+              <i class="fas fa-exclamation-triangle warning-icon"></i>
+              <p>Impossible de charger les réclamations. Le service sur le port 8082 est hors ligne.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Reservations Panel -->
+        <div class="panel-card content-reservations">
+          <div class="panel-header">
+            <h3><i class="fas fa-calendar-alt header-icon info"></i> Activité de Réservation Récente</h3>
+          </div>
+          
+          <div class="reservations-list-scroller" *ngIf="health.reservations.status && recentReservations.length > 0">
+            <div class="reservation-strip-item" *ngFor="let res of recentReservations">
+              <div class="res-left">
+                <div class="res-sport-icon">
+                  <i class="fas fa-running"></i>
+                </div>
+                <div class="res-info">
+                  <span class="res-user-id">Utilisateur ID: {{ res.idUser }}</span>
+                  <span class="res-time">{{ res.startTimeR | date:'dd/MM/yyyy HH:mm' }} - {{ res.endTimeR | date:'HH:mm' }}</span>
+                </div>
+              </div>
+              <div class="res-right">
+                <span class="badge-status" [ngClass]="getStatusClass(res.statutR)">
+                  {{ getStatusLabel(res.statutR) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state-card" *ngIf="health.reservations.status && recentReservations.length === 0">
+            <i class="fas fa-calendar-times mute-icon"></i>
+            <p>Aucune réservation récente trouvée sur le système.</p>
+          </div>
+
+          <!-- Error State -->
+          <div class="error-state-card" *ngIf="!health.reservations.status">
+            <i class="fas fa-exclamation-circle error-icon"></i>
+            <p>Données indisponibles. Le service de réservation sur le port 8089 est hors ligne.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column: Rewards & Diagnostic Center -->
+      <div class="panel-right-analytics">
+        
+        <!-- Rewards Panel -->
+        <div class="panel-card rewards-analytics">
+          <div class="panel-header">
+            <h3><i class="fas fa-award header-icon rewards"></i> Programme Fidélité (Rewards)</h3>
+          </div>
+          
+          <div class="rewards-inner" *ngIf="health.rewards.status">
+            <div class="rewards-stats-summary">
+              <div class="stat-bubble">
+                <span class="bubble-val">{{ rewardsCount }}</span>
+                <span class="bubble-lbl">Médailles décernées</span>
+              </div>
+              <div class="stat-bubble">
+                <span class="bubble-val">{{ avgRewardPoints }} pts</span>
+                <span class="bubble-lbl">Points de moyenne</span>
+              </div>
+            </div>
+
+            <!-- Distribution bars -->
+            <div class="distribution-bars-container" *ngIf="rewardTypes.length > 0">
+              <h4 class="mini-title">Distribution par Type</h4>
+              <div class="reward-progress-item" *ngFor="let rType of rewardTypes">
+                <div class="progress-labels">
+                  <span class="label-name">{{ rType.label }}</span>
+                  <span class="label-val">{{ rType.count }} ({{ rType.percentage }}%)</span>
+                </div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" [style.width.%]="rType.percentage"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-state-card" *ngIf="rewardTypes.length === 0">
+              <i class="fas fa-medal mute-icon"></i>
+              <p>Aucune distribution de récompenses enregistrée à ce jour.</p>
+            </div>
+          </div>
+
+          <!-- Error State -->
+          <div class="error-state-card" *ngIf="!health.rewards.status">
+            <i class="fas fa-ban error-icon"></i>
+            <p>Le microservice de fidélité (port 8086) ne répond pas.</p>
+          </div>
+        </div>
+
+        <!-- Health diagnostics center -->
+        <div class="panel-card system-diagnostics">
+          <div class="panel-header">
+            <h3><i class="fas fa-heartbeat header-icon success"></i> Diagnostic des Microservices</h3>
+          </div>
+          
+          <div class="diagnostics-list">
+            <div class="diagnostic-row" *ngFor="let s of health | keyvalue">
+              <div class="diag-left">
+                <span class="health-indicator-dot" [class.online]="s.value.status" [class.offline]="!s.value.status"></span>
+                <span class="service-name">{{ s.value.name }}</span>
+              </div>
+              <div class="diag-right">
+                <span class="port-label">Port {{ s.value.port }}</span>
+                <span class="status-pill" [class.online]="s.value.status" [class.offline]="!s.value.status">
+                  {{ s.value.status ? 'Actif' : 'Hors ligne' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Sports Registered Showcase Grid -->
+    <section class="sports-showcase-section" *ngIf="health.sports.status && sportsList.length > 0">
+      <div class="section-title-bar">
+        <h2>Sports enregistrés sur MatchMakers</h2>
+        <span class="sports-badge">{{ sportsCount }} sports totaux</span>
+      </div>
+
+      <div class="sports-cards-showcase">
+        <div class="sport-showcase-card" *ngFor="let sport of sportsList">
+          <div class="sport-card-top">
+            <span class="sport-name">{{ sport.nameSport }}</span>
+            <div class="sport-min-max">
+              <i class="fas fa-users-class"></i> {{ sport.minPlayers || 2 }} - {{ sport.maxPlayers || 10 }} Joueurs
+            </div>
+          </div>
+          <div class="sport-card-bottom">
+            <span class="sport-id">ID: {{ sport.id }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>

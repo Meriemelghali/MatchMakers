@@ -1,0 +1,47 @@
+<div class="chatbot-container">
+  <!-- Bouton flottant -->
+  <button class="chat-toggle" (click)="toggleChat()" *ngIf="!isOpen">
+    <i class="fas fa-comments"></i>
+  </button>
+
+  <!-- Fenêtre de chat -->
+  <div class="chat-window" *ngIf="isOpen">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <h4>MatchCoach</h4>
+          <span>Assistant Sportif IA</span>
+        </div>
+      </div>
+      <button class="close-btn" (click)="toggleChat()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="chat-messages">
+      <div *ngFor="let msg of messages" class="message" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+        <div class="message-bubble">{{ msg.text }}</div>
+        <span class="message-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+      </div>
+      <div class="message assistant" *ngIf="isTyping">
+        <div class="message-bubble typing">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        (keyup.enter)="sendMessage()"
+        placeholder="Posez une question au coach..."
+        [disabled]="isTyping"
+      />
+      <button (click)="sendMessage()" [disabled]="!userInput.trim() || isTyping">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>

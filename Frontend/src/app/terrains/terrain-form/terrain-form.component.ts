@@ -193,7 +193,7 @@ export class TerrainFormComponent implements OnInit, AfterViewChecked, OnDestroy
 
         const onResults = (
             results: google.maps.places.PlaceResult[] | null,
-            status:  google.maps.places.PlacesServiceStatus
+            status:  any
         ) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && results) {
                 results

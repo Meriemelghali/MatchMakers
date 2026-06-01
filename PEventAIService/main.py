@@ -1,6 +1,7 @@
 import os
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
 from dotenv import load_dotenv
@@ -22,6 +23,14 @@ OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/ap
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
     
 app = FastAPI(title="EventType AI Service", description="AI microservice for Event Type suggestions", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SuggestionRequest(BaseModel):
     typeName: str
@@ -424,6 +433,46 @@ async def sport_quote(request: QuoteRequest):
             "from_llm": False
         }
         
+    try:
+        # Utilisation du modèle standard gemini-2.0-flash du service PEventAIService
+        model = genai.GenerativeModel('gemini-2.0-flash')
+        sports_str = ", ".join(request.sports) if request.sports else "sports en général"
+        
+        prompt = f"""
+        Tu es un expert en culture sportive pour la plateforme MatchMakers.
+        L'utilisateur est fan de : {sports_str}.
+        
+        Ta mission : Donne soit un "Fun Fact" sportif fascinant (anecdote incroyable, record insolite, comparaison physique impressionnante), soit une citation motivante.
+        Exemple de Fun Fact : "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?"
+        
+        Règles :
+        - Langue : Français
+        - Style : Captivant, éducatif et court
+        - Longueur : Max 2 phrases
+        - Pas de titres, pas de markdown, commence direct par le texte.
+        """
+        
+        response = model.generate_content(prompt)
+        return {
+            "quote": response.text.strip(),
+            "from_llm": True
+        }
+    except Exception as e:
+        print(f"Error getting sport quote (Quota/API): {str(e)}")
+        fallbacks = [
+            "Savais-tu que le golf est le seul sport à avoir été pratiqué sur la Lune (en 1971) ?",
+            "Le sifflet d'arbitre n'a été utilisé pour la première fois qu'en 1878. Avant, ils utilisaient des mouchoirs !",
+            "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?",
+            "Le basket-ball a été inventé en utilisant un panier de pêches comme panier !",
+            "Une balle de tennis peut atteindre 263 km/h lors d'un service record !",
+            "Le premier match de football retransmis à la télévision a eu lieu en 1937.",
+            "Savais-tu qu'au saut en hauteur, on utilisait la technique du 'ventral' avant l'invention du Fosbury-flop ?",
+            "Le record du monde du marathon est de 2h 00min 35s. C'est presque 21km/h de moyenne !",
+            "Michael Jordan a été coupé de son équipe de basket de lycée avant de devenir une légende.",
+            "Le tennis de table (Ping-pong) a été inventé en Angleterre comme un passe-temps après le dîner.",
+            "Savais-tu que les premiers Jeux Olympiques modernes ont eu lieu à Athènes en 1896 ?",
+            "Le maillot jaune du Tour de France a été créé en 1919 pour que le leader soit plus visible."
+        ]
         return {
             "quote": random.choice(fallbacks),
             "from_llm": False
@@ -562,3 +611,4 @@ async def analyze_reclamation(request: ReclamationRequest):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
+
