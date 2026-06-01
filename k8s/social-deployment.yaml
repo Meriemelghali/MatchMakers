@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: social-service
+  labels:
+    app: social-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: social-service
+  template:
+    metadata:
+      labels:
+        app: social-service
+    spec:
+      containers:
+      - name: social-service
+        image: matchmakers-social-service:latest
+        imagePullPolicy: Never # Très important pour Minikube pour utiliser l'image locale
+        ports:
+        - containerPort: 8090
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: social-service
+spec:
+  type: NodePort
+  selector:
+    app: social-service
+  ports:
+    - port: 8090
+      targetPort: 8090
+      nodePort: 30090

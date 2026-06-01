@@ -7,7 +7,8 @@
 
 /* ── Gauche ── */
 .login-left {
-  width: 35%;
+  width: 42%;
+  min-width: 420px;
   background: #080B10;
   display: flex;
   align-items: center;
@@ -165,7 +166,7 @@ input:-webkit-autofill:focus {
 
 /* ── Droite ── */
 .login-right {
-  width: 65%;
+  flex: 1;
   background-image: url('/assets/football-team.jpg');
   background-size: cover;
   background-position: center;
@@ -215,32 +216,71 @@ input:-webkit-autofill:focus {
 }
 
 .mfa-container h2 {
-  color: #fff;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
   margin-bottom: 8px;
-  font-size: 20px;
+  letter-spacing: -0.5px;
 }
 
 .mfa-container .subtitle {
-  color: #aaa;
-  font-size: 13px;
-  margin-bottom: 24px;
+  color: #b0b8c4;
+  font-size: 14px;
+  margin-bottom: 28px;
+  line-height: 1.4;
 }
 
-.mfa-code-input {
+/* ── OTP 6-box input ── */
+.otp-group {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 8px;
   width: 100%;
-  padding: 15px;
-  font-size: 24px !important;
-  text-align: center;
-  letter-spacing: 12px;
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
-  border-radius: 8px;
-  color: #fff;
-  outline: none;
 }
 
-.mfa-code-input:focus {
+.otp-box {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 58px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  background: #13161c;
+  border: 2px solid #2e3340;
+  border-radius: 12px;
+  outline: none;
+  caret-color: #ff6a00;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.otp-box::-webkit-outer-spin-button,
+.otp-box::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.otp-box:focus {
   border-color: #ff6a00;
+  background: #1e2028;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(255, 106, 0, 0.25);
+}
+
+.otp-box.otp-filled {
+  border-color: #ff6a00;
+  background: rgba(255, 106, 0, 0.1);
+  color: #ff6a00;
+}
+
+.otp-box:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .btn-back {
@@ -263,46 +303,83 @@ input:-webkit-autofill:focus {
   text-align: center;
 }
 
+.mfa-choice-container h2 {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.mfa-choice-container .subtitle {
+  color: #b0b8c4;
+  font-size: 14px;
+  margin-bottom: 28px;
+  line-height: 1.4;
+}
+
 .mfa-options {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .mfa-option-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
-  border-radius: 12px;
-  padding: 16px;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px 24px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
+  position: relative;
+}
+
+/* Card that is actively loading (selected) */
+.mfa-option-card.card-selected {
+  border-color: #ff6a00;
+  background: rgba(255, 106, 0, 0.08);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.18);
+}
+
+/* Card that is NOT the selected one – greyed out */
+.mfa-option-card.card-dimmed {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(60%);
+  transform: scale(0.97);
 }
 
 .mfa-option-card:hover {
   border-color: #ff6a00;
-  background: #333;
-  transform: translateY(-2px);
+  background: rgba(255, 106, 0, 0.06);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 106, 0, 0.12);
 }
 
 .mfa-icon {
-  font-size: 24px;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mfa-text h3 {
-  color: #fff;
-  font-size: 15px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
   margin: 0;
 }
 
 .mfa-text p {
-  color: #888;
-  font-size: 12px;
-  margin: 2px 0 0 0;
+  color: #a0aec0;
+  font-size: 13px;
+  margin: 4px 0 0 0;
+  line-height: 1.3;
 }
 
 .qr-code-wrapper {
@@ -316,5 +393,26 @@ input:-webkit-autofill:focus {
 .qr-code-wrapper img {
   width: 150px;
   height: 150px;
+}
+
+/* ── Button inline spinner ── */
+.btn-spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 

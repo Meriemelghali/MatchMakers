@@ -13,6 +13,8 @@ import { ProductAdminComponent } from './product-admin/product-admin.component';
 import { ProductDetailComponent } from './product-detail/product-detail.component';
 import { StarRatingComponent } from './components/star-rating/star-rating.component';
 import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
+import { SponsorModule } from '../sponsor/sponsor.module';
+
 
 
 @NgModule({
@@ -27,13 +29,14 @@ import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
     ProductAdminComponent,
     ProductDetailComponent,
     StarRatingComponent,
-    AdminOrdersComponent
+    AdminOrdersComponent,
   ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
-    ProductsRoutingModule
+    ProductsRoutingModule,
+    SponsorModule,
   ]
 })
 export class ProductsModule {}

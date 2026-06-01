@@ -13,6 +13,7 @@ export const environment = {
   rewardServiceUrl: 'http://localhost:8086/rewards/api/rewards',
   productServiceUrl: 'http://localhost:8092/products/api/products',
   aiServiceUrl: 'http://127.0.0.1:8001',
+  postgenerationkey: '',
   geminiAiServiceUrl: 'http://127.0.0.1:8002',
   openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions'
 };

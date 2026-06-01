@@ -2,3 +2,7 @@
   /* styles globaux hérités du thème, on laisse vide ici */
 }
 
+.rewards-ai-modal {
+  max-width: 640px;
+}
+

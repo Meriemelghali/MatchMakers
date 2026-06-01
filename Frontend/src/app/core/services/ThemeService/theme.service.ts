@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type ThemeType = 'LIGHT' | 'DARK' | 'SYSTEM';
+export type ThemeType = 'LIGHT' | 'DARK' | 'SYSTEM' | 'LIGHT_HIGH_CONTRAST' | 'DARK_HIGH_CONTRAST';
 
 @Injectable({
   providedIn: 'root'
@@ -37,8 +37,12 @@ export class ThemeService {
       document.documentElement.setAttribute('data-theme', 'LIGHT');
     } else if (theme === 'DARK') {
       document.documentElement.removeAttribute('data-theme');
+    } else if (theme === 'LIGHT_HIGH_CONTRAST') {
+      document.documentElement.setAttribute('data-theme', 'LIGHT_HIGH_CONTRAST');
+    } else if (theme === 'DARK_HIGH_CONTRAST') {
+      document.documentElement.setAttribute('data-theme', 'DARK_HIGH_CONTRAST');
     } else {
-      // System logic can be added here if needed, for now default to dark
+      // System logic
       if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
         document.documentElement.setAttribute('data-theme', 'LIGHT');
       } else {

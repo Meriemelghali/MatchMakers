@@ -25,12 +25,37 @@
 
     <!-- Links -->
     <div class="sidebar-links">
-      <div class="sidebar-label">GESTION SPORTIVE</div>
-      <a *ngFor="let link of navLinks" [routerLink]="link.path" routerLinkActive="sidebar-link-active"
-        class="sidebar-link" (click)="navOpen = false">
-        <span [innerHTML]="link.icon" class="sidebar-link-icon"></span>
-        {{ link.label }}
-      </a>
+      <div *ngFor="let group of navGroups" class="nav-group">
+
+        <!-- Group header (clickable) -->
+        <div class="nav-group-header"
+             [class.active]="isGroupActive(group)"
+             [class.open]="group.expanded"
+             (click)="toggle(group)">
+          <span [innerHTML]="group.icon" class="nav-icon"></span>
+          <span class="nav-label">{{ group.label }}</span>
+          <svg *ngIf="group.children?.length"
+               class="arrow" [class.rotated]="group.expanded"
+               width="12" height="12" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+
+        <!-- Sub-items (accordion) -->
+        <div class="nav-children" [class.expanded]="group.expanded">
+          <a *ngFor="let child of group.children"
+             [routerLink]="child.path"
+             routerLinkActive="child-active"
+             class="nav-child"
+             (click)="navOpen = false">
+            <span [innerHTML]="child.icon" class="child-icon"></span>
+            {{ child.label }}
+          </a>
+        </div>
+
+      </div>
     </div>
 
     <!-- Clock / Bottom Meta -->
@@ -74,6 +99,59 @@
           <polyline points="9 22 9 12 15 12 15 22"></polyline>
         </svg>
         Aller au Backoffice
+      </div>
+
+      <!-- Thème Submenu Trigger -->
+      <div class="dd-item theme-section-trigger" (click)="toggleThemeList($event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <span>Thème : {{ getThemeLabel(currentTheme) }}</span>
+        <svg class="chevron-arrow" [class.rotated]="themeListExpanded" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left:auto; width:10px; height:10px; transition:transform 0.2s;">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </div>
+
+      <!-- Collapsible Theme Options -->
+      <div class="theme-options-collapsible" *ngIf="themeListExpanded" (click)="$event.stopPropagation()" style="background: rgba(255,255,255,0.03); border-radius: var(--r-sm); margin: 2px 0; padding: 4px;">
+        <div class="dd-item theme-opt" [class.selected]="currentTheme === 'SYSTEM'" (click)="changeTheme('SYSTEM'); profileOpen = false" style="font-size:12px; padding: 6px 12px;">
+          <span>Préférence Système</span>
+          <svg *ngIf="currentTheme === 'SYSTEM'" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3" style="width:12px; height:12px; margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="dd-item theme-opt" [class.selected]="currentTheme === 'LIGHT'" (click)="changeTheme('LIGHT'); profileOpen = false" style="font-size:12px; padding: 6px 12px;">
+          <span>Mode Clair</span>
+          <svg *ngIf="currentTheme === 'LIGHT'" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3" style="width:12px; height:12px; margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="dd-item theme-opt" [class.selected]="currentTheme === 'DARK'" (click)="changeTheme('DARK'); profileOpen = false" style="font-size:12px; padding: 6px 12px;">
+          <span>Mode Sombre</span>
+          <svg *ngIf="currentTheme === 'DARK'" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3" style="width:12px; height:12px; margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="dd-item theme-opt" [class.selected]="currentTheme === 'LIGHT_HIGH_CONTRAST'" (click)="changeTheme('LIGHT_HIGH_CONTRAST'); profileOpen = false" style="font-size:12px; padding: 6px 12px;">
+          <span>Clair Contraste Élevé</span>
+          <svg *ngIf="currentTheme === 'LIGHT_HIGH_CONTRAST'" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3" style="width:12px; height:12px; margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="dd-item theme-opt" [class.selected]="currentTheme === 'DARK_HIGH_CONTRAST'" (click)="changeTheme('DARK_HIGH_CONTRAST'); profileOpen = false" style="font-size:12px; padding: 6px 12px;">
+          <span>Sombre Contraste Élevé</span>
+          <svg *ngIf="currentTheme === 'DARK_HIGH_CONTRAST'" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3" style="width:12px; height:12px; margin-left:auto;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
       </div>
 
       <div class="dd-sep"></div>

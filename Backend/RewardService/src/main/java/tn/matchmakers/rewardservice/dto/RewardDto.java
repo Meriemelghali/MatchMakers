@@ -7,6 +7,7 @@ import tn.matchmakers.rewardservice.enums.RewardType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 public class RewardDto {
@@ -28,6 +29,13 @@ public class RewardDto {
     private String teamId;
     private String teamName;
     private String eventId;
+
+    private Integer level;
+    private Integer progress;
+    private Integer maxProgress;
+    private Boolean evolutive;
+    private Map<String, Object> evolutionRules;
+    private Map<String, Object> design;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

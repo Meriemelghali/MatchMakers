@@ -6,6 +6,7 @@ import tn.matchmakers.rewardservice.enums.RewardStatus;
 import tn.matchmakers.rewardservice.enums.RewardType;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Data
 public class RewardUpdateRequest {
@@ -26,5 +27,12 @@ public class RewardUpdateRequest {
     private String teamId;
     private String teamName;
     private String eventId;
+
+    private Boolean evolutive;
+    private Integer maxProgress;
+    private Map<String, Object> evolutionRules;
+
+    // Stores the visual design configuration (colors, ribbon, text, source image, transforms, etc.)
+    private Map<String, Object> design;
 }
 

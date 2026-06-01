@@ -11,6 +11,7 @@ import { ToastService, ToastMessage } from '../../core/services/toast.service';
 import { AIService, SportInspiration } from '../../core/services/UserService/ai.service';
 import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -52,7 +53,9 @@ export class ProfileComponent implements OnInit {
     private themeService: ThemeService,
     private aiService: AIService,
     private reclamationService: ReclamationService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router
+
   ) {
     this.initForms();
   }
@@ -203,6 +206,9 @@ export class ProfileComponent implements OnInit {
   setTab(tab: string) {
     this.activeTab = tab;
   }
+  goToSponsorProfile() {
+  this.router.navigate(['/sponsor/profile']);
+}
 
   toggleSport(sportName: string) {
     const currentSports = this.profileForm.get('favoriteSports')?.value as string[] || [];

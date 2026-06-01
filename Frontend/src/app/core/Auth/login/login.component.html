@@ -68,16 +68,32 @@
         <p class="subtitle">Choisissez comment recevoir votre code de sécurité :</p>
         
         <div class="mfa-options">
-          <div class="mfa-option-card" (click)="selectMfaMethod('EMAIL')">
-            <div class="mfa-icon">✉️</div>
+          <!-- Carte EMAIL -->
+          <div class="mfa-option-card"
+               [class.card-selected]="loading && twoFactorType === 'EMAIL'"
+               [class.card-dimmed]="loading && twoFactorType !== 'EMAIL'"
+               [class.disabled]="loading"
+               (click)="selectMfaMethod('EMAIL')">
+            <div class="mfa-icon">
+              <span *ngIf="!(loading && twoFactorType === 'EMAIL')">✉️</span>
+              <div *ngIf="loading && twoFactorType === 'EMAIL'" class="spinner"></div>
+            </div>
             <div class="mfa-text">
               <h3>Code par Email</h3>
               <p>Envoyé à votre adresse enregistrée</p>
             </div>
           </div>
 
-          <div class="mfa-option-card" (click)="selectMfaMethod('AUTH_APP')">
-            <div class="mfa-icon">📱</div>
+          <!-- Carte AUTH_APP -->
+          <div class="mfa-option-card"
+               [class.card-selected]="loading && twoFactorType === 'AUTH_APP'"
+               [class.card-dimmed]="loading && twoFactorType !== 'AUTH_APP'"
+               [class.disabled]="loading"
+               (click)="selectMfaMethod('AUTH_APP')">
+            <div class="mfa-icon">
+              <span *ngIf="!(loading && twoFactorType === 'AUTH_APP')">📱</span>
+              <div *ngIf="loading && twoFactorType === 'AUTH_APP'" class="spinner"></div>
+            </div>
             <div class="mfa-text">
               <h3>Application Authenticator</h3>
               <p>Google Authenticator ou Authy</p>
@@ -86,7 +102,7 @@
         </div>
 
         <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
-        <button (click)="backToLogin()" class="btn-back">← Retour</button>
+        <button [disabled]="loading" (click)="backToLogin()" class="btn-back">← Retour</button>
       </div>
 
       <!-- ÉTAPE 3 : Vérification du code -->
@@ -106,18 +122,30 @@
            <img [src]="qrCodeImage" alt="QR Code" />
         </div>
 
-        <div class="input-group">
-          <input 
-            type="text" 
-            [(ngModel)]="mfaCode" 
-            placeholder="••••••" 
-            maxlength="6" 
-            class="mfa-code-input" 
+        <!-- 6-box OTP input -->
+        <div class="otp-group">
+          <input
+            *ngFor="let digit of otpDigits; let i = index"
+            #otpInput
+            id="otp-box-{{i}}"
+            type="text"
+            inputmode="numeric"
+            maxlength="1"
+            class="otp-box"
+            [class.otp-filled]="otpDigits[i]"
+            [value]="otpDigits[i]"
+            [disabled]="loading"
+            (keydown)="onOtpKeyDown($event, i)"
+            (input)="onOtpInput($event, i)"
+            (paste)="onOtpPaste($event)"
           />
         </div>
 
-        <button (click)="onVerifyMfa()" [disabled]="loading" class="btn-login">
-          {{ loading ? 'Vérification...' : 'Valider le code' }}
+        <button (click)="onVerifyMfa()" [disabled]="loading || mfaCode.length < 6" class="btn-login" style="margin-top: 24px;">
+          <span *ngIf="!loading">Valider le code</span>
+          <span *ngIf="loading" class="btn-spinner-wrap">
+            <span class="btn-spinner"></span> Vérification...
+          </span>
         </button>
 
         <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>

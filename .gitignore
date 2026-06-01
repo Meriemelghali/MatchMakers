@@ -1,0 +1,26 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Pip cache
+.pip-cache/
+
+# Temporary files
+.tmp/
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+Frontend/src/assets/avatars/*.glb
+
+.logs/
+*.log
