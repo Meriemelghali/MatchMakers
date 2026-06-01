@@ -6,9 +6,10 @@ import { SharedModule } from '../shared/shared.module';
 import { MatchListComponent } from './match-list/match-list.component';
 import { MatchFormComponent } from './match-form/match-form.component';
 import { MatchDetailComponent } from './match-detail/match-detail.component';
+import { StadiumReactionComponent } from './stadium-reaction/stadium-reaction.component';
 
 @NgModule({
-    declarations: [MatchListComponent, MatchFormComponent, MatchDetailComponent],
+    declarations: [MatchListComponent, MatchFormComponent, MatchDetailComponent, StadiumReactionComponent],
     imports: [CommonModule, MatchesRoutingModule, ReactiveFormsModule, FormsModule, SharedModule]
 })
 export class MatchesModule { }

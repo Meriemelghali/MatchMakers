@@ -14,6 +14,7 @@ export const environment = {
   productServiceUrl: 'http://localhost:8092/products/api/products',
   aiServiceUrl: 'http://127.0.0.1:8001',
   postgenerationkey: '',
-  geminiAiServiceUrl: 'http://127.0.0.1:8002',
+  // Gemini AI service – matchmaking & match summary. See /GeminiAI for the FastAPI service.
+  geminiAiServiceUrl: 'http://127.0.0.1:8003',
   openRouterUrl: 'https://openrouter.ai/api/v1/chat/completions'
 };

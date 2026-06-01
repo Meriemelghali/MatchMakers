@@ -142,6 +142,84 @@
   letter-spacing: 0.03em;
 }
 
+/* ── VS Bracket ───────────────────────────────────── */
+
+.mm-vs-bracket {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 24px;
+  padding: 20px 24px 0;
+}
+
+.mm-vs-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.025);
+  text-align: center;
+}
+
+.mm-vs-card--home {
+  border-color: rgba(232,80,10,0.25);
+  background: rgba(232,80,10,0.05);
+}
+
+.mm-vs-card--away {
+  border-color: rgba(124,58,237,0.25);
+  background: rgba(124,58,237,0.05);
+}
+
+.mm-vs-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+}
+
+.mm-vs-card--home .mm-vs-tag { color: rgba(232,80,10,0.7); }
+.mm-vs-card--away .mm-vs-tag { color: rgba(124,58,237,0.7); }
+
+.mm-vs-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.mm-vs-score {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.mm-vs-connector {
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+/* ── Radar ─────────────────────────────────────────── */
+
+.mm-radar-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0 32px 8px;
+  margin-bottom: 16px;
+  max-height: 280px;
+}
+
+.mm-radar-canvas {
+  max-width: 380px;
+  max-height: 280px;
+}
+
 /* ── Suggestion Cards ─────────────────────────────── */
 
 .mm-cards {
