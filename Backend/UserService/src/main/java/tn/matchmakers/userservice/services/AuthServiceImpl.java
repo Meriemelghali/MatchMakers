@@ -61,6 +61,13 @@ public class AuthServiceImpl implements AuthService {
         checkAccountStatus(user);
         validatePassword(request, user);
             
+        // Handle 2FA Bypass: If user logged in within the last 2 hours, skip 2FA
+        if (user.getLastLoginAt() != null && user.getLastLoginAt().isAfter(LocalDateTime.now().minusHours(2))) {
+            log.info("Bypassing 2FA for user: {} (Logged in within the last 2 hours)", user.getEmail());
+            handleSuccessfulLogin(user, device);
+            return createAuthResponse(user, device);
+        }
+
         // Handle 2FA : Always ask for choice if mandatory (dynamic 2FA choice)
         log.info("2FA Dynamic Choice triggered for user: {}", user.getEmail());
         return AuthResponse.choiceRequired(user.getEmail());

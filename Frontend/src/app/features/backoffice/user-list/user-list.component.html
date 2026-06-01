@@ -32,6 +32,7 @@
             <th>EMAIL</th>
             <th>RÔLES</th>
             <th>STATUT</th>
+            <th>SCORE</th>
             <th>ACTIONS</th>
           </tr>
         </thead>
@@ -57,7 +58,7 @@
                 </div>
                 <div class="user-name">
                   <span class="full-name">{{ user.firstName }} {{ user.lastName }}</span>
-                  <span class="user-id">ID: {{ user.id ? user.id.substring(0, 8) : '' }}...</span>
+                  <span class="user-id">ID: {{ user.id }}</span>
                 </div>
               </div>
             </td>
@@ -80,11 +81,20 @@
               </span>
             </td>
             <td>
+              <div class="score-cell">
+                <span class="score-badge" [class.score-high]="user.fairPlayScore >= 800" 
+                                        [class.score-mid]="user.fairPlayScore < 800 && user.fairPlayScore >= 400"
+                                        [class.score-low]="user.fairPlayScore < 400">
+                  <i class="fas fa-shield-alt"></i> {{ user.fairPlayScore }}
+                </span>
+              </div>
+            </td>
+            <td>
               <div class="action-buttons">
                 <!-- Groupe Assigner Rôle -->
                 <div class="assign-group">
                   <select #roleSelect class="role-select">
-                    <option value="" disabled selected>Rôle...</option>
+                    <option value="" disabled selected>Rôle</option>
                     <option *ngFor="let role of availableRoles" [value]="role.name">
                       {{ role.name }}
                     </option>
@@ -97,6 +107,15 @@
                 <!-- Envoyer credentials par email -->
                 <button class="btn-action email" (click)="sendCredentials(user)" title="Envoyer identifiants">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polyline points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+
+                <!-- Pardonner (Seulement si Banni ou Inactif) -->
+                <button *ngIf="user.accountStatus === 'BANNED' || user.accountStatus === 'INACTIVE'" 
+                        class="btn-action pardon" 
+                        style="color: #10b981; background: rgba(16, 185, 129, 0.1);"
+                        (click)="pardonUser(user)" 
+                        title="Pardonner et Réactiver">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                 </button>
 
                 <!-- Supprimer -->

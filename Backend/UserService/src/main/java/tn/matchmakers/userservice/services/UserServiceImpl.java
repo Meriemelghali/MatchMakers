@@ -239,4 +239,161 @@ public class UserServiceImpl implements UserService {
             log.error("Erreur technique lors du chargement du template d'invitation", e);
         }
     }
+
+    @Override
+    public void updateFairPlayScore(String userId, Integer points) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+        
+        int currentScore = user.getFairPlayScore() != null ? user.getFairPlayScore() : 1000;
+        user.setFairPlayScore(currentScore + points);
+        userRepository.save(user);
+        log.info("Fair-Play Score mis à jour pour {}: {} (Delta: {})", userId, user.getFairPlayScore(), points);
+    }
+
+    @Override
+    public User getUserByUsernameOrName(String query) {
+        // 1. Essayer par Username
+        return userRepository.findByUsernameIgnoreCase(query.trim())
+            .or(() -> {
+                // 2. Essayer par Prénom + Nom (si espace présent)
+                String[] parts = query.trim().split(" ");
+                if (parts.length >= 2) {
+                    // Essayer : parts[0] (Prénom) et le reste (Nom)
+                    String firstName = parts[0];
+                    String lastName = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+                    
+                    java.util.List<User> foundList = userRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastName);
+                    if (!foundList.isEmpty()) return java.util.Optional.of(foundList.get(0));
+
+                    // Essayer aussi sans espace dans le nom (ex: "El Ghali" -> "ElGhali")
+                    String lastNameNoSpace = lastName.replace(" ", "");
+                    foundList = userRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(firstName, lastNameNoSpace);
+                    if (!foundList.isEmpty()) return java.util.Optional.of(foundList.get(0));
+                }
+                return java.util.Optional.empty();
+            })
+            .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé avec: " + query));
+    }
+
+    @Override
+    public void applySanction(String userId, String message, String type, Integer points) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        // 1. Mettre à jour le score si nécessaire
+        if (points != null && points != 0) {
+            int currentScore = user.getFairPlayScore() != null ? user.getFairPlayScore() : 1000;
+            user.setFairPlayScore(currentScore + points);
+        }
+
+        // 2. Gérer le statut et les messages
+        user.setPendingSanctionMessage(message);
+        user.setPendingSanctionType(type);
+
+        if ("BAN".equals(type) || "BAN_DEFINITIF".equals(type)) {
+            user.setAccountStatus(AccountStatus.BANNED);
+            log.warn("L'utilisateur {} a été BANNI.", userId);
+        }
+
+        userRepository.save(user);
+
+        // 3. Envoyer l'email en HTML
+        String subject = "MatchMakers - Notification Disciplinaire";
+        
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<div style=\"font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1a1c23; padding: 30px; border-radius: 12px; color: #ffffff; border: 1px solid #2a2d35; box-shadow: 0 8px 24px rgba(0,0,0,0.2);\">");
+        
+        // Header / Logo
+        htmlBuilder.append("<div style=\"text-align: center; margin-bottom: 30px; border-bottom: 1px solid #2a2d35; padding-bottom: 20px;\">")
+                   .append("<h1 style=\"color: #E8500A; margin: 0; font-size: 32px; letter-spacing: 2px; text-transform: uppercase;\">Match<span style=\"color:#ffffff;\">Makers</span></h1>")
+                   .append("<p style=\"color: #a0a5b1; margin-top: 8px; font-size: 14px; font-weight: 500;\">FAIR-PLAY & COMMUNAUTÉ</p>")
+                   .append("</div>");
+        
+        // Body
+        htmlBuilder.append("<div style=\"background-color: #22252e; padding: 25px; border-radius: 8px;\">")
+                   .append("<h2 style=\"color: #ffffff; margin-top: 0; font-size: 22px;\">Notification Disciplinaire</h2>")
+                   .append("<p style=\"color: #d1d5db; font-size: 16px; line-height: 1.6;\">Bonjour <strong style=\"color:#ffffff;\">").append(user.getFirstName()).append("</strong>,</p>")
+                   .append("<p style=\"color: #d1d5db; font-size: 16px; line-height: 1.6;\">Nous vous informons qu'une mesure disciplinaire a été prise à votre encontre suite à un signalement de la communauté.</p>");
+        
+        // Sanction Box
+        htmlBuilder.append("<div style=\"background-color: rgba(220, 38, 38, 0.1); border-left: 4px solid #dc2626; padding: 20px; margin: 25px 0; border-radius: 4px;\">")
+                   .append("<p style=\"margin: 0 0 10px 0; color: #fca5a5; font-size: 15px;\"><strong style=\"color:#ef4444;\">TYPE DE SANCTION :</strong> ").append(type).append("</p>")
+                   .append("<p style=\"margin: 0; color: #fca5a5; font-size: 15px;\"><strong style=\"color:#ef4444;\">MOTIF :</strong> ").append(message).append("</p>");
+        
+        if (points != null && points < 0) {
+            htmlBuilder.append("<p style=\"margin: 15px 0 0 0; color: #fca5a5; font-size: 15px; border-top: 1px solid rgba(220,38,38,0.2); padding-top: 15px;\">")
+                       .append("<strong style=\"color:#ef4444;\">IMPACT SCORE FPS :</strong> ").append(points).append(" points</p>");
+        }
+        htmlBuilder.append("</div>");
+
+        if ("BAN".equals(type) || "BAN_DEFINITIF".equals(type)) {
+            htmlBuilder.append("<div style=\"background-color: #dc2626; color: white; padding: 15px; border-radius: 6px; text-align: center; margin-bottom: 20px;\">")
+                       .append("<p style=\"margin: 0; font-weight: bold; font-size: 16px;\">🚨 Votre compte a été suspendu définitivement.</p>")
+                       .append("<p style=\"margin: 5px 0 0 0; font-size: 14px;\">En raison de récidives multiples (3 sanctions en moins de 60 jours).</p>")
+                       .append("</div>");
+        }
+
+        htmlBuilder.append("<p style=\"color: #9ca3af; font-size: 14px; line-height: 1.6; margin-top: 30px;\">Notre système de Fair-Play a pour but de garantir un environnement sain et respectueux pour tous les joueurs. Merci de respecter ces valeurs.</p>")
+                   .append("<p style=\"color: #d1d5db; font-size: 15px; margin-top: 25px;\">Sportivement,<br><strong style=\"color:#E8500A;\">L'équipe MatchMakers</strong></p>")
+                   .append("</div>");
+                   
+        // Footer
+        htmlBuilder.append("<div style=\"text-align: center; margin-top: 25px; font-size: 12px; color: #6b7280;\">")
+                   .append("<p>© 2026 MatchMakers. Tous droits réservés.</p>")
+                   .append("</div>")
+                   .append("</div>");
+
+        try {
+            emailService.sendHtmlEmail(user.getEmail(), subject, htmlBuilder.toString());
+            log.info("Sanction appliquée et email HTML envoyé à {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Erreur lors de l'envoi de l'email HTML de sanction: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public void clearSanctionMessage(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+        user.setPendingSanctionMessage(null);
+        user.setPendingSanctionType(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void pardonUser(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.setFairPlayScore(1000);
+        user.setPendingSanctionMessage(null);
+        user.setPendingSanctionType(null);
+        
+        userRepository.save(user);
+
+        // Envoyer email de pardon
+        String subject = "MatchMakers - Bonne nouvelle ! Votre compte a été réactivé";
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;\">");
+        htmlBuilder.append("<div style=\"text-align: center; margin-bottom: 20px;\">")
+                   .append("<h1 style=\"color: #10b981; margin: 0;\">Compte Réactivé</h1>")
+                   .append("</div>");
+        htmlBuilder.append("<p style=\"color: #334155;\">Bonjour <strong>").append(user.getFirstName()).append("</strong>,</p>");
+        htmlBuilder.append("<p style=\"color: #334155; line-height: 1.5;\">Suite à une révision de votre dossier par notre équipe, nous avons le plaisir de vous informer que votre compte MatchMakers a été <strong>débanni</strong>.</p>");
+        htmlBuilder.append("<div style=\"background-color: #dcfce7; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;\">");
+        htmlBuilder.append("<p style=\"color: #065f46; margin: 0;\"><strong>Nouveau départ :</strong> Votre score de Fair-Play a été réinitialisé à 1000 points.</p>");
+        htmlBuilder.append("</div>");
+        htmlBuilder.append("<p style=\"color: #334155; margin-top: 20px;\">Merci de respecter la charte de bonne conduite lors de vos prochaines parties.</p>");
+        htmlBuilder.append("<p style=\"color: #334155; margin-top: 30px;\">Sportivement,<br><strong style=\"color:#e8500a;\">L'équipe MatchMakers</strong></p>");
+        htmlBuilder.append("</div>");
+
+        try {
+            emailService.sendHtmlEmail(user.getEmail(), subject, htmlBuilder.toString());
+            log.info("Email de pardon envoyé à {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Erreur lors de l'envoi de l'email de pardon: {}", e.getMessage());
+        }
+    }
 }

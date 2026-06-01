@@ -27,4 +27,24 @@ export class ReclamationService {
   getUserSanctions(userId: string): Observable<Sanction[]> {
     return this.http.get<Sanction[]>(`${this.apiUrl}/sanctions/user/${userId}`);
   }
+
+  resolveReclamation(id: string, comment: string = ''): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${id}/resolve?adminComment=${encodeURIComponent(comment)}`, {});
+  }
+
+  createSanction(sanction: Sanction): Observable<Sanction> {
+    return this.http.post<Sanction>(`${this.apiUrl}/sanctions`, sanction);
+  }
+
+  getAIStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/admin/dashboard/stats`);
+  }
+
+  getAllReclamations(): Observable<Reclamation[]> {
+    return this.http.get<Reclamation[]>(this.apiUrl);
+  }
+
+  deleteReclamation(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

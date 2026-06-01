@@ -20,6 +20,7 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AiChatbotComponent } from './layouts/ai-chatbot/ai-chatbot.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
+import { UserReclamationsComponent } from './features/profile/user-reclamations/user-reclamations.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashbo
     RoleSelectionComponent,
     ProfileComponent,
     AiChatbotComponent,
-    CoachDashboardComponent
+    CoachDashboardComponent,
+    UserReclamationsComponent
   ],
 
   imports: [

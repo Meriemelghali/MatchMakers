@@ -17,7 +17,13 @@
       <div *ngIf="aiResponse" class="alert alert-info mb-24 animate-slide-in">
         <div class="alert-icon">🤖</div>
         <div class="alert-content">
-          <h4 class="fw-700">Médiation Instantanée</h4>
+          <div class="alert-header">
+            <h4 class="fw-700">Médiation Instantanée</h4>
+            <div class="ai-badges" *ngIf="aiType">
+              <span class="ai-badge type" [attr.data-type]="aiType">{{ aiType }}</span>
+              <span class="ai-badge urgency" [attr.data-urgency]="aiUrgence">{{ aiUrgence }}</span>
+            </div>
+          </div>
           <p>{{ aiResponse }}</p>
         </div>
       </div>
@@ -30,13 +36,30 @@
 
       <form [formGroup]="reclamationForm" (ngSubmit)="onSubmit()" class="reclamation-form">
         
-        <!-- Title -->
+        <!-- Subject (Dropdown) -->
         <div class="field mb-20">
           <label class="field-label">Sujet de la réclamation</label>
           <div class="input-wrapper">
-            <i class="fas fa-pen-alt input-icon"></i>
-            <input type="text" formControlName="title" class="field-input with-icon" 
-              placeholder="Ex: Comportement inapproprié, Problème de score...">
+            <i class="fas fa-list-ul input-icon"></i>
+            <select formControlName="title" class="field-input with-icon appearance-none">
+              <option value="" disabled selected>Choisir un sujet...</option>
+              <option value="Comportement inapproprié (Joueur)">Comportement inapproprié (Joueur)</option>
+              <option value="Problème de score / Résultats">Problème de score / Résultats</option>
+              <option value="Problème Technique / Application">Problème Technique / Application</option>
+              <option value="Litige de Paiement / Remboursement">Litige de Paiement / Remboursement</option>
+              <option value="Autre">Autre</option>
+            </select>
+            <i class="fas fa-chevron-down select-arrow"></i>
+          </div>
+        </div>
+
+        <!-- Custom Subject (Hidden by default) -->
+        <div class="field mb-20 animate-slide-in" *ngIf="reclamationForm.get('title')?.value === 'Autre'">
+          <label class="field-label">Précisez le sujet</label>
+          <div class="input-wrapper">
+            <i class="fas fa-edit input-icon"></i>
+            <input type="text" formControlName="customTitle" class="field-input with-icon" 
+              placeholder="Tapez votre sujet ici...">
           </div>
         </div>
 
@@ -49,11 +72,29 @@
               <input type="text" formControlName="matchId" class="field-input with-icon" placeholder="Ex: M-9876">
             </div>
           </div>
-          <div class="field">
-            <label class="field-label">Nom du Joueur / ID <small>(Optionnel)</small></label>
+          <div class="field relative">
+            <label class="field-label">Nom du Joueur / ID <small class="t-orange" *ngIf="reclamationForm.get('type')?.value === 'COMPORTEMENT'">*</small></label>
             <div class="input-wrapper">
               <i class="fas fa-user input-icon"></i>
-              <input type="text" formControlName="targetUserId" class="field-input with-icon" placeholder="Ex: John Doe">
+              <input type="text" formControlName="targetUserId" 
+                (input)="onUserTyping()" 
+                (blur)="showUserList = false"
+                class="field-input with-icon" 
+                placeholder="Ex: John Doe"
+                autocomplete="off">
+            </div>
+            
+            <!-- AUTOCOMPLETE DROPDOWN -->
+            <div class="autocomplete-list" *ngIf="showUserList">
+              <div *ngFor="let user of filteredUsers" 
+                (mousedown)="selectUser(user)" 
+                class="autocomplete-item">
+                <div class="user-avatar-tiny">{{ user.firstName.charAt(0) }}</div>
+                <div class="user-details">
+                  <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+                  <span class="user-email">{{ user.email }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

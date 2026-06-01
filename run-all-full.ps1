@@ -1,4 +1,9 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
+
+# AI API Keys
+$env:OPENROUTER_API_KEY = "${OPENROUTER_API_KEY}"
+$env:GEMINI_API_KEY = "${OPENROUTER_API_KEY}"
+
 
 # Run the full stack (all Spring microservices + Angular frontend + PythonAI).
 # Logs: .logs/<Service>.log

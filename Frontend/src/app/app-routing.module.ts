@@ -13,6 +13,7 @@ import { AdminOrdersComponent } from './features/products/admin-orders/admin-ord
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
+import { UserReclamationsComponent } from './features/profile/user-reclamations/user-reclamations.component';
 
 
 const routes: Routes = [
@@ -85,6 +86,10 @@ const routes: Routes = [
       {
         path: 'coach',
         component: CoachDashboardComponent
+      },
+      {
+        path: 'my-reclamations',
+        component: UserReclamationsComponent
       },
       // autres routes privées ici
     ]

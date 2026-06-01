@@ -68,10 +68,10 @@ export class AuthService {
       localStorage.setItem('firstName', payload.firstName || '');
       localStorage.setItem('lastName', payload.lastName || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
-    } catch (e) { }
       localStorage.setItem('userEmail', payload.email || response.email || '');
-      localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
-    } catch (e) { }
+    } catch (e) { 
+      console.error('Error decoding token:', e);
+    }
 
     if (response.theme) {
       this.themeService.setTheme(response.theme as ThemeType, true);

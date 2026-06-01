@@ -41,4 +41,8 @@ export class UserService {
   getUserById(id: string): Observable<UserResponse> {
     return this.http.get<UserResponse>(`${this.apiUrl}/${id}`);
   }
+
+  pardonUser(userId: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${userId}/pardon`, {});
+  }
 }

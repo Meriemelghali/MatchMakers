@@ -15,6 +15,11 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+# OpenRouter Configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
     
 app = FastAPI(title="EventType AI Service", description="AI microservice for Event Type suggestions", version="1.0.0")
 
@@ -68,6 +73,9 @@ class EventPredictionRequest(BaseModel):
 
 class QuoteRequest(BaseModel):
     sports: List[str]
+
+class ReclamationRequest(BaseModel):
+    description: str
 
 # Fallback values if API key is not present or fails
 def get_fallback_suggestion(type_name: str) -> dict:
@@ -416,51 +424,141 @@ async def sport_quote(request: QuoteRequest):
             "from_llm": False
         }
         
-    try:
-        import random
-        # Switch to gemini-1.5-flash for better stability/quota
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        sports_str = ", ".join(request.sports) if request.sports else "sports en général"
-        
-        prompt = f"""
-        Tu es un expert en culture sportive pour la plateforme MatchMakers.
-        L'utilisateur est fan de : {sports_str}.
-        
-        Ta mission : Donne soit un "Fun Fact" sportif fascinant (anecdote incroyable, record insolite, comparaison physique impressionnante), soit une citation motivante.
-        Exemple de Fun Fact : "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?"
-        
-        Règles :
-        - Langue : Français
-        - Style : Captivant, éducatif et court
-        - Longueur : Max 2 phrases
-        - Pas de titres, pas de markdown, commence direct par le texte.
-        """
-        
-        response = model.generate_content(prompt)
         return {
-            "quote": response.text.strip(),
-            "from_llm": True
+            "quote": random.choice(fallbacks),
+            "from_llm": False
         }
-    except Exception as e:
-        print(f"Error getting sport quote (Quota/API): {str(e)}")
+
+@app.post("/api/ai/sport-quote")
+async def sport_quote(request: QuoteRequest):
+    if not GEMINI_API_KEY and not OPENROUTER_API_KEY:
+        import random
         fallbacks = [
             "Savais-tu que le golf est le seul sport à avoir été pratiqué sur la Lune (en 1971) ?",
-            "Le sifflet d'arbitre n'a été utilisé pour la première fois qu'en 1878. Avant, ils utilisaient des mouchoirs !",
+            "Le sifflet d'arbitre n'a été utilisé pour la première fois qu'en 1878.",
             "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?",
-            "Le basket-ball a été inventé en utilisant un panier de pêches comme panier !",
-            "Une balle de tennis peut atteindre 263 km/h lors d'un service record !",
-            "Le premier match de football retransmis à la télévision a eu lieu en 1937.",
-            "Savais-tu qu'au saut en hauteur, on utilisait la technique du 'ventral' avant l'invention du Fosbury-flop ?",
-            "Le record du monde du marathon est de 2h 00min 35s. C'est presque 21km/h de moyenne !",
-            "Michael Jordan a été coupé de son équipe de basket de lycée avant de devenir une légende.",
-            "Le tennis de table (Ping-pong) a été inventé en Angleterre comme un passe-temps après le dîner.",
-            "Savais-tu que les premiers Jeux Olympiques modernes ont eu lieu à Athènes en 1896 ?",
-            "Le maillot jaune du Tour de France a été créé en 1919 pour que le leader soit plus visible."
+            "Le basket-ball a été inventé en utilisant un panier de pêches comme panier !"
         ]
         return {
             "quote": random.choice(fallbacks),
             "from_llm": False
         }
+        
+    sports_str = ", ".join(request.sports) if request.sports else "sports en général"
+    prompt = f"""
+    Tu es un expert en culture sportive pour la plateforme MatchMakers.
+    L'utilisateur est fan de : {sports_str}.
+    
+    Ta mission : Donne soit un "Fun Fact" sportif fascinant, soit une citation motivante.
+    Règles : Français, captivant, court (max 2 phrases).
+    """
+    
+    # Try OpenRouter
+    if OPENROUTER_API_KEY:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"}
+                payload = {"model": OPENROUTER_MODEL, "messages": [{"role": "user", "content": prompt}]}
+                response = await client.post(f"{OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                return {"quote": data['choices'][0]['message']['content'].strip(), "from_llm": True}
+        except Exception as e:
+            print(f"Quote OpenRouter Error: {e}")
+
+    # Fallback Gemini
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            return {"quote": response.text.strip(), "from_llm": True}
+        except Exception as e:
+            print(f"Quote Gemini Error: {e}")
+
+    return {"quote": "Le sport est le dépassement de soi. Restez passionné !", "from_llm": False}
+
+@app.post("/reclamation-analyze")
+async def analyze_reclamation(request: ReclamationRequest):
+    """
+    Analyzes a complaint description to determine type, urgency and generate an auto-response.
+    """
+    prompt = f"""
+    Tu es un assistant expert en gestion de la relation client pour MatchMakers.
+    Analyse la réclamation suivante : "{request.description}"
+    
+    Détermine :
+    1. Le type : COMPORTEMENT (insultes, triche), PAIEMENT (remboursement, erreur prix), ou TECHNIQUE (bug app, accès).
+    2. L'urgence : HAUTE (critique), MOYENNE, ou BASSE.
+    3. Une réponse automatique (reponse_auto) : Polie, en français, maximum 2 phrases.
+    
+    Réponds UNIQUEMENT en JSON valide avec cette structure :
+    {{
+        "type": "COMPORTEMENT|PAIEMENT|TECHNIQUE",
+        "urgence": "HAUTE|MOYENNE|BASSE",
+        "reponse_auto": "..."
+    }}
+    """
+    
+    # Try OpenRouter first
+    if OPENROUTER_API_KEY:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                headers = {
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:8002",
+                    "X-OpenRouter-Title": "MatchMakers-Reclamation"
+                }
+                payload = {
+                    "model": OPENROUTER_MODEL,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                response = await client.post(f"{OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                text = data['choices'][0]['message']['content'].strip()
+                
+                if "```json" in text:
+                    text = text.split("```json")[1].split("```")[0].strip()
+                elif "```" in text:
+                    text = text.split("```")[1].split("```")[0].strip()
+                
+                return json.loads(text)
+        except Exception as e:
+            print(f"OpenRouter Error: {e}")
+
+    # Fallback Gemini (if configured)
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0].strip()
+            return json.loads(text)
+        except Exception as e:
+            print(f"Gemini Error: {e}")
+
+    # Final static fallback
+    desc = request.description.lower()
+    type_found = "TECHNIQUE"
+    urgence = "MOYENNE"
+    
+    if any(w in desc for w in ["paye", "argent", "rembourse", "prix", "finance"]):
+        type_found = "PAIEMENT"
+    elif any(w in desc for w in ["insulte", "comportement", "trich", "m'a dit", "abuse"]):
+        type_found = "COMPORTEMENT"
+        urgence = "HAUTE"
+        
+    return {
+        "type": type_found,
+        "urgence": urgence,
+        "reponse_auto": "Nous avons bien reçu votre réclamation. Notre équipe va l'examiner dans les plus brefs délais."
+    }
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

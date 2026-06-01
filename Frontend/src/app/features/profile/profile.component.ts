@@ -54,6 +54,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // Suggestion System
   suggestedAvatars: AvatarSuggestion[] = [];
   isCustomMode = false; // Toggle between suggestions and full creator
+  showSanctionBanner = false;
 
   private messageHandler = this.handleIframeMessage.bind(this);
 
@@ -133,6 +134,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.themeService.setTheme(res.profile.theme as ThemeType, true);
         }
         
+        // ─── Sanction Check ───
+        if (res.profile.pendingSanctionMessage) {
+          this.showSanctionBanner = true;
+        }
+        
         this.loadActivities(userId);
         this.loadInspiration(userId);
         this.isLoading = false;
@@ -141,6 +147,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
         console.error('Error loading data', err);
         this.isLoading = false;
         this.toastService.error('Erreur lors du chargement du profil');
+      }
+    });
+  }
+
+  dismissSanction() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    
+    this.showSanctionBanner = false;
+    this.profileService.clearSanctionMessage(userId).subscribe({
+      next: () => {
+        if (this.userProfile) {
+          this.userProfile.pendingSanctionMessage = undefined;
+          this.userProfile.pendingSanctionType = undefined;
+        }
       }
     });
   }
@@ -344,5 +365,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.toastService.success("Avatar 3D récupéré avec succès ! N'oubliez pas d'enregistrer.");
       }
     } catch (e) { }
+  }
+
+  getStatusLabel(status: string | undefined): string {
+    switch (status) {
+      case 'PENDING': return 'En cours';
+      case 'RESOLVED': return 'Traité';
+      case 'AUTO_RESOLVED': return 'Résolu par IA';
+      case 'ALERTE_ADMIN': return 'En cours (Priorité)';
+      case 'REJECTED': return 'Rejeté';
+      default: return status || 'Inconnu';
+    }
+  }
+
+  getStatusClass(status: string | undefined): string {
+    switch (status) {
+      case 'PENDING': return 'badge-occupe';
+      case 'RESOLVED': return 'badge-disponible';
+      case 'AUTO_RESOLVED': return 'badge-disponible';
+      case 'ALERTE_ADMIN': return 'badge-annule';
+      case 'REJECTED': return 'badge-err';
+      default: return 'badge-disponible';
+    }
   }
 }

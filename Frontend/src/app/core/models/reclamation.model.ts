@@ -9,6 +9,7 @@ export interface Reclamation {
   userId?: string;
   targetUserId?: string;
   aiResponse?: string;
+  adminComment?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -11,6 +11,8 @@ import tn.matchmakers.reclamationservice.repositories.SanctionRepository;
 import tn.matchmakers.reclamationservice.services.ReclamationService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @RestController
@@ -60,17 +62,65 @@ public class ReclamationController {
     
     @GetMapping("/admin/dashboard/urgentes")
     public ResponseEntity<List<Reclamation>> getUrgentReclamations() {
+        Map<String, Integer> priority = Map.of(
+            "HAUTE", 3,
+            "MOYENNE", 2,
+            "BASSE", 1
+        );
+
         List<Reclamation> urgentes = reclamationRepository.findAll()
                 .stream()
                 .filter(r -> "HAUTE".equals(r.getUrgence()) || 
+                            "MOYENNE".equals(r.getUrgence()) ||
                             "ALERTE_ADMIN".equals(r.getStatus()) || 
                             "PENDING".equals(r.getStatus()))
+                .sorted((r1, r2) -> {
+                    int p1 = priority.getOrDefault(r1.getUrgence(), 0);
+                    int p2 = priority.getOrDefault(r2.getUrgence(), 0);
+                    return Integer.compare(p2, p1); // Décroissant : 3, 2, 1
+                })
                 .collect(Collectors.toList());
         return ResponseEntity.ok(urgentes);
     }
     
+    @GetMapping("/admin/dashboard/stats")
+    public ResponseEntity<Map<String, Object>> getAIStats() {
+        List<Reclamation> all = reclamationRepository.findAll();
+        Map<String, Long> types = all.stream()
+                .filter(r -> r.getType() != null)
+                .collect(Collectors.groupingBy(Reclamation::getType, Collectors.counting()));
+        
+        Map<String, Long> urgences = all.stream()
+                .filter(r -> r.getUrgence() != null)
+                .collect(Collectors.groupingBy(Reclamation::getUrgence, Collectors.counting()));
+        
+        long totalSanctions = sanctionRepository.count();
+        long totalAutoResolved = all.stream().filter(r -> "AUTO_RESOLVED".equals(r.getStatus())).count();
+
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("byType", types);
+        stats.put("byUrgence", urgences);
+        stats.put("totalSanctions", totalSanctions);
+        stats.put("totalAutoResolved", totalAutoResolved);
+        stats.put("totalReclamations", (long) all.size());
+
+        return ResponseEntity.ok(stats);
+    }
+    
     // --- SANCTIONS ---
     
+    @PostMapping("/sanctions")
+    public ResponseEntity<Sanction> createSanction(@RequestBody Sanction sanction) {
+        reclamationService.createSanction(sanction);
+        return new ResponseEntity<>(sanction, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}/resolve")
+    public ResponseEntity<Void> resolveReclamation(@PathVariable String id, @RequestParam(required = false) String adminComment) {
+        reclamationService.resolveReclamation(id, adminComment);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/sanctions/user/{userId}")
     public ResponseEntity<List<Sanction>> getUserSanctions(@PathVariable String userId) {
         return ResponseEntity.ok(sanctionRepository.findByUserId(userId));

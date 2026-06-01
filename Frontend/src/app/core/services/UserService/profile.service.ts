@@ -18,7 +18,10 @@ export interface UserProfile {
   fitnessGoals?: string[];
   weight?: number;
   height?: number;
+  fairPlayScore?: number;
   roles: string[];
+  pendingSanctionMessage?: string;
+  pendingSanctionType?: string;
 }
 
 @Injectable({
@@ -26,11 +29,16 @@ export interface UserProfile {
 })
 export class ProfileService {
   private userApiUrl = `${environment.userServiceUrl}/users/users`;
+  private aiApiUrl = `${environment.userServiceUrl}/users/api/ai`;
 
   constructor(private http: HttpClient) { }
 
   getProfile(userId: string): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.userApiUrl}/${userId}`);
+  }
+
+  searchUserByQuery(query: string): Observable<UserProfile> {
+    return this.http.get<UserProfile>(`${this.userApiUrl}/search`, { params: { query } });
   }
 
   updateProfile(userId: string, profileData: any): Observable<UserProfile> {
@@ -39,6 +47,10 @@ export class ProfileService {
 
   changePassword(userId: string, passwordData: any): Observable<void> {
     return this.http.put<void>(`${this.userApiUrl}/${userId}/change-password`, passwordData);
+  }
+
+  clearSanctionMessage(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.aiApiUrl}/sanction/${userId}/message`);
   }
 
   // Activity fetching

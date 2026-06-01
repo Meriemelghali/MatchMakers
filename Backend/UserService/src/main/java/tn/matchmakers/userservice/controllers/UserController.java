@@ -24,6 +24,10 @@ public class UserController {
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable String id) {
         return ResponseEntity.ok(UserMapper.mapToUserResponseDto(userService.getUserById(id)));
     }
+    @GetMapping("/search")
+    public ResponseEntity<UserResponseDto> getUserByUsernameOrName(@RequestParam String query) {
+        return ResponseEntity.ok(UserMapper.mapToUserResponseDto(userService.getUserByUsernameOrName(query)));
+    }
     @DeleteMapping("deleteuser/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
@@ -49,6 +53,12 @@ public class UserController {
             @PathVariable String userId,
             @RequestBody tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto) {
         userService.changePassword(userId, changePasswordDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{userId}/pardon")
+    public ResponseEntity<Void> pardonUser(@PathVariable String userId) {
+        userService.pardonUser(userId);
         return ResponseEntity.ok().build();
     }
 

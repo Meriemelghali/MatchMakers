@@ -149,21 +149,17 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {
-        "ok": True,
-        "version": "0.3.0",
-        "ollama_url": OLLAMA_URL,
-        "default_model": OLLAMA_MODEL,
-        "toxicity_model": TOXICITY_MODEL_NAME if toxicity_model else "not_loaded"
     provider = "openrouter" if OPENROUTER_API_KEY else "ollama"
     return {
         "ok": True,
+        "version": "0.3.0",
         "provider": provider,
         "openrouter_base_url": OPENROUTER_BASE_URL,
         "openrouter_model": OPENROUTER_MODEL,
         "openrouter_key_configured": bool(OPENROUTER_API_KEY),
         "ollama_url": OLLAMA_URL,
         "ollama_model": OLLAMA_MODEL,
+        "toxicity_model": TOXICITY_MODEL_NAME if toxicity_model else "not_loaded"
     }
 
 

@@ -16,4 +16,9 @@ public interface UserService {
     UserResponseDto updateProfile(String userId, tn.matchmakers.userservice.dto.ProfileUpdateDto profileUpdateDto);
     void changePassword(String userId, tn.matchmakers.userservice.dto.ChangePasswordDto changePasswordDto);
     void notifyUsersForNewEvent(tn.matchmakers.userservice.dto.EventNotificationDto dto);
+    void updateFairPlayScore(String userId, Integer points);
+    User getUserByUsernameOrName(String query);
+    void applySanction(String userId, String message, String type, Integer points);
+    void clearSanctionMessage(String userId);
+    void pardonUser(String userId);
 }

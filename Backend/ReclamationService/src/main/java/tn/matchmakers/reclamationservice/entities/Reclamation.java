@@ -28,6 +28,7 @@ public class Reclamation {
     private String targetUserId; // Joueur signalé (facultatif)
     
     private String aiResponse; // Réponse automatique générée par l'IA
+    private String adminComment; // Commentaire laissé par l'administrateur
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

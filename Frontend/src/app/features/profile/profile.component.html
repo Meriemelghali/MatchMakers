@@ -28,12 +28,41 @@
           <h1>{{ userProfile?.firstName }} {{ userProfile?.lastName }}</h1>
           <div class="badges">
             <span class="role-badge">{{ userProfile?.roles?.[0] || 'Sportif' }}</span>
+            <span class="score-badge" title="Score de Fair-Play">
+              <i class="fas fa-shield-alt"></i> {{ userProfile?.fairPlayScore || 1000 }} FPS
+            </span>
+            <span class="status-badge warning-badge" *ngIf="userProfile?.pendingSanctionMessage" [title]="userProfile?.pendingSanctionMessage">
+              <i class="fas fa-exclamation-triangle"></i> SANCTION ACTIVE
+            </span>
             <span class="status-badge" *ngFor="let sport of userProfile?.favoriteSports">
               <i class="fas fa-star"></i> {{ sport }}
             </span>
           </div>
           <button class="btn btn-sm btn-secondary mt-2" (click)="openAvatarCreator()">
             <i class="fas fa-cube"></i> Personnaliser en 3D
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sanction Notification Banner -->
+    <div class="sanction-notification-container" *ngIf="showSanctionBanner">
+      <div class="sanction-banner pulse-red">
+        <div class="sanction-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="sanction-content">
+          <div class="sanction-header">
+            <span class="sanction-tag">NOTIFICATION DISCIPLINAIRE</span>
+            <span class="sanction-title">{{ userProfile?.pendingSanctionType || 'AVERTISSEMENT' }}</span>
+          </div>
+          <p class="sanction-message">
+            {{ userProfile?.pendingSanctionMessage }}
+          </p>
+        </div>
+        <div class="sanction-actions">
+          <button class="btn-close-sanction" (click)="dismissSanction()" title="J'ai compris">
+            <i class="fas fa-times"></i>
           </button>
         </div>
       </div>
@@ -57,6 +86,11 @@
             <div class="line"></div>
             <div class="line short"></div>
           </div>
+        </div>
+        <div class="ai-actions" *ngIf="!isLoadingInspiration">
+          <button class="btn-refresh-ai" (click)="loadInspiration(userProfile?.id!)" title="Nouvelle inspiration">
+            <i class="fas fa-sync-alt"></i>
+          </button>
         </div>
         <div class="ai-decoration">
           <i class="fas fa-bolt"></i>
@@ -283,25 +317,53 @@
         </div>
 
         <!-- Reclamations -->
-        <div class="activity-section">
-          <h3><i class="fas fa-exclamation-circle"></i> Mes Réclamations ({{ myReclamations.length }})</h3>
-          <div class="activity-list">
-            <div class="activity-item reclamation-item" *ngFor="let rec of myReclamations">
-              <div class="item-icon" [class.status-resolved]="rec.status === 'RESOLVED'">
-                <i class="fas" [class.fa-check-circle]="rec.status === 'RESOLVED'" [class.fa-clock]="rec.status !== 'RESOLVED'"></i>
-              </div>
-              <div class="item-info">
-                <div class="flex justify-between items-center w-full">
-                  <h4>{{ rec.title }}</h4>
-                  <span class="badge" [ngClass]="rec.status === 'RESOLVED' ? 'badge-en_cours' : 'badge-annule'">
-                    {{ rec.status === 'RESOLVED' ? 'Résolu' : 'En attente' }}
-                  </span>
+        <div class="activity-section full-width mt-4">
+          <div class="flex justify-between items-center mb-6">
+            <h3><i class="fas fa-shield-alt"></i> Mes Réclamations ({{ myReclamations.length }})</h3>
+            <button class="btn-text-premium" routerLink="/my-reclamations">Voir tout <i class="fas fa-external-link-alt"></i></button>
+          </div>
+          
+          <div class="premium-rec-grid">
+            <div class="premium-rec-card" *ngFor="let rec of myReclamations" [class.resolved]="rec.status === 'RESOLVED' || rec.status === 'AUTO_RESOLVED'">
+              <div class="rec-top">
+                <div class="rec-main">
+                  <div class="rec-icon">
+                    <i class="fas" [ngClass]="{
+                      'fa-exclamation-circle': rec.type === 'TECHNIQUE',
+                      'fa-user-slash': rec.type === 'COMPORTEMENT',
+                      'fa-wallet': rec.type === 'PAIEMENT'
+                    }"></i>
+                  </div>
+                  <div class="rec-titles">
+                    <h4>{{ rec.title }}</h4>
+                    <span class="rec-meta">{{ rec.createdAt | date:'dd MMM yyyy' }} • {{ rec.type }}</span>
+                  </div>
                 </div>
-                <p class="t-muted text-xs mt-4">{{ rec.createdAt | date:'shortDate' }} • {{ rec.type }}</p>
+                <span class="premium-badge" [ngClass]="getStatusClass(rec.status)">
+                  <span class="pulse-dot" *ngIf="rec.status === 'PENDING' || rec.status === 'ALERTE_ADMIN'"></span>
+                  {{ getStatusLabel(rec.status) }}
+                </span>
+              </div>
+              
+              <p class="rec-desc">{{ rec.description }}</p>
+
+              <!-- Feedback inline -->
+              <div class="rec-feedback" *ngIf="rec.adminComment || rec.aiResponse">
+                <div class="feedback-indicator">
+                  <i class="fas" [class.fa-robot]="rec.status === 'AUTO_RESOLVED'" [class.fa-user-shield]="rec.status === 'RESOLVED'"></i>
+                </div>
+                <div class="feedback-text">
+                  {{ rec.adminComment || rec.aiResponse }}
+                </div>
+                <div class="reward-mini" *ngIf="rec.adminComment && (rec.adminComment.toLowerCase().includes('rembours') || rec.adminComment.toLowerCase().includes('gratuit') || rec.adminComment.toLowerCase().includes('bon'))">
+                  <i class="fas fa-gift"></i> Avantage
+                </div>
               </div>
             </div>
-            <div class="empty-activity" *ngIf="myReclamations.length === 0">
-              Vous n'avez soumis aucune réclamation.
+
+            <div class="empty-premium" *ngIf="myReclamations.length === 0">
+              <i class="fas fa-check-circle"></i>
+              <p>Aucun incident signalé à ce jour.</p>
             </div>
           </div>
         </div>

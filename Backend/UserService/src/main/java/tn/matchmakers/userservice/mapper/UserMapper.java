@@ -28,6 +28,9 @@ public class UserMapper {
                 .weight(user.getWeight())
                 .height(user.getHeight())
                 .theme(user.getTheme())
+                .fairPlayScore(user.getFairPlayScore())
+                .pendingSanctionMessage(user.getPendingSanctionMessage())
+                .pendingSanctionType(user.getPendingSanctionType())
                 .build();
     }
 }

@@ -70,6 +70,36 @@
   font-size: 24px;
 }
 
+.alert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.ai-badges {
+  display: flex;
+  gap: 8px;
+}
+
+.ai-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ai-badge.type[data-type="PAIEMENT"] { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.ai-badge.type[data-type="COMPORTEMENT"] { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.ai-badge.type[data-type="TECHNIQUE"] { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+.ai-badge.urgency[data-urgency="HAUTE"] { background: #ef4444; color: white; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+.ai-badge.urgency[data-urgency="MOYENNE"] { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.ai-badge.urgency[data-urgency="BASSE"] { background: rgba(156, 163, 175, 0.2); color: #d1d5db; }
+
 /* Animations */
 .animate-slide-in {
   animation: slideInLeft 0.4s ease-out;
@@ -104,3 +134,83 @@
     padding: 20px 16px;
   }
 }
+
+/* Autocomplete Styles */
+.relative { position: relative; }
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 8px;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.autocomplete-item:last-child { border-bottom: none; }
+
+.autocomplete-item:hover {
+  background: rgba(232, 80, 10, 0.1);
+}
+
+.user-avatar-tiny {
+  width: 28px;
+  height: 28px;
+  background: var(--brand);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 700;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.t-orange { color: #e8500a; }
+
+.appearance-none {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  color: var(--text-3);
+  font-size: 12px;
+  pointer-events: none;
+}
+

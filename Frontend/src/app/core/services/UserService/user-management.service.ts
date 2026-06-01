@@ -10,6 +10,7 @@ export interface User {
   email: string;
   roles: string[];
   accountStatus: string; // 'ACTIVE', 'INACTIVE', etc.
+  fairPlayScore: number;
 }
 
 @Injectable({
@@ -31,5 +32,9 @@ export interface User {
 
   assignRole(userId: string, roleName: string): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/${userId}/roles/${roleName}`, {});
+  }
+
+  pardonUser(userId: string): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/${userId}/pardon`, {});
   }
 }

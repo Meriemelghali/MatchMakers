@@ -24,4 +24,26 @@ public class AIController {
         Map<String, Object> inspiration = userAIService.getSportQuote(user.getFavoriteSports());
         return ResponseEntity.ok(inspiration);
     }
+
+    @PutMapping("/score/{userId}")
+    public ResponseEntity<Void> updateScore(@PathVariable String userId, @RequestParam Integer points) {
+        userService.updateFairPlayScore(userId, points);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/sanction/{userId}")
+    public ResponseEntity<Void> applySanction(
+            @PathVariable String userId,
+            @RequestParam String message,
+            @RequestParam String type,
+            @RequestParam(required = false) Integer points) {
+        userService.applySanction(userId, message, type, points);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/sanction/{userId}/message")
+    public ResponseEntity<Void> clearSanctionMessage(@PathVariable String userId) {
+        userService.clearSanctionMessage(userId);
+        return ResponseEntity.ok().build();
+    }
 }
