@@ -127,7 +127,7 @@ public class ReservationReminderScheduler {
         String url = "http://localhost:8081/users/users/" + userId;
         try {
             System.out.println("[REST] Calling UserService: " + url);
-            Map user = restTemplate.getForObject(url, Map.class);
+            Map<?, ?> user = restTemplate.getForObject(url, Map.class);
             if (user != null) {
                 System.out.println("[REST] User Response: " + user);
                 return (String) user.get("phoneNumber");
@@ -142,7 +142,7 @@ public class ReservationReminderScheduler {
         String url = "http://localhost:8088/terrain/" + terrainId;
         try {
             System.out.println("[REST] Calling TerrainService: " + url);
-            Map terrain = restTemplate.getForObject(url, Map.class);
+            Map<?, ?> terrain = restTemplate.getForObject(url, Map.class);
             if (terrain != null) {
                 System.out.println("[REST] Terrain Response: " + terrain);
                 // Check both "nom" and "nameTerrain" to be safe
@@ -160,7 +160,7 @@ public class ReservationReminderScheduler {
         String url = "http://localhost:8084/sports/api/sports/" + sportId;
         try {
             System.out.println("[REST] Calling SportService: " + url);
-            Map sport = restTemplate.getForObject(url, Map.class);
+            Map<?, ?> sport = restTemplate.getForObject(url, Map.class);
             if (sport != null) {
                 System.out.println("[REST] Sport Response: " + sport);
                 String name = (String) sport.get("nameSport");

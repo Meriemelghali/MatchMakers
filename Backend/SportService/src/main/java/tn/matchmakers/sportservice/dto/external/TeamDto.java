@@ -3,6 +3,7 @@ package tn.matchmakers.sportservice.dto.external;
 import lombok.Data;
 
 
+import java.util.List;
 
 @Data
 public class TeamDto {
@@ -14,4 +15,7 @@ public class TeamDto {
     private Integer energy;
     private Integer fatigue;
     private Integer morale;
+    private String teamName;
+    private String teamLogo;
+    private List<String> memberIds;
 }

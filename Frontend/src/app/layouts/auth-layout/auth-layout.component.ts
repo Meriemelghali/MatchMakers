@@ -34,7 +34,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
   userRole = '';
   userInitials = '';
   userPhoto = '';
-  
+
   // ── Thème ──
   themeListExpanded = false;
   currentTheme: ThemeType = 'DARK';
@@ -50,7 +50,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
     private aiService: AIService,
     private authService: AuthService,
     private themeService: ThemeService
-  ) {}
+  ) { }
 
   navGroups = [
     {
@@ -188,7 +188,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
         this.sportInspiration = data;
         this.showInspiration = true;
         this.isLoadingInspiration = false;
-        
+
         // Auto-hide after 15 seconds
         setTimeout(() => {
           this.closeInspiration();

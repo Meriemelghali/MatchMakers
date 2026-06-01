@@ -32,11 +32,11 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private themeService: ThemeService
-  ) {}
+  ) { }
 
   ngOnInit() {
     const firstName = localStorage.getItem('firstName') || '';
-    const lastName  = localStorage.getItem('lastName')  || '';
+    const lastName = localStorage.getItem('lastName') || '';
     if (firstName || lastName) {
       this.userName = `${firstName} ${lastName}`.trim();
     }
@@ -102,8 +102,8 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
       icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
       expanded: false,
       children: [
-        { path: '/backoffice/users',  label: 'Tous les utilisateurs' },
-        { path: '/backoffice/roles',  label: 'Rôles' }
+        { path: '/backoffice/users', label: 'Tous les utilisateurs' },
+        { path: '/backoffice/roles', label: 'Rôles' }
       ]
     },
     {
@@ -111,8 +111,8 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
       icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
       expanded: false,
       children: [
-        { path: '/backoffice/products',  label: 'Produits' },
-        { path: '/backoffice/commande',  label: 'Commandes' }
+        { path: '/backoffice/products', label: 'Produits' },
+        { path: '/backoffice/commande', label: 'Commandes' }
       ]
     },
     {
@@ -121,7 +121,7 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
       expanded: false,
       children: [
         { path: '/backoffice/event-types', label: "Types d'événements" },
-        { path: '/backoffice/sports',      label: 'Sports' }
+        { path: '/backoffice/sports', label: 'Sports' }
       ]
     },
     {
@@ -129,8 +129,8 @@ export class BackofficeLayoutComponent implements OnInit, OnDestroy {
       icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
       expanded: false,
       children: [
-        { path: '/backoffice/sponsors',   label: 'Sponsors' },
-        { path: '/backoffice/Campaigns',  label: 'Campagnes' }
+        { path: '/backoffice/sponsors', label: 'Sponsors' },
+        { path: '/backoffice/Campaigns', label: 'Campagnes' }
       ]
     },
     {

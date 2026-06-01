@@ -422,8 +422,7 @@ def _extract_first_json_array(text: str) -> Optional[list]:
         return None
 
 
-def _build_rewards_suggest_prompt(req: 
-                                 ) -> str:
+def _build_rewards_suggest_prompt(req: RewardsSuggestRequest) -> str:
     parts = []
     parts.append("Tu es un assistant pour l'ecran 'Recompenses' de MatchMakers.")
     parts.append("Objectif: suggerer une recompense 'apaisée' (tone calme, juste, non-toxique).")

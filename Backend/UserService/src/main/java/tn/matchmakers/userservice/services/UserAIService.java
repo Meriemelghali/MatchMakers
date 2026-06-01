@@ -62,7 +62,6 @@ public class UserAIService {
         } catch (Exception e) {
             System.err.println("Error calling AI Service for sport quote: " + e.getMessage());
         }
-
         Map<String, Object> fallback = new HashMap<>();
         fallback.put("quote", "Le sport est le dépassement de soi. Restez passionné !");
         fallback.put("from_llm", false);

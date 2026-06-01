@@ -16,7 +16,6 @@ export class LoginComponent {
   // MFA states
   isMfaChoiceStep = false;
   isMfaVerifyStep = false;
-
   email = '';
   password = '';
   mfaCode = '';

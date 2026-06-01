@@ -22,7 +22,6 @@
              (click)="toggle(group)">
           <span [innerHTML]="group.icon" class="nav-icon"></span>
           <span class="nav-label">{{ group.label }}</span>
-          <!-- Arrow only for groups with children -->
           <svg *ngIf="group.children?.length"
                class="arrow" [class.rotated]="group.expanded"
                width="14" height="14" viewBox="0 0 24 24"
@@ -60,22 +59,22 @@
   <main class="main-content">
     <header class="topbar">
       <h1>Dashboard Admin</h1>
-      <!-- Theme & Profile dropdown trigger -->
       <div class="user-profile-menu-container">
-        
+
         <div class="user-profile-trigger" (click)="toggleDropdown($event)">
           <span class="user-name-label">{{ userName }}</span>
           <span class="theme-quick-icon">
-            <i class="fas" [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST' || currentTheme === 'SYSTEM'" [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'"></i>
+            <i class="fas"
+               [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST' || currentTheme === 'SYSTEM'"
+               [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'"></i>
           </span>
           <div class="avatar"><i class="fas fa-user-shield"></i></div>
           <i class="fas fa-chevron-down trigger-arrow" [class.rotated]="dropdownOpen"></i>
         </div>
 
-        <!-- Dropdown menu (like ngrok Account menu) -->
+        <!-- Dropdown menu -->
         <div class="profile-dropdown-menu" *ngIf="dropdownOpen" (click)="$event.stopPropagation()">
-          
-          <!-- Header profile information -->
+
           <div class="dropdown-profile-header">
             <div class="avatar-initials">ME</div>
             <div class="profile-meta">
@@ -86,43 +85,50 @@
 
           <div class="dropdown-divider"></div>
 
-          <!-- List items -->
-
-          <!-- Theme trigger -->
           <div class="dropdown-menu-list theme-section">
             <div class="theme-submenu-trigger" (click)="toggleThemeList($event)">
               <span class="trigger-label">
-                <i class="fas" [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST'" [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'" [class.fa-desktop]="currentTheme === 'SYSTEM'"></i> Thème
+                <i class="fas"
+                   [class.fa-moon]="currentTheme === 'DARK' || currentTheme === 'DARK_HIGH_CONTRAST'"
+                   [class.fa-sun]="currentTheme === 'LIGHT' || currentTheme === 'LIGHT_HIGH_CONTRAST'"
+                   [class.fa-desktop]="currentTheme === 'SYSTEM'"></i> Thème
               </span>
               <span class="trigger-active-val">
-                {{ getThemeLabel(currentTheme) }} <i class="fas fa-chevron-right arrow-sub" [class.rotated]="themeListExpanded"></i>
+                {{ getThemeLabel(currentTheme) }}
+                <i class="fas fa-chevron-right arrow-sub" [class.rotated]="themeListExpanded"></i>
               </span>
             </div>
 
-            <!-- List of themes inside (collapsible) -->
+            <!-- Theme options (collapsible) -->
             <div class="theme-options-list" *ngIf="themeListExpanded">
-              <div class="theme-option-item" [class.selected]="currentTheme === 'SYSTEM'" (click)="changeTheme('SYSTEM'); closeDropdown()">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'SYSTEM'"
+                   (click)="changeTheme('SYSTEM'); closeDropdown()">
                 <span class="option-label"><i class="fas fa-desktop"></i> Préférence Système</span>
                 <i class="fas fa-check check-icon" *ngIf="currentTheme === 'SYSTEM'"></i>
               </div>
-              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT'" (click)="changeTheme('LIGHT'); closeDropdown()">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT'"
+                   (click)="changeTheme('LIGHT'); closeDropdown()">
                 <span class="option-label"><i class="fas fa-sun"></i> Mode Clair</span>
                 <i class="fas fa-check check-icon" *ngIf="currentTheme === 'LIGHT'"></i>
               </div>
-              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK'" (click)="changeTheme('DARK'); closeDropdown()">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK'"
+                   (click)="changeTheme('DARK'); closeDropdown()">
                 <span class="option-label"><i class="fas fa-moon"></i> Mode Sombre</span>
                 <i class="fas fa-check check-icon" *ngIf="currentTheme === 'DARK'"></i>
               </div>
-              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT_HIGH_CONTRAST'" (click)="changeTheme('LIGHT_HIGH_CONTRAST'); closeDropdown()">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'LIGHT_HIGH_CONTRAST'"
+                   (click)="changeTheme('LIGHT_HIGH_CONTRAST'); closeDropdown()">
                 <span class="option-label"><i class="fas fa-adjust"></i> Clair Contraste Élevé</span>
                 <i class="fas fa-check check-icon" *ngIf="currentTheme === 'LIGHT_HIGH_CONTRAST'"></i>
               </div>
-              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK_HIGH_CONTRAST'" (click)="changeTheme('DARK_HIGH_CONTRAST'); closeDropdown()">
+              <div class="theme-option-item" [class.selected]="currentTheme === 'DARK_HIGH_CONTRAST'"
+                   (click)="changeTheme('DARK_HIGH_CONTRAST'); closeDropdown()">
                 <span class="option-label"><i class="fas fa-circle-notch"></i> Sombre Contraste Élevé</span>
                 <i class="fas fa-check check-icon" *ngIf="currentTheme === 'DARK_HIGH_CONTRAST'"></i>
               </div>
             </div>
           </div>
+
         </div>
 
       </div>

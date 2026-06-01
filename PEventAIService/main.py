@@ -75,7 +75,6 @@ class EventPredictionRequest(BaseModel):
     eventType: str
     participants: List[str]
 
-
 class QuoteRequest(BaseModel):
     sports: List[str]
 

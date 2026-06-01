@@ -1,6 +1,6 @@
 package tn.matchmakers.reservationservice.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -45,7 +45,7 @@ public class PythonRecommendationService {
             log.info("Fetching AI recommendations for date={}, userId={}, sport={}", dateTime, userId, sportType);
 
             // 1. Récupérer les terrains depuis TerrainService
-            Map[] rawTerrains = restTemplate.getForObject(TERRAIN_SERVICE_URL, Map[].class);
+            Map<?, ?>[] rawTerrains = restTemplate.getForObject(TERRAIN_SERVICE_URL, Map[].class);
             if (rawTerrains == null || rawTerrains.length == 0) {
                 log.warn("No terrains fetched from TerrainService");
                 return RecommendationResponseDto.builder().recommandations(new ArrayList<>()).build();
@@ -190,7 +190,7 @@ public class PythonRecommendationService {
             log.info("Fetching heatmap for startDate={}, days={}, sport={}", startDate, days, sportType);
 
             // Récupérer les terrains
-            Map[] rawTerrains = restTemplate.getForObject(TERRAIN_SERVICE_URL, Map[].class);
+            Map<?, ?>[] rawTerrains = restTemplate.getForObject(TERRAIN_SERVICE_URL, Map[].class);
             if (rawTerrains == null) return Map.of("heatmap", new ArrayList<>());
 
             // Filtrer si terrainIds fournis

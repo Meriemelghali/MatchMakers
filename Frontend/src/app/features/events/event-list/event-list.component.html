@@ -126,13 +126,9 @@
               <path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/>
               <path d="M12 17v4"/><path d="M8 21h8"/><path d="M6 5h12v6a6 6 0 0 1-12 0V5z"/>
             </svg>
-            <span class="ev-visual-team">
-              {{ (ev.teamIds?.[0] || ev.competition?.teamIds?.[0]) ? getTeamName(ev.teamIds?.[0] || ev.competition?.teamIds?.[0] || '') : 'Club A' }}
-            </span>
+            <span class="ev-visual-team">Club A</span>
             <span class="ev-visual-vs">VS</span>
-            <span class="ev-visual-team">
-              {{ (ev.teamIds?.[1] || ev.competition?.teamIds?.[1]) ? getTeamName(ev.teamIds?.[1] || ev.competition?.teamIds?.[1] || '') : 'Club B' }}
-            </span>
+            <span class="ev-visual-team">Club B</span>
           </div>
 
           <!-- Match list for simple events -->

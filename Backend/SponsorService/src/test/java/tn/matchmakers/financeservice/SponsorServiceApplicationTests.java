@@ -1,4 +1,4 @@
-package tn.matchmakers.sponsorservice;
+package tn.matchmakers.financeservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
