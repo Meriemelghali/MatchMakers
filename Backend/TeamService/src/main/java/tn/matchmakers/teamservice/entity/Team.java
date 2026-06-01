@@ -43,6 +43,15 @@ public class Team {
     private List<TeamMember> members = new ArrayList<>();
 
     @Builder.Default
+    private Integer energy = 100;
+
+    @Builder.Default
+    private Integer fatigue = 0;
+
+    @Builder.Default
+    private Integer morale = 100;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Builder.Default

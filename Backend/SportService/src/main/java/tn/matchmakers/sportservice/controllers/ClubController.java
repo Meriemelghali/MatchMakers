@@ -40,7 +40,7 @@ public class ClubController {
             @PathVariable String id,
             HttpServletRequest request) {
         String baseUrl = request.getScheme() + "://" + request.getServerName()
-                + ":" + request.getServerPort();
+                + ":" + request.getServerPort() + request.getContextPath();
         return ResponseEntity.ok(clubService.getClubDetail(id, baseUrl));
     }
     @GetMapping("/sport/{sportId}")
@@ -88,12 +88,19 @@ public class ClubController {
         return ResponseEntity.ok(clubService.uploadLogo(id, file));
     }
 
+    @PostMapping("/{id}/logo-url")
+    public ResponseEntity<Club> saveLogoFromUrl(
+            @PathVariable String id,
+            @RequestBody String imageUrl) throws IOException {
+        return ResponseEntity.ok(clubService.saveLogoFromUrl(id, imageUrl));
+    }
+
     /**
      * Affiche le logo d'un club.
      * GET /api/clubs/logo/{fileName}
      * Angular : <img [src]="'http://localhost:8084/api/clubs/logo/' + club.logoFileName">
      */
-    @GetMapping("/logo/{fileName}")
+    @GetMapping("/logo/{fileName:.+}")
     public ResponseEntity<Resource> getLogo(@PathVariable String fileName) throws IOException {
         Path filePath = clubService.getLogoPath(fileName);
         Resource resource = new UrlResource(filePath.toUri());
@@ -104,7 +111,10 @@ public class ClubController {
 
         // Détecte automatiquement le type (png, jpg, etc.)
         String contentType = java.nio.file.Files.probeContentType(filePath);
-        if (contentType == null) contentType = "application/octet-stream";
+        if (contentType == null) {
+            if (fileName.toLowerCase().endsWith(".svg")) contentType = "image/svg+xml";
+            else contentType = "application/octet-stream";
+        }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
@@ -114,16 +124,24 @@ public class ClubController {
 
     // ─── Teams
     @PostMapping("/{id}/teams/{teamId}")
-    public ResponseEntity<Club> addTeam(
+    public ResponseEntity<ClubResponseDto> addTeam(
             @PathVariable String id,
-            @PathVariable String teamId) {
-        return ResponseEntity.ok(clubService.addTeam(id, teamId));
+            @PathVariable String teamId,
+            HttpServletRequest request) {
+        clubService.addTeam(id, teamId);
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                + ":" + request.getServerPort() + request.getContextPath();
+        return ResponseEntity.ok(clubService.getClubDetail(id, baseUrl));
     }
 
     @DeleteMapping("/{id}/teams/{teamId}")
-    public ResponseEntity<Club> removeTeam(
+    public ResponseEntity<ClubResponseDto> removeTeam(
             @PathVariable String id,
-            @PathVariable String teamId) {
-        return ResponseEntity.ok(clubService.removeTeam(id, teamId));
+            @PathVariable String teamId,
+            HttpServletRequest request) {
+        clubService.removeTeam(id, teamId);
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                + ":" + request.getServerPort() + request.getContextPath();
+        return ResponseEntity.ok(clubService.getClubDetail(id, baseUrl));
     }
 }

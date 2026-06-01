@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.sponsorservice.dto.SponsorRequestDTO;
 import tn.matchmakers.sponsorservice.dto.SponsorResponseDTO;
 import tn.matchmakers.sponsorservice.entity.SponsorStatus;
-import tn.matchmakers.sponsorservice.service.SponsorService;
+import tn.matchmakers.sponsorservice.services.SponsorService;
 
 import java.util.List;
 import java.util.Map;

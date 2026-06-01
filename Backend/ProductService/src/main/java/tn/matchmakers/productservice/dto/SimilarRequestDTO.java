@@ -11,5 +11,6 @@ import java.util.List;
 public class SimilarRequestDTO {
     private ProductScoreDTO targetProduct;
     private List<ProductScoreDTO> candidates;
+    @Builder.Default
     private int topK = 4;
 }

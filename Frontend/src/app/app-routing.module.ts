@@ -91,6 +91,10 @@ const routes: Routes = [
         path: 'coach',
         component: CoachDashboardComponent
       },
+      {
+        path: 'clubs',
+        loadChildren: () => import('./features/clubs/clubs.module').then(m => m.ClubsModule)
+      },
       // autres routes privées ici
     ]
   },

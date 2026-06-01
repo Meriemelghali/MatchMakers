@@ -20,7 +20,7 @@ public class ClubResponseDto {
     private String descriptionClub;
     // URL complète du logo — ex: http://localhost:8084/api/clubs/logo/abc123.png
     private String logoUrl;
-    private Sport sport;
+    private List<Sport> sports;
     private String ownerId;
     private UserRef createdBy;
     // Équipes récupérées depuis TeamService (Sami — 8085)
@@ -33,7 +33,7 @@ public class ClubResponseDto {
         this.city = club.getCity();
         this.descriptionClub = club.getDescriptionClub();
         this.logoUrl = club.getLogoFileName();
-        this.sport = club.getSport();
+        this.sports = club.getSports();
         this.ownerId = club.getOwnerId();
         this.createdBy = club.getCreatedBy();
     }

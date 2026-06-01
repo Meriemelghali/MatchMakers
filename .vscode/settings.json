@@ -1,0 +1,7 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/PEventAIService/.venv/Scripts/python.exe",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/PEventAIService",
+        "${workspaceFolder}/PythonAI"
+    ]
+}

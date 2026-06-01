@@ -20,4 +20,8 @@ export class AIService {
   getSportInspiration(userId: string): Observable<SportInspiration> {
     return this.http.get<SportInspiration>(`${this.API}/sport-inspiration/${userId}`);
   }
+
+  generateClubLogo(name: string, description: string, sports: string[]): Observable<any> {
+    return this.http.post<any>(`${this.API}/club-logo`, { name, description, sports });
+  }
 }

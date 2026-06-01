@@ -22,7 +22,7 @@ export class ReclamationFormComponent implements OnInit {
   ) {
     this.reclamationForm = this.fb.group({
       title: ['', Validators.required],
-      description: ['', [Validators.required, Validators.minLength(10)]],
+      description: ['', [Validators.required, Validators.minLength(5)]],
       targetUserId: [''], // Optional
       matchId: ['']       // Optional
     });

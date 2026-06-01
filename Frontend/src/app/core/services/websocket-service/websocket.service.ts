@@ -21,7 +21,7 @@ export class WebSocketService {
     const socket = new SockJS('http://localhost:8090/social/ws'); 
     this.stompClient = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => {
+      debug: (str: string) => {
         console.log('STOMP: ' + str);
       },
       reconnectDelay: 5000,
@@ -29,11 +29,11 @@ export class WebSocketService {
       heartbeatOutgoing: 4000,
     });
 
-    this.stompClient.onConnect = (frame) => {
+    this.stompClient.onConnect = (frame: any) => {
       console.log('STOMP: Connected: ' + frame);
     };
 
-    this.stompClient.onStompError = (frame) => {
+    this.stompClient.onStompError = (frame: any) => {
       console.error('STOMP: Broker reported error: ' + frame.headers['message']);
       console.error('STOMP: Additional details: ' + frame.body);
     };

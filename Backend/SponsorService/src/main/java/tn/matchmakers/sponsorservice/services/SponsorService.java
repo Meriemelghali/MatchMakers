@@ -1,4 +1,4 @@
-package tn.matchmakers.sponsorservice.service;
+package tn.matchmakers.sponsorservice.services;
 
 import tn.matchmakers.sponsorservice.dto.SponsorRequestDTO;
 import tn.matchmakers.sponsorservice.dto.SponsorResponseDTO;

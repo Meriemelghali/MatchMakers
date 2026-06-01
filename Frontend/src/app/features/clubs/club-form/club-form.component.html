@@ -1,0 +1,104 @@
+<div class="form-container">
+  <div class="form-card">
+    <div class="card-header">
+      <div class="header-text">
+        <h2>{{ isEditMode ? 'Modifier le Club' : 'Nouveau Club' }}</h2>
+        <p>Créez une identité forte pour votre communauté sportive</p>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <form [formGroup]="clubForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="nameClub">Club Name</label>
+          <input type="text" id="nameClub" formControlName="nameClub" placeholder="Enter club name" class="form-control"
+                 [ngClass]="{'is-invalid': clubForm.get('nameClub')?.invalid && clubForm.get('nameClub')?.touched}">
+          <div class="invalid-feedback" *ngIf="clubForm.get('nameClub')?.invalid && clubForm.get('nameClub')?.touched">
+            Club name is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="city">City</label>
+          <input type="text" id="city" formControlName="city" placeholder="Enter city" class="form-control"
+                 [ngClass]="{'is-invalid': clubForm.get('city')?.invalid && clubForm.get('city')?.touched}">
+          <div class="invalid-feedback" *ngIf="clubForm.get('city')?.invalid && clubForm.get('city')?.touched">
+            City is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="descriptionClub">Description</label>
+          <textarea id="descriptionClub" formControlName="descriptionClub" placeholder="Describe the club..." rows="4" class="form-control"
+                    [ngClass]="{'is-invalid': clubForm.get('descriptionClub')?.invalid && clubForm.get('descriptionClub')?.touched}"></textarea>
+          <div class="invalid-feedback" *ngIf="clubForm.get('descriptionClub')?.invalid && clubForm.get('descriptionClub')?.touched">
+            Description is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="section-label">Sports Disponibles</label>
+          <div class="sports-grid">
+            <div *ngFor="let sport of sports" class="sport-checkbox-card" [class.selected]="isSportSelected(sport.id)">
+              <input type="checkbox" 
+                     [id]="'sport-' + sport.id" 
+                     [checked]="isSportSelected(sport.id)"
+                     (change)="onSportToggle(sport.id, $event)">
+              <label [for]="'sport-' + sport.id" class="sport-label">
+                <span class="sport-name">{{ sport.nameSport }}</span>
+                <span class="sport-badge" [style.background-color]="sport.color || 'var(--brand)'"></span>
+              </label>
+            </div>
+          </div>
+          <div class="invalid-feedback" *ngIf="clubForm.get('sportIds')?.invalid && clubForm.get('sportIds')?.touched">
+            Veuillez sélectionner au moins un sport.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="section-label">Logo du Club</label>
+          <div class="logo-section" style="align-items: flex-start;">
+            <div class="logo-container">
+              <img [src]="logoPreview || 'assets/logo.png'" alt="Logo Preview" class="club-logo">
+            </div>
+            <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none;" accept="image/*">
+            
+            <div class="logo-actions">
+              <button type="button" class="btn-upload" (click)="fileInput.click()">
+                <i class="fa fa-upload"></i>
+                <span>Importer</span>
+              </button>
+              <span class="or-text">ou</span>
+              <button type="button" class="btn-ai" (click)="generateLogoWithAI()" [disabled]="generatingLogo || !clubForm.get('nameClub')?.value">
+                <i class="fa" [class.fa-magic]="!generatingLogo" [class.fa-spinner]="generatingLogo" [class.fa-spin]="generatingLogo"></i>
+                <span>Générer par IA</span>
+              </button>
+            </div>
+            <p class="ai-hint" style="text-align: left;">Importer votre logo ou générez-en un avec Nano Banana !</p>
+          </div>
+
+          <div *ngIf="aiGeneratedLogo" class="ai-preview-panel">
+            <div class="preview-content">
+              <img [src]="aiGeneratedLogo" alt="AI Generated Logo" (error)="onLogoError($event)" crossorigin="anonymous">
+              <div class="preview-actions">
+                <button type="button" class="btn-apply" (click)="applyAiLogo()">Appliquer ce logo</button>
+                <button type="button" class="btn-dismiss" (click)="aiGeneratedLogo = null">Annuler</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
+        <div *ngIf="success" class="alert alert-success mt-3">{{ success }}</div>
+
+        <div class="form-actions mt-4">
+          <button type="button" class="btn btn-outline" (click)="onCancel()" [disabled]="loading">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="clubForm.invalid || loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            {{ isEditMode ? 'Update Club' : 'Create Club' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -4,9 +4,7 @@ import tn.matchmakers.reservationservice.dto.ReservationDashboardDto;
 import tn.matchmakers.reservationservice.dto.ReservationRequestDto;
 import tn.matchmakers.reservationservice.dto.ReservationResponseDto;
 import tn.matchmakers.reservationservice.entities.Reservation;
-import tn.matchmakers.reservationservice.entities.Sport;
 import tn.matchmakers.reservationservice.entities.StatutReservation;
-import tn.matchmakers.reservationservice.entities.Terrain;
 import tn.matchmakers.reservationservice.repository.ReservationRepository;
 import tn.matchmakers.reservationservice.service.ReservationService;
 import lombok.RequiredArgsConstructor;
@@ -147,23 +145,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .build();
     }
 
-    /**
-     * Référence uniquement par id pour {@code @DBRef} : le document sport peut exister dans une autre base / un autre microservice.
-     */
-    private static Sport sportRef(String idSport) {
-        Sport s = new Sport();
-        s.setId(idSport);
-        return s;
-    }
 
-    /**
-     * Référence uniquement par id pour {@code @DBRef} : le document terrain peut exister dans une autre base / un autre microservice.
-     */
-    private static Terrain terrainRef(String idTerrain) {
-        Terrain t = new Terrain();
-        t.setId(idTerrain);
-        return t;
-    }
 
     private ReservationResponseDto toResponseDto(Reservation reservation) {
         return ReservationResponseDto.builder()

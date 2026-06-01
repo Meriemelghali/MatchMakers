@@ -18,7 +18,7 @@ public class ClubCreateDto {
     private String descriptionClub;
 
     private String logoFileName;
-    private Sport sport;
+    private List<Sport> sports;
     private List<String> teamIds;
 
     private String ownerId;

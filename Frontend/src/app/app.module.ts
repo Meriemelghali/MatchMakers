@@ -21,6 +21,8 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AiChatbotComponent } from './layouts/ai-chatbot/ai-chatbot.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
+import { AvatarEditorComponent } from './features/avatar-editor/avatar-editor.component';
+import { CoachChatbotComponent } from './features/coach-chatbot/coach-chatbot.component';
 
 
 @NgModule({
@@ -38,6 +40,8 @@ import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashbo
     ProfileComponent,
     AiChatbotComponent,
     CoachDashboardComponent,
+    AvatarEditorComponent,
+    CoachChatbotComponent
   ],
 
   imports: [

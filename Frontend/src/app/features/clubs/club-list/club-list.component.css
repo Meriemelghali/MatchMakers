@@ -1,0 +1,281 @@
+.club-list-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #050505, #111111);
+  padding: 3rem 4rem;
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.header-section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 107, 0, 0.1), transparent 70%);
+  z-index: 1;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin: 0 0 0.8rem 0;
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8E3C 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  color: #888;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 400;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.btn-create {
+  position: relative;
+  z-index: 2;
+  background: linear-gradient(135deg, #FF6B00 0%, #FF8E3C 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.btn-create:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(255, 107, 0, 0.4);
+}
+
+.btn-create i {
+  font-size: 1.2rem;
+}
+
+.loading-state, .error-state, .empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  border-top-color: #FF6B00;
+  animation: spin 1s ease-in-out infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-state {
+  color: #ff4b4b;
+}
+
+.btn-retry {
+  background: rgba(255, 75, 75, 0.1);
+  color: #ff4b4b;
+  border: 1px solid rgba(255, 75, 75, 0.3);
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-retry:hover {
+  background: rgba(255, 75, 75, 0.2);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: #FF6B00;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.clubs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.club-card {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.club-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(255, 107, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 107, 0, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.card-header {
+  position: relative;
+  height: 180px;
+  background: linear-gradient(45deg, #050505, #151515);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDIiLz4KPHBhdGggZD0iTTAgMEw4IDhaTTAgOEw4IDBaIiBzdHJva2U9IiNmZmYiIHN0cm9rZS1vcGFjaXR5PSIwLjAyIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+') repeat;
+}
+
+.club-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  z-index: 1;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  transition: transform 0.3s ease;
+}
+
+.club-card:hover .club-logo {
+  transform: scale(1.1);
+}
+
+.sports-container {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  z-index: 2;
+  max-width: 60%;
+}
+
+.sport-badge {
+  background: rgba(255, 107, 0, 0.15);
+  color: #FF6B00;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 107, 0, 0.3);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+.card-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.club-name {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.club-location {
+  color: #FF6B00;
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.club-description {
+  color: #a0a0a0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a0a0a0;
+  font-size: 0.85rem;
+}
+
+.btn-view {
+  background: transparent;
+  color: #FF6B00;
+  border: 1px solid rgba(255, 107, 0, 0.5);
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.club-card:hover .btn-view {
+  background: #FF6B00;
+  border-color: #FF6B00;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 107, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}

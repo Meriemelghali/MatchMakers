@@ -1,4 +1,4 @@
-package tn.matchmakers.sponsorservice.service;
+package tn.matchmakers.sponsorservice.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

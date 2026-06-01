@@ -5,7 +5,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import tn.matchmakers.sponsorservice.dto.CampaignRequestDTO;
 import tn.matchmakers.sponsorservice.dto.CampaignResponseDTO;
-import tn.matchmakers.sponsorservice.service.CampaignService;
+import tn.matchmakers.sponsorservice.services.CampaignService;
 
 import java.util.List;
 import java.util.Map;
