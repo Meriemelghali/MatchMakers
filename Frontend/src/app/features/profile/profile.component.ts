@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -78,11 +78,6 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialData();
-    window.addEventListener('message', this.messageHandler);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('message', this.messageHandler);
   }
 
   private initForms() {
@@ -299,8 +294,6 @@ export class ProfileComponent implements OnInit {
   // --- AVATAR ---
   openAvatarCreator() {
     this.showAvatarCreator = true;
-    this.isCustomMode = false;
-    this.generateAvatarSuggestions();
   }
 
   closeAvatarCreator(event?: Event) {
