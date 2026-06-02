@@ -111,9 +111,9 @@
       <button [class.active]="activeTab === 'activity'" (click)="setTab('activity')">
         <i class="fas fa-running"></i> Mes Activités
       </button>
-      <button class="sponsor-btn" (click)="goToSponsorProfile()">
-  <i class="fas fa-bullhorn"></i> Profil Sponsor
-</button>
+      <button [class.active]="activeTab === 'sponsor'" (click)="setTab('sponsor')">
+        <i class="fas fa-bullhorn"></i> Profil Sponsor
+      </button>
     </nav>
   </div>
 
@@ -370,6 +370,133 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- TAB: SPONSOR -->
+    <div class="tab-pane" *ngSwitchCase="'sponsor'">
+      <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <div>
+            <h2>{{ sponsorIsEdit ? 'Mon Profil Sponsor' : 'Devenir Sponsor' }}</h2>
+            <p>{{ sponsorIsEdit ? 'Gérez les informations de votre entreprise partenaire.' : 'Soumettez votre candidature pour sponsoriser MatchMakers.' }}</p>
+          </div>
+          <!-- Status pill -->
+          <div *ngIf="sponsor" style="text-align: right;">
+            <span class="premium-badge" [ngClass]="getStatusClass(sponsor.status)">
+              <span class="pulse-dot" *ngIf="sponsor.status === SponsorStatus.PENDING"></span>
+              {{ sponsorStatusLabel }}
+            </span>
+            <div style="font-size: 11px; color: var(--text-3); font-weight: 500; margin-top: 4px;">Statut du compte</div>
+          </div>
+        </div>
+
+        <!-- Rejected alert note -->
+        <div class="alert alert-err" *ngIf="sponsor?.status === SponsorStatus.REJECTED && sponsor?.adminNote" style="margin-bottom: 20px; border-radius: 12px; padding: 12px 16px; font-size: 14px; font-weight: 600; background: #fdecea; color: #b3261e; border: 1px solid #f5c6c3;">
+          <strong>Motif du rejet :</strong> {{ sponsor?.adminNote }}
+        </div>
+
+        <!-- Loader -->
+        <div class="spinner-wrap" *ngIf="sponsorLoading" style="display: flex; justify-content: center; padding: 40px 0;">
+          <div class="spinner" style="width: 28px; height: 28px; border: 3px solid #f0f0f0; border-top-color: var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        </div>
+
+        <form [formGroup]="sponsorForm" (ngSubmit)="submitSponsor()" *ngIf="!sponsorLoading">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nom de l'entreprise *</label>
+              <input type="text" formControlName="companyName" placeholder="Ex : Nike Tunisia, Decathlon...">
+              <div class="error" *ngIf="sponsorForm.get('companyName')?.invalid && sponsorForm.get('companyName')?.touched">
+                Nom obligatoire (min. 2 caractères).
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Sport ciblé</label>
+              <select formControlName="targetSport" class="custom-select">
+                <option value="">-- Tous les sports --</option>
+                <option *ngFor="let s of sponsorSports" [value]="s">{{ s }}</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Description *</label>
+              <textarea formControlName="description" rows="4" placeholder="Décrivez votre entreprise, vos produits et vos objectifs..."></textarea>
+              <div class="error" *ngIf="sponsorForm.get('description')?.invalid && sponsorForm.get('description')?.touched">
+                Description obligatoire (min. 10 caractères).
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Site web</label>
+              <input type="text" formControlName="website" placeholder="https://votre-site.com">
+            </div>
+
+            <div class="form-group">
+              <label>Email de contact *</label>
+              <input type="email" formControlName="contactEmail" placeholder="contact@entreprise.com">
+              <div class="error" *ngIf="sponsorForm.get('contactEmail')?.invalid && sponsorForm.get('contactEmail')?.touched">
+                Email invalide.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Téléphone *</label>
+              <input type="text" formControlName="contactPhone" placeholder="+216 ...">
+              <div class="error" *ngIf="sponsorForm.get('contactPhone')?.invalid && sponsorForm.get('contactPhone')?.touched">
+                Numéro obligatoire (8 à 15 chiffres).
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Logo de l'entreprise</label>
+              <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-top: 10px;">
+                <label class="upload-zone" [class.active]="sponsorLogoPreview" for="sponsorLogoInput" style="flex: 1; min-width: 250px; border: 2px dashed var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.02); cursor: pointer; padding: 20px; text-align: center; display: block; transition: all 0.2s;">
+                  <input type="file" id="sponsorLogoInput" accept="image/jpeg,image/png,image/webp,image/svg+xml" style="display: none;" (change)="onSponsorLogoSelected($event)">
+                  
+                  <div *ngIf="!sponsorLogoPreview" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: var(--accent-color);"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Cliquez pour sélectionner</span>
+                    <span style="font-size: 11px; color: var(--text-3);">JPG, PNG, WEBP, SVG — max 5 MB</span>
+                  </div>
+
+                  <div *ngIf="sponsorLogoPreview" style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <i class="fas fa-check-circle" style="font-size: 24px; color: #1a7f3c;"></i>
+                    <span style="font-weight: 600; font-size: 13px;">Logo sélectionné</span>
+                    <span style="font-size: 11px; color: var(--text-3);">Cliquez pour changer</span>
+                  </div>
+                </label>
+
+                <!-- Logo preview -->
+                <div class="image-preview-card" *ngIf="sponsorLogoPreview" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(255,255,255,0.03);">
+                  <span style="font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase;">Aperçu</span>
+                  <img [src]="sponsorLogoPreview" alt="Logo aperçu" style="width: 100px; height: 100px; object-fit: contain; background: white; padding: 6px; border-radius: 8px;">
+                  <button type="button" class="btn btn-sm btn-secondary" style="color: #ff4444; border-color: rgba(255,68,68,0.2);" (click)="removeSponsorLogo()">
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider" style="border-top: 1px solid var(--border-color); margin: 24px 0;"></div>
+
+          <div class="form-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <span style="font-size: 12px; color: var(--text-3);">
+              {{ sponsorIsEdit ? 'Les modifications seront enregistrées immédiatement.' : 'Votre demande sera examinée par l\'équipe MatchMakers.' }}
+            </span>
+            <div style="display: flex; gap: 12px;">
+              <button type="button" class="btn btn-secondary" (click)="sponsorForm.reset(); sponsorSuccess = ''; sponsorError = ''">
+                Réinitialiser
+              </button>
+              <button type="submit" class="btn-save" [disabled]="sponsorSubmitting || sponsorForm.invalid" style="display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-check" *ngIf="!sponsorSubmitting"></i>
+                <i class="fas fa-spinner fa-spin" *ngIf="sponsorSubmitting"></i>
+                {{ sponsorSubmitting ? (sponsorIsEdit ? 'Enregistrement...' : 'Envoi...') : (sponsorIsEdit ? 'Enregistrer' : 'Soumettre') }}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

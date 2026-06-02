@@ -307,14 +307,18 @@
 }
 
 .switch-btn {
-  background: var(--layer-2);
-  color: var(--text-1);
-  border: 1px solid var(--border);
+  background: rgba(232, 80, 10, 0.08);
+  color: #E8500A;
+  border: 1px solid rgba(232, 80, 10, 0.25);
+  font-weight: 700;
 }
 
 .switch-btn:hover {
-  background: var(--layer-3);
+  background: rgba(232, 80, 10, 0.18);
+  border-color: rgba(232, 80, 10, 0.5);
+  box-shadow: 0 0 14px rgba(232, 80, 10, 0.15);
   transform: translateY(-2px);
+  color: #ff6b2b;
 }
 
 .logout-btn {

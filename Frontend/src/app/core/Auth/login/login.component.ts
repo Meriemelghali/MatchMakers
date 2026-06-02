@@ -24,6 +24,7 @@ export class LoginComponent {
 
   // OTP 6-box support
   otpDigits: string[] = ['', '', '', '', '', ''];
+  private _processingKey = false; // guard against double-fire (keydown + input)
 
   @ViewChildren('otpInput') otpInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
@@ -89,15 +90,25 @@ export class LoginComponent {
   // ── OTP handlers ─────────────────────────────────────────────────────────
 
   onOtpInput(event: Event, index: number) {
+    // If onOtpKeyDown already handled this keystroke, skip to avoid double-entry
+    if (this._processingKey) {
+      this._processingKey = false;
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     const val = input.value.replace(/\D/g, '');
-    this.otpDigits[index] = val.slice(-1);
-    input.value = this.otpDigits[index];
+    const digit = val.slice(-1);
+
+    this.otpDigits[index] = digit;
+    input.value = digit;
     this.mfaCode = this.otpDigits.join('');
 
-    if (this.otpDigits[index] && index < 5) {
-      const next = this.otpInputs.toArray()[index + 1];
-      if (next) next.nativeElement.focus();
+    if (digit && index < 5) {
+      setTimeout(() => {
+        const next = this.otpInputs.toArray()[index + 1];
+        if (next) next.nativeElement.focus();
+      }, 0);
     }
 
     if (this.mfaCode.length === 6) {
@@ -110,20 +121,67 @@ export class LoginComponent {
       if (this.otpDigits[index]) {
         this.otpDigits[index] = '';
         this.mfaCode = this.otpDigits.join('');
+        const currentInput = this.otpInputs.toArray()[index].nativeElement;
+        currentInput.value = '';
       } else if (index > 0) {
         this.otpDigits[index - 1] = '';
         this.mfaCode = this.otpDigits.join('');
         const prev = this.otpInputs.toArray()[index - 1];
         if (prev) {
           prev.nativeElement.value = '';
-          prev.nativeElement.focus();
+          setTimeout(() => {
+            prev.nativeElement.focus();
+            prev.nativeElement.select();
+          }, 0);
         }
       }
       event.preventDefault();
-    } else if (event.key === 'ArrowLeft' && index > 0) {
-      this.otpInputs.toArray()[index - 1].nativeElement.focus();
+      return;
+    }
+
+    // Handle digits manually to prevent double-entry
+    const isDigit = /^[0-9]$/.test(event.key);
+    if (isDigit) {
+      event.preventDefault(); // Prevent browser native character insertion
+      this._processingKey = true; // Signal onOtpInput to skip this event
+      this.otpDigits[index] = event.key;
+      
+      const currentInput = this.otpInputs.toArray()[index].nativeElement;
+      currentInput.value = event.key;
+      
+      this.mfaCode = this.otpDigits.join('');
+
+      if (index < 5) {
+        setTimeout(() => {
+          const next = this.otpInputs.toArray()[index + 1];
+          if (next) next.nativeElement.focus();
+        }, 0);
+      }
+
+      if (this.mfaCode.length === 6) {
+        setTimeout(() => this.onVerifyMfa(), 80);
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault();
+      setTimeout(() => {
+        const prev = this.otpInputs.toArray()[index - 1];
+        if (prev) {
+          prev.nativeElement.focus();
+          prev.nativeElement.select();
+        }
+      }, 0);
     } else if (event.key === 'ArrowRight' && index < 5) {
-      this.otpInputs.toArray()[index + 1].nativeElement.focus();
+      event.preventDefault();
+      setTimeout(() => {
+        const next = this.otpInputs.toArray()[index + 1];
+        if (next) {
+          next.nativeElement.focus();
+          next.nativeElement.select();
+        }
+      }, 0);
     }
   }
 
@@ -138,8 +196,13 @@ export class LoginComponent {
     });
     this.mfaCode = this.otpDigits.join('');
     const focusIdx = Math.min(digits.length, 5);
-    const target = this.otpInputs.toArray()[focusIdx];
-    if (target) target.nativeElement.focus();
+    setTimeout(() => {
+      const target = this.otpInputs.toArray()[focusIdx];
+      if (target) {
+        target.nativeElement.focus();
+        target.nativeElement.select();
+      }
+    }, 0);
     if (this.mfaCode.length === 6) {
       setTimeout(() => this.onVerifyMfa(), 80);
     }

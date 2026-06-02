@@ -88,6 +88,57 @@
             Mon Profil
           </div>
 
+          <!-- Bouton Admin Panel - visible uniquement pour les admins -->
+          <div class="dd-item admin-panel-btn" *ngIf="isAdmin" (click)="goToBackoffice(); profileOpen = false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>Admin Panel</span>
+            <span class="admin-badge">ADMIN</span>
+          </div>
+
+          <!-- Switcher de rôle - visible uniquement si plusieurs rôles -->
+          <div class="dd-item role-switch-trigger" *ngIf="hasMultipleRoles" (click)="toggleRoleList($event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span>Changer de rôle</span>
+            <span class="role-current-badge">{{ getRoleLabel(userRole) }}</span>
+            <svg class="chevron-arrow" [class.rotated]="roleListExpanded"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 style="margin-left:auto; width:10px; height:10px; transition:transform 0.2s;">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+
+          <!-- Liste des rôles disponibles (collapsible) -->
+          <div class="role-options-list" *ngIf="hasMultipleRoles && roleListExpanded"
+               (click)="$event.stopPropagation()">
+            <div class="role-option-item"
+                 *ngFor="let role of availableRoles"
+                 [class.active]="role === userRole"
+                 (click)="switchRole(role)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   style="width:14px; height:14px; flex-shrink:0;">
+                <path [attr.d]="getRoleIcon(role)"/>
+              </svg>
+              <span class="role-opt-label">{{ getRoleLabel(role) }}</span>
+              <span class="role-active-check" *ngIf="role === userRole">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                     style="width:11px; height:11px;">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
+              <span class="role-opt-tag" *ngIf="role !== userRole">Activer</span>
+            </div>
+          </div>
+
           <!-- Thème Submenu Trigger -->
           <div class="dd-item theme-section-trigger" (click)="toggleThemeList($event)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

@@ -158,7 +158,7 @@ function Start-PythonAi() {
       if (($val.StartsWith('"') -and $val.EndsWith('"')) -or ($val.StartsWith("'") -and $val.EndsWith("'"))) {
         $val = $val.Substring(1, $val.Length - 2)
       }
-      if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+      if ($key -and -not (Test-Path "Env:\$key")) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
     }
   }
 
@@ -230,7 +230,7 @@ function Start-EventTypeAi() {
         if ($eq -lt 1) { return }
         $key = $line.Substring(0, $eq).Trim()
         $val = $line.Substring($eq + 1).Trim()
-        if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+        if ($key -and -not (Test-Path "Env:\$key")) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
     }
   }
 
