@@ -1320,3 +1320,25 @@ input:disabled {
   50% { transform: scale(1.5); opacity: 0.5; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* ── SPONSOR TAB STYLE IMPROVEMENTS ── */
+.upload-zone:hover {
+  border-color: #E8500A !important;
+  background: rgba(232, 80, 10, 0.05) !important;
+}
+
+.upload-zone.active {
+  border-color: #10b981 !important;
+  background: rgba(16, 185, 129, 0.04) !important;
+}
+
+.image-preview-card img {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+

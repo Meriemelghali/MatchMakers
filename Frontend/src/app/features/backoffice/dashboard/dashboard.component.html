@@ -2,7 +2,7 @@
   <!-- Top Banner & Diagnostics Header -->
   <header class="dashboard-header-bar">
     <div class="welcome-box">
-      <div class="date-tag">{{ currentDate | titlecase }}</div>
+      <div class="date-tag">{{ currentDate | date:'fullDate' | titlecase }}</div>
       <h1>Tableau de Bord Backoffice</h1>
       <p class="subtitle">Aperçu en temps réel de votre écosystème MatchMakers</p>
     </div>
@@ -47,8 +47,8 @@
           <div class="kpi-data">
             <span class="kpi-label">UTILISATEURS</span>
             <h3 class="kpi-value">{{ usersCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.users.status">Actifs sur la plateforme</span>
-            <span class="kpi-helper offline" *ngIf="!health.users.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['users'].status">Actifs sur la plateforme</span>
+            <span class="kpi-helper offline" *ngIf="!health['users'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -63,8 +63,8 @@
           <div class="kpi-data">
             <span class="kpi-label">RÉSERVATIONS</span>
             <h3 class="kpi-value">{{ reservationsCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.reservations.status">Terrains réservés</span>
-            <span class="kpi-helper offline" *ngIf="!health.reservations.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['reservations'].status">Terrains réservés</span>
+            <span class="kpi-helper offline" *ngIf="!health['reservations'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -79,13 +79,13 @@
           <div class="kpi-data">
             <span class="kpi-label">RÉCLAMATIONS</span>
             <h3 class="kpi-value">{{ reclamationsCount }}</h3>
-            <span class="kpi-helper danger" *ngIf="health.reclamations.status && reclamationsCount > 0">
+            <span class="kpi-helper danger" *ngIf="health['reclamations'].status && reclamationsCount > 0">
               {{ reclamationsCount }} urgentes nécessitent attention
             </span>
-            <span class="kpi-helper" *ngIf="health.reclamations.status && reclamationsCount === 0">
+            <span class="kpi-helper" *ngIf="health['reclamations'].status && reclamationsCount === 0">
               Aucune réclamation urgente
             </span>
-            <span class="kpi-helper offline" *ngIf="!health.reclamations.status">Service indisponible</span>
+            <span class="kpi-helper offline" *ngIf="!health['reclamations'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -100,8 +100,8 @@
           <div class="kpi-data">
             <span class="kpi-label">BOUTIQUE</span>
             <h3 class="kpi-value">{{ productsCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.products.status">Produits enregistrés</span>
-            <span class="kpi-helper offline" *ngIf="!health.products.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['products'].status">Produits enregistrés</span>
+            <span class="kpi-helper offline" *ngIf="!health['products'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -114,10 +114,10 @@
             <i class="fas fa-handshake"></i>
           </div>
           <div class="kpi-data">
-            <span class="kpi-label">SPONSONS</span>
+            <span class="kpi-label">SPONSORS</span>
             <h3 class="kpi-value">{{ sponsorsCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.sponsors.status">Partenaires officiels</span>
-            <span class="kpi-helper offline" *ngIf="!health.sponsors.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['sponsors'].status">Partenaires officiels</span>
+            <span class="kpi-helper offline" *ngIf="!health['sponsors'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -132,8 +132,8 @@
           <div class="kpi-data">
             <span class="kpi-label">ÉQUIPES</span>
             <h3 class="kpi-value">{{ teamsCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.teams.status">Clubs & Teams actifs</span>
-            <span class="kpi-helper offline" *ngIf="!health.teams.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['teams'].status">Clubs & Teams actifs</span>
+            <span class="kpi-helper offline" *ngIf="!health['teams'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -148,8 +148,8 @@
           <div class="kpi-data">
             <span class="kpi-label">SPORTS</span>
             <h3 class="kpi-value">{{ sportsCount | number }}</h3>
-            <span class="kpi-helper" *ngIf="health.sports.status">Disciplines supportées</span>
-            <span class="kpi-helper offline" *ngIf="!health.sports.status">Service indisponible</span>
+            <span class="kpi-helper" *ngIf="health['sports'].status">Disciplines supportées</span>
+            <span class="kpi-helper offline" *ngIf="!health['sports'].status">Service indisponible</span>
           </div>
         </div>
         <div class="kpi-bottom-glow"></div>
@@ -171,7 +171,7 @@
           </div>
           
           <div class="table-container">
-            <table class="premium-table" *ngIf="health.reclamations.status && urgentReclamations.length > 0">
+            <table class="premium-table" *ngIf="health['reclamations'].status && urgentReclamations.length > 0">
               <thead>
                 <tr>
                   <th>Titre</th>
@@ -195,13 +195,13 @@
             </table>
 
             <!-- Empty State -->
-            <div class="empty-state-card" *ngIf="health.reclamations.status && urgentReclamations.length === 0">
+            <div class="empty-state-card" *ngIf="health['reclamations'].status && urgentReclamations.length === 0">
               <i class="fas fa-check-circle success-icon animate-bounce"></i>
               <p>Excellent ! Aucune alerte ou réclamation urgente en suspens.</p>
             </div>
 
             <!-- Error State -->
-            <div class="error-state-card" *ngIf="!health.reclamations.status">
+            <div class="error-state-card" *ngIf="!health['reclamations'].status">
               <i class="fas fa-exclamation-triangle warning-icon"></i>
               <p>Impossible de charger les réclamations. Le service sur le port 8082 est hors ligne.</p>
             </div>
@@ -214,7 +214,7 @@
             <h3><i class="fas fa-calendar-alt header-icon info"></i> Activité de Réservation Récente</h3>
           </div>
           
-          <div class="reservations-list-scroller" *ngIf="health.reservations.status && recentReservations.length > 0">
+          <div class="reservations-list-scroller" *ngIf="health['reservations'].status && recentReservations.length > 0">
             <div class="reservation-strip-item" *ngFor="let res of recentReservations">
               <div class="res-left">
                 <div class="res-sport-icon">
@@ -234,13 +234,13 @@
           </div>
 
           <!-- Empty State -->
-          <div class="empty-state-card" *ngIf="health.reservations.status && recentReservations.length === 0">
+          <div class="empty-state-card" *ngIf="health['reservations'].status && recentReservations.length === 0">
             <i class="fas fa-calendar-times mute-icon"></i>
             <p>Aucune réservation récente trouvée sur le système.</p>
           </div>
 
           <!-- Error State -->
-          <div class="error-state-card" *ngIf="!health.reservations.status">
+          <div class="error-state-card" *ngIf="!health['reservations'].status">
             <i class="fas fa-exclamation-circle error-icon"></i>
             <p>Données indisponibles. Le service de réservation sur le port 8089 est hors ligne.</p>
           </div>
@@ -257,7 +257,7 @@
             <h3><i class="fas fa-award header-icon rewards"></i> Programme Fidélité (Rewards)</h3>
           </div>
           
-          <div class="rewards-inner" *ngIf="health.rewards.status">
+          <div class="rewards-inner" *ngIf="health['rewards'].status">
             <div class="rewards-stats-summary">
               <div class="stat-bubble">
                 <span class="bubble-val">{{ rewardsCount }}</span>
@@ -290,7 +290,7 @@
           </div>
 
           <!-- Error State -->
-          <div class="error-state-card" *ngIf="!health.rewards.status">
+          <div class="error-state-card" *ngIf="!health['rewards'].status">
             <i class="fas fa-ban error-icon"></i>
             <p>Le microservice de fidélité (port 8086) ne répond pas.</p>
           </div>
@@ -323,26 +323,103 @@
     </div>
 
     <!-- Sports Registered Showcase Grid -->
-    <section class="sports-showcase-section" *ngIf="health.sports.status && sportsList.length > 0">
+    <section class="sports-showcase-section" *ngIf="health['sports'].status && sportsList.length > 0">
       <div class="section-title-bar">
-        <h2>Sports enregistrés sur MatchMakers</h2>
+        <div class="title-with-icon">
+          <div class="icon-wrapper"><i class="fas fa-medal"></i></div>
+          <h2>Sports Disponibles</h2>
+        </div>
         <span class="sports-badge">{{ sportsCount }} sports totaux</span>
       </div>
 
       <div class="sports-cards-showcase">
         <div class="sport-showcase-card" *ngFor="let sport of sportsList">
-          <div class="sport-card-top">
-            <span class="sport-name">{{ sport.nameSport }}</span>
-            <div class="sport-min-max">
-              <i class="fas fa-users-class"></i> {{ sport.minPlayers || 2 }} - {{ sport.maxPlayers || 10 }} Joueurs
+          <div class="sport-card-accent"></div>
+          <div class="sport-card-content">
+            <div class="sport-icon-circle">
+              <i [class]="getSportIcon(sport.nameSport)"></i>
+            </div>
+            <div class="sport-details">
+              <span class="sport-name">{{ sport.nameSport }}</span>
+              <div class="sport-min-max">
+                <i class="fas fa-user-friends"></i> {{ sport.minPlayers || 2 }} - {{ sport.maxPlayers || 10 }} Joueurs
+              </div>
             </div>
           </div>
-          <div class="sport-card-bottom">
-            <span class="sport-id">ID: {{ sport.id }}</span>
+          <div class="sport-card-footer">
+            <span class="sport-id" title="{{ sport.id }}">
+              <i class="fas fa-fingerprint"></i> ID: {{ sport.id | slice:0:8 }}...
+            </span>
+            <button class="sport-action-btn"><i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- Modération & Analyse IA Section -->
+    <div class="ai-moderation-section mt-5" *ngIf="stats">
+      <div class="section-header">
+        <i class="fas fa-shield-alt"></i>
+        <h3>Modération & Analyse IA</h3>
+      </div>
+
+      <div class="ai-cards-grid">
+        <!-- Type Distribution -->
+        <div class="ai-card">
+          <div class="ai-card-title">Distribution des Signalements</div>
+          <div class="ai-chart-placeholder">
+            <div class="bar-group" *ngFor="let type of objectKeys(stats?.byType || {})">
+              <div class="bar-label">{{ type }}</div>
+              <div class="bar-container">
+                <div class="bar-fill" [style.width.%]="getPercentage(stats.byType[type], stats.totalReclamations)"></div>
+              </div>
+              <div class="bar-value">{{ stats.byType[type] }}</div>
+            </div>
+            
+            <div class="empty-state-card" *ngIf="objectKeys(stats?.byType || {}).length === 0">
+              <p>Aucune donnée disponible</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto Actions -->
+        <div class="ai-card">
+          <div class="ai-card-title">Actions Automatiques</div>
+          <div class="auto-actions-list">
+            <div class="action-item">
+              <div class="action-icon warning"><i class="fas fa-gavel"></i></div>
+              <div class="action-info">
+                <div class="action-val">{{ stats?.totalSanctions || 0 }}</div>
+                <div class="action-label">Sanctions générées</div>
+              </div>
+            </div>
+            <div class="action-item">
+              <div class="action-icon success"><i class="fas fa-magic"></i></div>
+              <div class="action-info">
+                <div class="action-val">{{ stats?.totalAutoResolved || 0 }}</div>
+                <div class="action-label">Résolutions auto</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Urgency Status -->
+        <div class="ai-card urgency-card">
+          <div class="ai-card-title">État de Vigilance</div>
+          <div class="urgency-meter">
+            <div class="meter-circle" [class.high-alert]="stats?.byUrgence?.HAUTE > 0">
+              <span class="meter-val">{{ stats?.byUrgence?.HAUTE > 0 ? 'ALERTE' : 'CALME' }}</span>
+            </div>
+            <p class="meter-desc" *ngIf="stats?.byUrgence?.HAUTE > 0">
+              L'IA a détecté des comportements toxiques nécessitant une intervention.
+            </p>
+            <p class="meter-desc" *ngIf="!(stats?.byUrgence?.HAUTE > 0)">
+              Aucun incident critique détecté par l'IA sur les dernières 24h.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>

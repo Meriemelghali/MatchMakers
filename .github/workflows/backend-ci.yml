@@ -20,7 +20,7 @@ jobs:
       matrix:
         service: 
           - EventCompetitionService
-          - FinanceService
+          - SponsorService
           - MatchService
           - ProductService
           - ReclamationService

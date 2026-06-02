@@ -13,7 +13,6 @@ import tn.matchmakers.reclamationservice.repositories.SanctionRepository;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -110,7 +109,6 @@ public class ReclamationServiceImpl implements ReclamationService {
 
             final String finalTargetId = targetId;
             List<Sanction> previousSanctions = sanctionRepository.findByUserId(finalTargetId);
-            int sanctionCount = previousSanctions.size();
 
             Sanction sanction = Sanction.builder()
                 .userId(finalTargetId)

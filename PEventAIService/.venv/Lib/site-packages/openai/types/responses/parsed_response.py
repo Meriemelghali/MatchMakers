@@ -10,9 +10,12 @@ from .response_output_item import (
     McpCall,
     McpListTools,
     LocalShellCall,
+    AdditionalTools,
     McpApprovalRequest,
     ImageGenerationCall,
+    McpApprovalResponse,
     LocalShellCallAction,
+    LocalShellCallOutput,
 )
 from .response_output_text import ResponseOutputText
 from .response_output_message import ResponseOutputMessage
@@ -30,6 +33,9 @@ from .response_tool_search_output_item import ResponseToolSearchOutputItem
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput
+from .response_custom_tool_call_output_item import ResponseCustomToolCallOutputItem
+from .response_computer_tool_call_output_item import ResponseComputerToolCallOutputItem
+from .response_function_tool_call_output_item import ResponseFunctionToolCallOutputItem
 from .response_function_shell_tool_call_output import ResponseFunctionShellToolCallOutput
 
 __all__ = ["ParsedResponse", "ParsedResponseOutputMessage", "ParsedResponseOutputText"]
@@ -72,22 +78,28 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         ResponseFileSearchToolCall,
         ResponseFunctionWebSearch,
         ResponseComputerToolCall,
+        ResponseComputerToolCallOutputItem,
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
+        AdditionalTools,
         ResponseReasoningItem,
         McpCall,
         McpApprovalRequest,
+        McpApprovalResponse,
         ImageGenerationCall,
         LocalShellCall,
+        LocalShellCallOutput,
         LocalShellCallAction,
         McpListTools,
         ResponseCodeInterpreterToolCall,
-        ResponseCustomToolCall,
         ResponseCompactionItem,
         ResponseFunctionShellToolCall,
         ResponseFunctionShellToolCallOutput,
         ResponseApplyPatchToolCall,
         ResponseApplyPatchToolCallOutput,
+        ResponseFunctionToolCallOutputItem,
+        ResponseCustomToolCall,
+        ResponseCustomToolCallOutputItem,
     ],
     PropertyInfo(discriminator="type"),
 ]

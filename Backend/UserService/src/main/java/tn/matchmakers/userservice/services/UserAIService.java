@@ -342,19 +342,38 @@ public class UserAIService {
             throw new RuntimeException("AI returned empty response");
         }
         
-        // Nettoie le markdown
+        // Nettoie le markdown et les blocs de code
         String cleaned = aiResponse
-                .replaceAll("```json", "")
+                .replaceAll("(?s)```json\\s*", "")
                 .replaceAll("```", "")
+                .replaceAll("(?m)^//.*$", "") // retire les commentaires JS-style
                 .trim();
         
-        // Extrait juste le JSON entre première { et dernière }
+        // Extrait le JSON entre la première { et sa dernière } correspondante
         int firstBrace = cleaned.indexOf('{');
-        int lastBrace = cleaned.lastIndexOf('}');
-        
-        if (firstBrace < 0 || lastBrace <= firstBrace) {
-            log.error("No valid JSON found in response: {}", cleaned);
+        if (firstBrace < 0) {
+            log.error("No JSON object found in response: {}", cleaned);
             throw new RuntimeException("AI response does not contain valid JSON");
+        }
+        
+        // Trouve la dernière accolade fermante qui correspond (JSON balancé)
+        int depth = 0;
+        int lastBrace = -1;
+        for (int i = firstBrace; i < cleaned.length(); i++) {
+            char c = cleaned.charAt(i);
+            if (c == '{') depth++;
+            else if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    lastBrace = i;
+                    break;
+                }
+            }
+        }
+        
+        if (lastBrace <= firstBrace) {
+            log.error("Could not find balanced JSON in response: {}", cleaned);
+            throw new RuntimeException("AI response does not contain valid balanced JSON");
         }
         
         cleaned = cleaned.substring(firstBrace, lastBrace + 1);
@@ -379,17 +398,106 @@ public class UserAIService {
     }
 
     private Map<String, Object> getFallbackPlan(Map<String, Object> profile) {
+        String sport = safeValue(profile.get("sports")).toLowerCase();
+        String level = safeValue(profile.get("level")).toUpperCase();
+        
         Map<String, Object> plan = new HashMap<>();
-        plan.put("title", "Entraînement Général");
-        plan.put("focus", "Condition globale");
         plan.put("from_llm", false);
-        plan.put("warmup", List.of("5 min de jumping jacks", "Rotations articulaires", "Mobilité hanches"));
-        plan.put("exercises", List.of(
-                Map.of("name", "Pompes", "tip", "Gardez le dos bien droit", "sets", 3, "reps", "12", "rest", "45s"),
-                Map.of("name", "Squats", "tip", "Poussez sur les talons", "sets", 4, "reps", "15", "rest", "1min"),
-                Map.of("name", "Planche", "tip", "Gainez les abdos", "sets", 3, "reps", "30s", "rest", "30s")));
-        plan.put("cooldown", List.of("Étirements jambes", "Étirements dos", "Respiration profonde"));
-        plan.put("nutritionTip", "Pensez à consommer des protéines après cette séance.");
+        
+        List<String> warmup;
+        List<Map<String, Object>> exercises = new java.util.ArrayList<>();
+        List<String> cooldown;
+        String title;
+        String focus;
+        String nutritionTip;
+        
+        int sets = 3;
+        String reps = "10";
+        String rest = "60s";
+        
+        if (level.contains("BEGINNER") || level.contains("DÉBUTANT")) {
+            sets = 3;
+            reps = "10";
+            rest = "60s";
+        } else if (level.contains("ADVANCED") || level.contains("AVANCÉ") || level.contains("PRO")) {
+            sets = 4;
+            reps = "15";
+            rest = "45s";
+        } else { // INTERMEDIATE
+            sets = 4;
+            reps = "12";
+            rest = "60s";
+        }
+        
+        if (sport.contains("basket")) {
+            title = "Préparation Basketball - Explosivité";
+            focus = "Développement de la détente verticale et coordination";
+            warmup = List.of("5 min de course légère", "Rotations chevilles et genoux", "Sauts légers sur place");
+            exercises.add(Map.of("name", "Squats sautés (Jump Squats)", "tip", "Poussez fort vers le haut à l'extension", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Fentes alternées sautées", "tip", "Gardez le genou aligné avec le pied", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Déplacements latéraux rapides", "tip", "Restez bas sur les appuis", "sets", sets, "reps", "30s", "rest", rest));
+            exercises.add(Map.of("name", "Planche dynamique (gainage)", "tip", "Contractez les fessiers et les abdos", "sets", sets, "reps", "45s", "rest", rest));
+            cooldown = List.of("Étirement des mollets et quadriceps", "Relâchement des lombaires", "Respiration calme");
+            nutritionTip = "Une bonne hydratation avec des électrolytes est clé pour éviter les crampes lors des sauts.";
+        } else if (sport.contains("foot") || sport.contains("soccer")) {
+            title = "Préparation Football - Appuis & Cardio";
+            focus = "Cardio, explosivité linéaire et agilité";
+            warmup = List.of("Jogging avec montées de genoux", "Talons-fesses et pas chassés", "Rotations de hanches");
+            exercises.add(Map.of("name", "Sprints courts répétés", "tip", "Explosez sur les 5 premiers mètres", "sets", sets, "reps", "5x20m", "rest", "90s"));
+            exercises.add(Map.of("name", "Squats explosifs", "tip", "Contrôlez la descente et montez vite", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Fentes avant dynamiques", "tip", "Gardez le buste bien droit", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Burpees", "tip", "Enchaînez sans pause avec une bonne technique", "sets", sets, "reps", "8-12", "rest", rest));
+            cooldown = List.of("Étirement des ischios et mollets", "Automassage des cuisses", "Retour au calme");
+            nutritionTip = "Privilégiez les glucides complexes 3 heures avant l'entraînement pour maximiser votre endurance.";
+        } else if (sport.contains("muscu") || sport.contains("bodybuilding") || sport.contains("force")) {
+            title = "Renforcement Musculaire Fonctionnel";
+            focus = "Force athlétique et hypertrophie globale";
+            warmup = List.of("Rotations articulaires complètes", "Pompes sur les genoux", "Squats à vide");
+            exercises.add(Map.of("name", "Pompes classiques", "tip", "Dos bien droit et coudes à 45 degrés", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Squats au poids du corps", "tip", "Descendez jusqu'aux cuisses parallèles au sol", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Dips sur chaise", "tip", "Gardez les coudes serrés vers l'arrière", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Supermans (lombaires)", "tip", "Relevez le buste et les jambes en contrôle", "sets", sets, "reps", reps, "rest", rest));
+            cooldown = List.of("Étirement des pectoraux et du dos", "Postures de yoga de récupération", "Respiration diaphragmatique");
+            nutritionTip = "Consommez une source de protéines de qualité dans les 2 heures après la séance pour réparer les tissus musculaires.";
+        } else if (sport.contains("tennis")) {
+            title = "Préparation Tennis - Explosivité Latérale";
+            focus = "Explosivité latérale, rotation du buste et endurance";
+            warmup = List.of("5 min de corde à sauter", "Rotations des épaules et du buste", "Pas chassés");
+            exercises.add(Map.of("name", "Fentes latérales", "tip", "Poussez bien sur la jambe extérieure", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Planche avec rotations du buste", "tip", "Suivez votre main du regard", "sets", sets, "reps", "10/côté", "rest", rest));
+            exercises.add(Map.of("name", "Pompes explosives (push-off)", "tip", "Poussez fort pour décoller légèrement les mains", "sets", sets, "reps", "8-10", "rest", rest));
+            exercises.add(Map.of("name", "Sauts latéraux (Skater Jumps)", "tip", "Stabilisez bien sur un pied à la réception", "sets", sets, "reps", reps, "rest", rest));
+            cooldown = List.of("Étirement des épaules et avant-bras", "Étirement des fessiers", "Relaxation");
+            nutritionTip = "Pensez aux collations faciles à digérer comme une banane avant le jeu pour un apport rapide en énergie.";
+        } else if (sport.contains("cours") || sport.contains("run") || sport.contains("jog") || sport.contains("athlet")) {
+            title = "Renforcement Spécial Course à Pied";
+            focus = "Endurance fondamentale et renforcement de la foulée";
+            warmup = List.of("10 min de marche rapide à course lente", "Montées de genoux légères", "Talons-fesses doux");
+            exercises.add(Map.of("name", "Fentes marchées", "tip", "Faites de grands pas réguliers", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Squats classiques", "tip", "Poussez sur les talons, gardez le dos droit", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Planche abdominale statique", "tip", "Restez bien aligné sans creuser le dos", "sets", sets, "reps", "45s", "rest", rest));
+            exercises.add(Map.of("name", "Extensions mollets debout", "tip", "Montez le plus haut possible sur la pointe des pieds", "sets", sets, "reps", reps, "rest", rest));
+            cooldown = List.of("Étirement de toute la chaîne postérieure (ischios, mollets)", "Hydratation progressive", "Respiration profonde");
+            nutritionTip = "Consommez des glucides complexes après la course pour reconstituer vos réserves de glycogène.";
+        } else {
+            title = "Entraînement Général Tonification";
+            focus = "Condition physique globale et tonicité";
+            warmup = List.of("5 min de jumping jacks", "Rotations articulaires complètes", "Mobilité des hanches");
+            exercises.add(Map.of("name", "Pompes (sur pieds ou genoux)", "tip", "Gardez le dos bien droit et gainé", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Squats", "tip", "Poussez les fesses vers l'arrière", "sets", sets, "reps", reps, "rest", rest));
+            exercises.add(Map.of("name", "Planche abdominale", "tip", "Contractez volontairement les abdos et fessiers", "sets", sets, "reps", "45s", "rest", rest));
+            exercises.add(Map.of("name", "Jumping Jacks", "tip", "Restez léger sur la pointe des pieds", "sets", sets, "reps", "30s", "rest", rest));
+            cooldown = List.of("Étirements globaux jambes et dos", "Respiration abdominale", "Hydratation");
+            nutritionTip = "Une alimentation équilibrée avec un bon apport en protéines et légumes soutient vos efforts.";
+        }
+        
+        plan.put("title", title);
+        plan.put("focus", focus);
+        plan.put("warmup", warmup);
+        plan.put("exercises", exercises);
+        plan.put("cooldown", cooldown);
+        plan.put("nutritionTip", nutritionTip);
+        
         return plan;
     }
 }

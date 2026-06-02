@@ -13,6 +13,8 @@ import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
 import { Router } from '@angular/router';
 import { AvatarService } from '../../core/services/UserService/avatar.service';
+import { SponsorService } from '../sponsor/services/sponsor.service';
+import { Sponsor, SponsorStatus } from '../sponsor/models/sponsor.model';
 
 export interface AvatarSuggestion {
   id: string;
@@ -58,6 +60,19 @@ export class ProfileComponent implements OnInit {
   isCustomMode = false; // Toggle between suggestions and full creator
   showSanctionBanner = false;
 
+  // ── Sponsor Properties ──
+  SponsorStatus = SponsorStatus;
+  sponsorForm!: FormGroup;
+  sponsor: Sponsor | null = null;
+  sponsorLoading = false;
+  sponsorSubmitting = false;
+  sponsorUploading = false;
+  sponsorError = '';
+  sponsorSuccess = '';
+  sponsorIsEdit = false;
+  sponsorLogoPreview: string | null = null;
+  sponsorSports = ['Football', 'Tennis', 'Basketball', 'Cyclisme', 'Handball', 'Padel', 'Natation'];
+
   private messageHandler = this.handleIframeMessage.bind(this);
 
   constructor(
@@ -71,7 +86,8 @@ export class ProfileComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private router: Router,
     private fb: FormBuilder,
-    private avatarService: AvatarService
+    private avatarService: AvatarService,
+    private sponsorService: SponsorService
   ) {
     this.initForms();
   }
@@ -105,6 +121,8 @@ export class ProfileComponent implements OnInit {
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required]
     }, { validator: this.passwordMatchValidator });
+
+    this.buildSponsorForm();
   }
 
   passwordMatchValidator(g: FormGroup) {
@@ -143,6 +161,7 @@ export class ProfileComponent implements OnInit {
         
         this.loadActivities(userId);
         this.loadInspiration(userId);
+        this.loadExistingSponsor();
         this.isLoading = false;
       },
       error: (err) => {
@@ -398,5 +417,92 @@ export class ProfileComponent implements OnInit {
       case 'REJECTED': return 'badge-err';
       default: return 'badge-disponible';
     }
+  }
+
+  // ── Sponsor Methods ──
+  buildSponsorForm() {
+    this.sponsorForm = this.fb.group({
+      companyName:  ['', [Validators.required, Validators.minLength(2)]],
+      description:  ['', [Validators.required, Validators.minLength(10)]],
+      website:      [''],
+      contactEmail: ['', [Validators.required, Validators.email]],
+      contactPhone: ['', [Validators.required, Validators.pattern(/^[0-9+\s]{8,15}$/)]],
+      targetSport:  [''],
+      logoUrl:      ['']
+    });
+  }
+
+  loadExistingSponsor() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    this.sponsorLoading = true;
+    this.sponsorService.getByUserId(userId).subscribe({
+      next: s => {
+        this.sponsor = s;
+        this.sponsorIsEdit = true;
+        this.sponsorLogoPreview = s.logoUrl || null;
+        this.sponsorForm.patchValue(s);
+        this.sponsorLoading = false;
+      },
+      error: () => { this.sponsorLoading = false; }
+    });
+  }
+
+  onSponsorLogoSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.sponsorLogoPreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeSponsorLogo() {
+    this.sponsorLogoPreview = null;
+    this.sponsorForm.patchValue({ logoUrl: '' });
+  }
+
+  submitSponsor() {
+    if (this.sponsorForm.invalid) { this.sponsorForm.markAllAsTouched(); return; }
+    this.sponsorSubmitting = true;
+    this.sponsorError = '';
+    this.sponsorSuccess = '';
+
+    const userId = this.authService.getUserId() || '';
+    const userEmail = localStorage.getItem('userEmail') || '';
+
+    const payload = { ...this.sponsorForm.value, userId, userEmail };
+
+    const action$ = this.sponsorIsEdit && this.sponsor
+      ? this.sponsorService.update(this.sponsor.id!, payload)
+      : this.sponsorService.create(payload);
+
+    action$.subscribe({
+      next: s => {
+        this.sponsor = s;
+        this.sponsorIsEdit = true;
+        this.sponsorSubmitting = false;
+        this.sponsorSuccess = this.sponsorIsEdit
+          ? 'Profil mis à jour avec succès !'
+          : 'Demande de sponsoring envoyée ! En attente de validation.';
+        this.toastService.success(this.sponsorSuccess);
+      },
+      error: err => {
+        this.sponsorSubmitting = false;
+        this.sponsorError = err.error?.message || 'Erreur lors de la soumission.';
+        this.toastService.error(this.sponsorError);
+      }
+    });
+  }
+
+  get sponsorStatusLabel(): string {
+    const map: Record<string, string> = {
+      PENDING:  'En attente',
+      ACTIVE:   'Actif',
+      INACTIVE: 'Inactif',
+      REJECTED: 'Rejeté'
+    };
+    return map[this.sponsor?.status || ''] || '';
   }
 }
