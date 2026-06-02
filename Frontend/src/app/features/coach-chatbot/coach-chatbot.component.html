@@ -34,7 +34,8 @@
     <div class="chat-input">
       <input
         type="text"
-        [(ngModel)]="userInput"
+        [value]="userInput"
+        (input)="onUserInput($event)"
         (keyup.enter)="sendMessage()"
         placeholder="Posez une question au coach..."
         [disabled]="isTyping"

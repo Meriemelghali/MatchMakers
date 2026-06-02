@@ -13,10 +13,11 @@ interface NavChild {
 }
 
 interface NavGroup {
+  path?: string;
   label: string;
   icon: string;
-  expanded: boolean;
-  children: NavChild[];
+  expanded?: boolean;
+  children?: NavChild[];
 }
 
 @Component({
@@ -52,7 +53,7 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
     private themeService: ThemeService
   ) { }
 
-  navGroups = [
+  navGroups: NavGroup[] = [
     {
       label: 'Activité Sportive',
       icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>',
@@ -313,15 +314,25 @@ export class AuthLayoutComponent implements OnInit, OnDestroy {
   }
 
   toggle(group: NavGroup) {
-    const wasExpanded = group.expanded;
-    this.navGroups.forEach(g => g.expanded = false);
+    if (!group.children?.length) {
+      if (group.path) {
+        this.router.navigate([group.path]);
+        this.navOpen = false;
+      }
+      return;
+    }
+
+    const wasExpanded = !!group.expanded;
+    this.navGroups.forEach(g => {
+      if (g.children?.length) { g.expanded = false; }
+    });
     group.expanded = !wasExpanded;
   }
 
   isGroupActive(group: NavGroup): boolean {
-    if (group.children) {
+    if (group.children?.length) {
       return group.children.some(child => this.router.url.startsWith(child.path));
     }
-    return false;
+    return !!group.path && this.router.url.startsWith(group.path);
   }
 }

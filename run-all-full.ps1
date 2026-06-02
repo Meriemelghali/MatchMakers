@@ -82,13 +82,13 @@ function Start-Svc([string]$name, [string]$dir) {
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting $name ... log: $out" | Out-Host
   $mvn = Get-MavenCmd
-  $jvmArgs = "-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true"
-  if ($mvn) {
-    $cmd = "Set-Location `"$dir`"; & `"$mvn`" -f pom.xml spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`""
-  } else {
-    $cmd = "Set-Location `"$dir`"; .\\mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`""
-  }
-  Start-Process -WindowStyle Hidden -FilePath powershell -ArgumentList "-NoProfile", "-Command", $cmd `
+  $jvmArgs = "-Xms32m -Xmx128m -XX:TieredStopAtLevel=1 -XX:+UseSerialGC -Dspring.main.lazy-initialization=true"
+  $runner = if ($mvn) { $mvn } else { Join-Path $dir "mvnw.cmd" }
+  # The jvmArgs string contains spaces; we must pass the whole -D flag as a single
+  # quoted token so that Maven does not split on the spaces and mistake -Xms as a goal.
+  $dArg = "`"-Dspring-boot.run.jvmArguments=$jvmArgs`""
+  $argList = @("-f", "pom.xml", "spring-boot:run", $dArg)
+  Start-Process -WindowStyle Hidden -WorkingDirectory $dir -FilePath $runner -ArgumentList $argList `
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
 
@@ -107,6 +107,14 @@ node .\\node_modules\\@angular\\cli\\bin\\ng.js serve --configuration developmen
     -RedirectStandardOutput $out -RedirectStandardError $err | Out-Null
 }
 
+function Get-PythonExe() {
+  foreach ($cmd in @("py", "python", "python3")) {
+    $found = Get-Command $cmd -ErrorAction SilentlyContinue
+    if ($found) { return $found.Source }
+  }
+  return $null
+}
+
 function Start-PythonAi() {
   $dir = Join-Path $root "PythonAI"
   if (-not (Test-Path $dir)) { return }
@@ -116,9 +124,11 @@ function Start-PythonAi() {
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting PythonAI ... log: $out" | Out-Host
 
-  $venvPy = Join-Path $dir ".venv\\Scripts\\python.exe"
+  $venvPy = Join-Path $dir ".venv\Scripts\python.exe"
   if (-not (Test-Path $venvPy)) {
-    powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
+    $sysPy = Get-PythonExe
+    if (-not $sysPy) { "ERROR: Python not found. Install Python and retry." | Out-Host; return }
+    & $sysPy -m venv (Join-Path $dir ".venv")
   }
 
   # Load optional env file (ignored by git). See PythonAI/.env.example
@@ -148,7 +158,8 @@ function Start-PythonAi() {
     $env:TEMP = $tmp
     $env:TMP = $tmp
     $env:PIP_CACHE_DIR = $pipCache
-    & $venvPy -m pip install --disable-pip-version-check -r $req *>> $out
+    $pipLog = Join-Path $logs "PythonAI_pip.log"
+    & $venvPy -m pip install --disable-pip-version-check -r $req *>> $pipLog
     New-Item -ItemType File -Force -Path $sentinel | Out-Null
   }
 
@@ -166,17 +177,35 @@ function Start-EventTypeAi() {
   Remove-Item -Force $out, $err -ErrorAction SilentlyContinue
   "Starting PEventAIService ... log: $out" | Out-Host
 
-  $venvPy = Join-Path $dir ".venv\\Scripts\\python.exe"
-  if (-not (Test-Path $venvPy)) {
-    powershell -NoProfile -Command ("cd `"$dir`"; python -m venv .venv") | Out-Null
+  $venvPy = Join-Path $dir ".venv\Scripts\python.exe"
+  if (Test-Path $venvPy) {
+    $venvHealthy = $true
+    try {
+      & $venvPy -c "import uvicorn" *> $null
+      if ($LASTEXITCODE -ne 0) { $venvHealthy = $false }
+    } catch {
+      $venvHealthy = $false
+    }
+    if (-not $venvHealthy) {
+      "PEventAIService venv appears corrupted. Rebuilding..." | Out-Host
+      Remove-Item -Recurse -Force (Join-Path $dir ".venv") -ErrorAction SilentlyContinue
+    }
   }
 
-  $sentinel = Join-Path $dir ".venv\\.deps_ok"
+  if (-not (Test-Path $venvPy)) {
+    $sysPy = Get-PythonExe
+    if (-not $sysPy) { "ERROR: Python not found. Install Python and retry." | Out-Host; return }
+    & $sysPy -m venv (Join-Path $dir ".venv")
+    $venvPy = Join-Path $dir ".venv\Scripts\python.exe"
+  }
+
+  $sentinel = Join-Path $dir ".venv\.deps_ok"
   if (-not (Test-Path $sentinel)) {
     $env:TEMP = $tmp
     $env:TMP = $tmp
     $env:PIP_CACHE_DIR = $pipCache
-    & $venvPy -m pip install --disable-pip-version-check -r (Join-Path $dir "requirements.txt") *>> $out
+    $pipLog = Join-Path $logs "PEventAI_pip.log"
+    & $venvPy -m pip install --disable-pip-version-check -r (Join-Path $dir "requirements.txt") *>> $pipLog
     New-Item -ItemType File -Force -Path $sentinel | Out-Null
   }
 
@@ -232,7 +261,7 @@ $services = @(
 )
 
 foreach ($s in $services) {
-  $ok = Wait-Port $s.port 180
+  $ok = Wait-Port $s.port 120
   "READY $($s.name) port=$($s.port) ok=$ok" | Out-Host
 }
 
