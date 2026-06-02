@@ -76,6 +76,9 @@ public class User extends BaseEntity implements UserDetails {
     private List<String> fitnessGoals = new ArrayList<>();
     private Double weight; // in kg
     private Double height; // in cm
+    private Integer fairPlayScore = 1000;
+    private String pendingSanctionMessage;
+    private String pendingSanctionType; // WARNING, DEDUCTION, BAN
 
     // ─── Helpers
     public void addRole(Role role) {

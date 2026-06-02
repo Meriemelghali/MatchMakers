@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { Role } from '../models/role.model';
 
@@ -13,7 +14,14 @@ export class RoleService {
   constructor(private http: HttpClient) { }
 
   getAllRoles(): Observable<Role[]> {
-    return this.http.get<Role[]>(this.apiUrl);
+    return this.http.get<any>(this.apiUrl).pipe(
+      tap(res => console.log('Raw Role API Response:', res)),
+      map(res => {
+        if (Array.isArray(res)) return res;
+        if (res && res.content) return res.content;
+        return [];
+      })
+    );
   }
 
   getRoleById(id: string): Observable<Role> {

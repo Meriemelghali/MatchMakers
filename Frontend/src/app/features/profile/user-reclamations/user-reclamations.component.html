@@ -1,0 +1,96 @@
+<div class="reclamations-container">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="eyebrow"><i class="fas fa-shield-alt"></i> Support & Réclamations</div>
+      <h1 class="title">Mes Réclamations</h1>
+      <p class="subtitle">Nous nous engageons à assurer une expérience juste et sécurisée. Suivez l'évolution de vos demandes en temps réel.</p>
+    </div>
+    <div class="header-actions">
+      <button (click)="loadMyReclamations()" class="btn-refresh" [class.spinning]="loading" title="Actualiser">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Synchronisation avec le service de médiation...</p>
+  </div>
+
+  <!-- Empty State with better visuals -->
+  <div *ngIf="!loading && reclamations.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <i class="fas fa-check-double"></i>
+    </div>
+    <h2>Aucun incident signalé</h2>
+    <p>Votre historique est vierge. Merci de contribuer à la positivité de la communauté MatchMakers !</p>
+  </div>
+
+  <div *ngIf="!loading && reclamations.length > 0" class="reclamation-grid">
+    <div *ngFor="let rec of reclamations" class="reclamation-card" 
+         [class.resolved]="rec.status === 'RESOLVED' || rec.status === 'AUTO_RESOLVED'">
+      
+      <div class="card-header">
+        <div class="title-section">
+          <h3 class="rec-title">
+            <i class="fas" [ngClass]="{
+              'fa-exclamation-circle': rec.type === 'TECHNIQUE',
+              'fa-user-slash': rec.type === 'COMPORTEMENT',
+              'fa-wallet': rec.type === 'PAIEMENT'
+            }"></i>
+            {{ rec.title }}
+          </h3>
+          <span class="rec-date">Signalé le {{ rec.createdAt | date:'longDate' }}</span>
+        </div>
+        <div class="status-section">
+          <span class="badge" [ngClass]="getStatusClass(rec.status)">
+            <span class="pulse-dot" *ngIf="rec.status === 'PENDING' || rec.status === 'ALERTE_ADMIN'"></span>
+            <i class="fas" [ngClass]="{
+              'fa-clock': rec.status === 'PENDING',
+              'fa-check-circle': rec.status === 'RESOLVED' || rec.status === 'AUTO_RESOLVED',
+              'fa-fire': rec.status === 'ALERTE_ADMIN',
+              'fa-times-circle': rec.status === 'REJECTED'
+            }"></i>
+            {{ getStatusLabel(rec.status) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p class="description">{{ rec.description }}</p>
+        
+        <div class="meta-info">
+          <div class="info-item">
+            <span class="label">Catégorie</span>
+            <span class="value">{{ rec.type }}</span>
+          </div>
+          <div class="info-item" *ngIf="rec.matchId">
+            <span class="label">ID Session</span>
+            <span class="value t-mono">#{{ rec.matchId.substring(0, 8) }}...</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Urgence</span>
+            <span class="value">{{ rec.urgence || 'Standard' }}</span>
+          </div>
+        </div>
+
+        <!-- Enhanced Feedback Section -->
+        <div class="feedback-box" *ngIf="rec.adminComment || rec.aiResponse">
+          <div class="feedback-header">
+            <div class="avatar-mini">
+              <i class="fas" [class.fa-robot]="rec.status === 'AUTO_RESOLVED'" [class.fa-user-shield]="rec.status === 'RESOLVED'"></i>
+            </div>
+            <span>{{ rec.status === 'AUTO_RESOLVED' ? 'Médiateur IA MatchMakers' : 'Agent de Support' }}</span>
+          </div>
+          <div class="feedback-content">
+            "{{ rec.adminComment || rec.aiResponse }}"
+          </div>
+          
+          <div class="reward-tag" *ngIf="rec.adminComment && (rec.adminComment.toLowerCase().includes('rembours') || rec.adminComment.toLowerCase().includes('gratuit') || rec.adminComment.toLowerCase().includes('bon'))">
+            <i class="fas fa-gift"></i> GESTE COMMERCIAL ACCORDÉ
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

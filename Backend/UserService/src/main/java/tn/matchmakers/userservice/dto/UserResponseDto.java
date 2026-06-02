@@ -31,4 +31,7 @@ public class UserResponseDto {
     private Double weight;
     private Double height;
     private tn.matchmakers.userservice.entities.enums.ThemePreference theme;
+    private Integer fairPlayScore;
+    private String pendingSanctionMessage;
+    private String pendingSanctionType;
 }

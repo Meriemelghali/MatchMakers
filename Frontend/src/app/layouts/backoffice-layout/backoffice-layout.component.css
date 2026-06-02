@@ -11,12 +11,11 @@
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width: 270px;
-  min-width: 270px;
-  background-color: var(--layer-1);
+  width: 230px;
+  background-color: #ffffff;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #f0f0f0;
   padding: 1.5rem 1rem;
   z-index: 100;
   overflow: hidden;
@@ -232,8 +231,8 @@
 }
 
 .topbar {
-  height: 70px;
-  padding: 0 2.5rem;
+  height: 55px;
+  padding: 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -278,7 +277,7 @@
 /* Content Area */
 .content-area {
   flex: 1;
-  padding: 2.5rem;
+  padding: 1rem;
   overflow-y: auto;
 }
 

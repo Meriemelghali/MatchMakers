@@ -38,6 +38,11 @@ export class CoachChatbotComponent implements OnInit {
     this.isOpen = !this.isOpen;
   }
 
+  onUserInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+    this.userInput = target?.value ?? '';
+  }
+
   sendMessage() {
     const message = this.userInput.trim();
     if (!message || !this.userId || this.isTyping) return;

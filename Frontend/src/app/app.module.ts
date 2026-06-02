@@ -21,9 +21,9 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { AiChatbotComponent } from './layouts/ai-chatbot/ai-chatbot.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
-import { AvatarEditorComponent } from './features/avatar-editor/avatar-editor.component';
+import { UserReclamationsComponent } from './features/profile/user-reclamations/user-reclamations.component';
 import { CoachChatbotComponent } from './features/coach-chatbot/coach-chatbot.component';
-import { LiveTickerComponent } from './shared/live-ticker/live-ticker.component';
+import { AvatarEditorComponent } from './features/avatar-editor/avatar-editor.component';
 
 @NgModule({
   declarations: [
@@ -40,9 +40,9 @@ import { LiveTickerComponent } from './shared/live-ticker/live-ticker.component'
     ProfileComponent,
     AiChatbotComponent,
     CoachDashboardComponent,
-    AvatarEditorComponent,
+    UserReclamationsComponent,
     CoachChatbotComponent,
-    LiveTickerComponent
+    AvatarEditorComponent
   ],
 
   imports: [

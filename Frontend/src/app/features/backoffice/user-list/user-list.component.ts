@@ -104,4 +104,16 @@ export class UserListComponent implements OnInit {
       });
     }
   }
+
+  pardonUser(user: User): void {
+    if (confirm(`Voulez-vous vraiment annuler le bannissement de ${user.firstName} ${user.lastName} ?`)) {
+      this.userService.pardonUser(user.id).subscribe({
+        next: () => {
+          alert('Utilisateur pardonné et réactivé avec succès !');
+          this.loadUsers();
+        },
+        error: (err) => alert('Erreur lors du pardon : ' + (err.error?.message || err.message))
+      });
+    }
+  }
 }

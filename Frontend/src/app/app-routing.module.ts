@@ -13,8 +13,10 @@ import { AdminOrdersComponent } from './features/products/admin-orders/admin-ord
 import { RoleSelectionComponent } from './core/Auth/role-selection/role-selection.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { CoachDashboardComponent } from './features/coach-dashboard/coach-dashboard.component';
+import { UserReclamationsComponent } from './features/profile/user-reclamations/user-reclamations.component';
 import { SponsorAdminComponent } from './features/sponsor/components/sponsor-admin/sponsor-admin.component';
-import { CampaignListComponent }   from './features/sponsor/campaign-list/campaign-list.component';
+import { CampaignListComponent } from './features/sponsor/campaign-list/campaign-list.component';
+
 
 const routes: Routes = [
   //par défaut
@@ -92,8 +94,8 @@ const routes: Routes = [
         component: CoachDashboardComponent
       },
       {
-        path: 'clubs',
-        loadChildren: () => import('./features/clubs/clubs.module').then(m => m.ClubsModule)
+        path: 'my-reclamations',
+        component: UserReclamationsComponent
       },
       // autres routes privées ici
     ]

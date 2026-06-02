@@ -1,7 +1,7 @@
 .user-list-container {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 1rem;
+  max-width: 100%;
+  margin: 0;
 }
 
 .list-header {
@@ -12,10 +12,10 @@
 }
 
 .header-main h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: #000000;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
   letter-spacing: -0.04em;
 }
 
@@ -59,7 +59,7 @@
 }
 
 .table-actions {
-  padding: 1.5rem;
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -136,16 +136,55 @@
   border-bottom: 2px solid #f8f8f8;
 }
 
-.user-table th:nth-child(1) { width: 25%; }
-.user-table th:nth-child(2) { width: 25%; }
-.user-table th:nth-child(3) { width: 18%; }
-.user-table th:nth-child(4) { width: 12%; }
-.user-table th:nth-child(5) { width: 20%; }
+.user-table th:nth-child(1) { width: 15%; }
+.user-table th:nth-child(2) { width: 15%; }
+.user-table th:nth-child(3) { width: 12%; }
+.user-table th:nth-child(4) { width: 8%; }
+.user-table th:nth-child(5) { width: 10%; }
+.user-table th:nth-child(6) { width: 40%; }
 
 .user-table td {
-  padding: 0.75rem 1.2rem;
+  padding: 0.4rem 0.6rem;
   border-bottom: 1px solid #f8f8f8;
   vertical-align: middle;
+  font-size: 0.8rem;
+}
+
+/* Score Badge */
+.score-cell {
+  display: flex;
+  align-items: center;
+}
+
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.score-high {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #10b98120;
+}
+
+.score-mid {
+  background: #fff7ed;
+  color: #ea580c;
+  border: 1px solid #f9731620;
+}
+
+.score-low {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #ef444420;
 }
 
 .user-table tr:hover td {
@@ -160,16 +199,16 @@
 }
 
 .user-avatar {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   background: #000000;
   color: #E8500A;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .user-name {
@@ -180,12 +219,16 @@
 .full-name {
   font-weight: 700;
   color: #000000;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
 }
 
 .user-id {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   color: #999999;
+  font-family: monospace;
+  word-break: break-all;
+  display: block;
+  max-width: 150px;
 }
 
 .email-text {
@@ -261,14 +304,14 @@
 .role-select {
   border: none;
   background: transparent;
-  padding: 2px 8px;
-  font-size: 0.75rem;
+  padding: 1px 4px;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #000;
   outline: none;
-  width: 90px;
+  width: 70px;
   cursor: pointer;
-  appearance: none; /* Nettoyer le look par défaut */
+  appearance: none;
 }
 
 .btn-mini-action {
@@ -292,9 +335,9 @@
 }
 
 .btn-action {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   border: 1px solid #e0e0e0;
   background: #ffffff;
   color: #666;

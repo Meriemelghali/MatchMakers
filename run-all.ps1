@@ -13,7 +13,8 @@ function Get-MavenCmd() {
 }
 
 $mvn = Get-MavenCmd
-$mvnPart = if ($mvn) { "& `"$mvn`" -f pom.xml spring-boot:run" } else { ".\\mvnw.cmd spring-boot:run" }
+$jvmArgs = "-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true"
+$mvnPart = if ($mvn) { "& `"$mvn`" -f pom.xml spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`"" } else { ".\\mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=`"$jvmArgs`"" }
 
 Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location 'Backend\TeamService'; $mvnPart"
 Start-Process powershell -ArgumentList '-NoExit', '-Command', "Set-Location 'Backend\RewardService'; $mvnPart"

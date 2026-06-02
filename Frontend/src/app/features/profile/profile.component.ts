@@ -12,7 +12,16 @@ import { AIService, SportInspiration } from '../../core/services/UserService/ai.
 import { ReclamationService } from '../../core/services/reclamation.service';
 import { Reclamation } from '../../core/models/reclamation.model';
 import { Router } from '@angular/router';
+import { AvatarService } from '../../core/services/UserService/avatar.service';
 
+export interface AvatarSuggestion {
+  id: string;
+  name: string;
+  url: string;
+  safeUrl: SafeResourceUrl; // Pré-calculé pour la performance
+  previewUrl?: string;
+  sportCategory: string;
+}
 
 @Component({
   selector: 'app-profile',
@@ -43,9 +52,15 @@ export class ProfileComponent implements OnInit {
   isLoading = false;
   isSaving = false;
   showAvatarCreator = false;
+  avatarCreatorUrl?: SafeResourceUrl;
+  
+  suggestedAvatars: AvatarSuggestion[] = [];
+  isCustomMode = false; // Toggle between suggestions and full creator
+  showSanctionBanner = false;
+
+  private messageHandler = this.handleIframeMessage.bind(this);
 
   constructor(
-    private fb: FormBuilder,
     private profileService: ProfileService,
     private authService: AuthService,
     private sportService: SportService,
@@ -54,8 +69,9 @@ export class ProfileComponent implements OnInit {
     private aiService: AIService,
     private reclamationService: ReclamationService,
     private sanitizer: DomSanitizer,
-    private router: Router
-
+    private router: Router,
+    private fb: FormBuilder,
+    private avatarService: AvatarService
   ) {
     this.initForms();
   }
@@ -120,6 +136,11 @@ export class ProfileComponent implements OnInit {
           this.themeService.setTheme(res.profile.theme as ThemeType, true);
         }
         
+        // ─── Sanction Check ───
+        if (res.profile.pendingSanctionMessage) {
+          this.showSanctionBanner = true;
+        }
+        
         this.loadActivities(userId);
         this.loadInspiration(userId);
         this.isLoading = false;
@@ -129,6 +150,21 @@ export class ProfileComponent implements OnInit {
         console.error('Full Http Error:', err);
         this.isLoading = false;
         this.toastService.error('Erreur lors du chargement du profil');
+      }
+    });
+  }
+
+  dismissSanction() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    
+    this.showSanctionBanner = false;
+    this.profileService.clearSanctionMessage(userId).subscribe({
+      next: () => {
+        if (this.userProfile) {
+          this.userProfile.pendingSanctionMessage = undefined;
+          this.userProfile.pendingSanctionType = undefined;
+        }
       }
     });
   }
@@ -260,8 +296,59 @@ export class ProfileComponent implements OnInit {
     this.showAvatarCreator = true;
   }
 
-  closeAvatarCreator() {
+  closeAvatarCreator(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    console.log('Modal closing requested');
     this.showAvatarCreator = false;
+  }
+
+  handleIframeMessage(event: MessageEvent) {
+    const data = event.data;
+    try {
+      const json = typeof data === 'string' ? JSON.parse(data) : data;
+      if (json?.source === 'readyplayerme') {
+        if (json.eventName === 'v1.avatar.exported') {
+          this.selectAvatar(json.data.url);
+        }
+      }
+    } catch (e) {
+      // Ignore parsing errors for other window messages
+    }
+  }
+
+  switchToCustomMode() {
+    this.isCustomMode = true;
+    const url = this.avatarService.getCustomCreatorUrl();
+    this.avatarCreatorUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  generateAvatarSuggestions() {
+    const sports = this.userProfile?.favoriteSports || [];
+    const hasSports = sports.length > 0;
+    
+    // Modèles d'athlètes Ready Player Me réels et certifiés
+    const realModels = [
+      'https://models.readyplayer.me/648085f1c9fc6360c70e28b8.glb', // Athlète Masculin
+      'https://models.readyplayer.me/648085f5287f32997b60f589.glb', // Athlète Féminin
+      'https://models.readyplayer.me/648085fba71f3918a09b589a.glb', // Style Sportif 1
+      'https://models.readyplayer.me/6480860539121d5852504620.glb'  // Style Sportif 2
+    ];
+
+    // Créer 4 suggestions
+    this.suggestedAvatars = realModels.map((url, index) => {
+      // Rotation sur les sports favoris de l'utilisateur
+      const sportName = hasSports ? sports[index % sports.length] : 'Style';
+      return {
+        id: (index + 1).toString(),
+        name: `${sportName}`,
+        url: url,
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(url),
+        sportCategory: sportName
+      };
+    });
   }
 
   getSafeUrl(url: string): SafeResourceUrl {
@@ -288,6 +375,28 @@ export class ProfileComponent implements OnInit {
       });
     } else {
       this.closeAvatarCreator();
+    }
+  }
+
+  getStatusLabel(status: string | undefined): string {
+    switch (status) {
+      case 'PENDING': return 'En cours';
+      case 'RESOLVED': return 'Traité';
+      case 'AUTO_RESOLVED': return 'Résolu par IA';
+      case 'ALERTE_ADMIN': return 'En cours (Priorité)';
+      case 'REJECTED': return 'Rejeté';
+      default: return status || 'Inconnu';
+    }
+  }
+
+  getStatusClass(status: string | undefined): string {
+    switch (status) {
+      case 'PENDING': return 'badge-occupe';
+      case 'RESOLVED': return 'badge-disponible';
+      case 'AUTO_RESOLVED': return 'badge-disponible';
+      case 'ALERTE_ADMIN': return 'badge-annule';
+      case 'REJECTED': return 'badge-err';
+      default: return 'badge-disponible';
     }
   }
 }

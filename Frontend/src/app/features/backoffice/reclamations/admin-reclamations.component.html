@@ -1,11 +1,20 @@
 <div class="dashboard-page">
+  <!-- SUCCESS TOAST POPUP -->
+  <div class="success-toast" [class.show]="showSuccessToast">
+    <div class="toast-content">
+      <i class="fas fa-check-circle toast-icon"></i>
+      <div class="toast-text">{{ toastMsg }}</div>
+    </div>
+    <div class="toast-progress"></div>
+  </div>
+
   <div class="page-head">
     <div class="page-head-meta">
       <div class="page-head-eyebrow">
-        <i class="fas fa-shield-alt"></i> Administration Sécurisée
+        <i class="fas fa-shield-check"></i> Supervision MatchMakers
       </div>
-      <h1 class="page-head-title">Dashboard Réclamations & IA</h1>
-      <p class="page-head-sub">Surveillance en temps réel des incidents et médiation automatique par IA.</p>
+      <h1 class="page-head-title">Gestion des Réclamations</h1>
+      <p class="page-head-sub">Prenez des décisions éclairées grâce à la médiation IA et aux données historiques.</p>
     </div>
   </div>
 
@@ -15,68 +24,209 @@
       <div class="card">
         <div class="section-head">
           <div class="section-title-bar">
-            <i class="fas fa-exclamation-triangle t-orange"></i> Plaintes nécessitant action
+            <i class="fas fa-stream"></i> Files des urgences
           </div>
-          <span class="badge badge-annule">
-            <span class="pulse"></span> {{ urgentes.length }} URGENCES
-          </span>
+          <div class="flex items-center gap-12">
+            <!-- FILTRES -->
+            <div class="flex gap-8 mr-12">
+              <select [(ngModel)]="filterPriority" (change)="applyFilters()" class="field-input py-4 text-xs" style="width: 120px;">
+                <option value="">Toutes priorités</option>
+                <option value="HAUTE">Haute</option>
+                <option value="MOYENNE">Moyenne</option>
+                <option value="BASSE">Basse</option>
+              </select>
+              <input type="date" [(ngModel)]="filterDate" (change)="applyFilters()" class="field-input py-4 text-xs" style="width: 130px;">
+            </div>
+
+            <span class="badge badge-annule">
+               {{ filteredEnAttente.length }} réclamation(s)
+            </span>
+            <button (click)="loadReclamations()" class="btn-refresh-pro" [class.spinning]="loading">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABS SYSTEM -->
+        <div class="admin-tabs">
+          <button (click)="setTab('en-attente')" class="tab-btn" [class.active]="activeTab === 'en-attente'">
+            <i class="fas fa-clock"></i> En attente
+          </button>
+          <button (click)="setTab('traitees')" class="tab-btn" [class.active]="activeTab === 'traitees'">
+            <i class="fas fa-check-double"></i> Traitées
+          </button>
         </div>
 
         <div *ngIf="loading" class="loader">
           <div class="spinner"></div>
         </div>
 
-        <div *ngIf="!loading && urgentes.length === 0" class="empty">
+        <div *ngIf="!loading && activeTab === 'en-attente' && filteredEnAttente.length === 0" class="empty">
           <div class="empty-icon">
             <i class="fas fa-check-circle fa-4x"></i>
           </div>
-          <div class="empty-title">Tout est en ordre</div>
-          <p class="empty-body">Aucune plainte urgente n'est en attente de traitement.</p>
+          <div class="empty-title">Aucun résultat</div>
+          <p class="empty-body">Aucune réclamation ne correspond à vos filtres.</p>
         </div>
 
-        <div *ngIf="!loading && urgentes.length > 0" class="reclamation-list">
-          <div *ngFor="let rec of urgentes" class="reclamation-card">
-            <div class="reclamation-header">
-              <div class="reclamation-info">
-                <h3 class="reclamation-title">{{ rec.title }}</h3>
-                <div class="flex gap-8 mt-8">
-                  <span class="tag">
-                    <i class="fas fa-tag"></i> {{ rec.type }}
-                  </span>
-                  <span class="badge" [ngClass]="rec.status === 'ALERTE_ADMIN' ? 'badge-occupe' : 'badge-annule'">
-                    <i class="fas" [ngClass]="rec.status === 'ALERTE_ADMIN' ? 'fa-user-slash' : 'fa-clock'"></i>
-                    {{ rec.status === 'ALERTE_ADMIN' ? 'JOUEUR TOXIQUE' : 'PRIORITÉ HAUTE' }}
-                  </span>
+        <div *ngIf="!loading && activeTab === 'traitees' && filteredTraitees.length === 0" class="empty">
+          <div class="empty-icon">
+            <i class="fas fa-archive fa-4x"></i>
+          </div>
+          <div class="empty-title">Aucun résultat</div>
+          <p class="empty-body">Aucune réclamation traitée ne correspond à vos filtres.</p>
+        </div>
+
+        <div *ngIf="!loading" class="reclamation-list">
+          <!-- LISTE EN ATTENTE -->
+          <ng-container *ngIf="activeTab === 'en-attente'">
+            <div *ngFor="let rec of filteredEnAttente" class="reclamation-card">
+              <div class="reclamation-header">
+                <div class="reclamation-info">
+                  <div class="flex items-center gap-12">
+                    <h3 class="reclamation-title mb-0">{{ rec.title }}</h3>
+                    <button (click)="deleteReclamation(rec.id)" class="btn-delete-mini" title="Supprimer la réclamation">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="flex gap-8 mt-8">
+                    <span class="tag">
+                      <i class="fas fa-tag"></i> {{ rec.type }}
+                    </span>
+                    <span class="badge" [class.badge-annule]="rec.urgence === 'HAUTE' || rec.status === 'ALERTE_ADMIN'"
+                      [class.badge-occupe]="rec.urgence === 'MOYENNE'"
+                      [class.badge-disponible]="rec.urgence === 'BASSE' || !rec.urgence">
+                      <i class="fas"
+                        [class.fa-skull-crossbones]="rec.urgence === 'HAUTE' || rec.status === 'ALERTE_ADMIN'"
+                        [class.fa-exclamation-circle]="rec.urgence === 'MOYENNE'"
+                        [class.fa-info-circle]="rec.urgence === 'BASSE' || !rec.urgence"></i>
+                      {{ rec.status === 'ALERTE_ADMIN' ? 'JOUEUR TOXIQUE' : (rec.urgence || 'BASSE') }}
+                    </span>
+                  </div>
+                </div>
+                <div class="reclamation-actions">
+                  <!-- Manual sanction buttons removed as per user request to rely only on automated sanctions -->
+                  <div class="comment-input-group mt-12">
+                    <textarea [(ngModel)]="adminComments[rec.id!]" placeholder="Laisser un commentaire ou avantage..." class="field-input premium-textarea" rows="2"></textarea>
+                    <div class="quick-response-grid">
+                      <!-- Réponses Comportement / Général -->
+                      <button *ngIf="rec.type === 'COMPORTEMENT'" (click)="setQuickComment(rec.id, 'Suite à l\'incident signalé, un accès prioritaire au parking vous est offert pour votre prochain mois d\'activité. Votre badge a été mis à jour automatiquement.')" class="btn-quick q-parking">
+                        <i class="fas fa-parking"></i> Parking Premium
+                      </button>
+                      <button *ngIf="rec.type === 'COMPORTEMENT'" (click)="setQuickComment(rec.id, 'L\'administration MatchMakers a validé un bon d\'achat d\'une valeur de 15 DT valable sur l\'ensemble du Store. Code : MM-LOYALTY-15.')" class="btn-quick q-store">
+                        <i class="fas fa-shopping-bag"></i> Bon d'achat Store
+                      </button>
+                      
+                      <!-- Réponses Technique -->
+                      <button *ngIf="rec.type === 'TECHNIQUE'" (click)="setQuickComment(rec.id, 'Nous avons identifié et corrigé le bug technique signalé. Merci de mettre à jour votre application. Votre compte a été crédité de 50 points Fair-Play en guise de remerciement.')" class="btn-quick q-tech">
+                        <i class="fas fa-tools"></i> Bug Corrigé
+                      </button>
+                      <button *ngIf="rec.type === 'TECHNIQUE'" (click)="setQuickComment(rec.id, 'Nos serveurs ont subi une maintenance imprévue. Tout est rentré dans l\'ordre. Votre match a été reprogrammé sans frais supplémentaires.')" class="btn-quick q-tech">
+                        <i class="fas fa-server"></i> Serveur Rétabli
+                      </button>
+
+                      <!-- Réponses Paiement -->
+                      <button *ngIf="rec.type === 'PAIEMENT'" (click)="setQuickComment(rec.id, 'Le remboursement de votre transaction a été initié auprès de votre banque. Vous devriez recevoir les fonds sous 3 à 5 jours ouvrables.')" class="btn-quick q-pay">
+                        <i class="fas fa-undo"></i> Remboursement Initié
+                      </button>
+                      <button *ngIf="rec.type === 'PAIEMENT'" (click)="setQuickComment(rec.id, 'L\'erreur de double facturation a été résolue. Un avoir a été généré sur votre compte MatchMakers pour votre prochaine réservation.')" class="btn-quick q-pay">
+                        <i class="fas fa-receipt"></i> Avoir Généré
+                      </button>
+
+                      <!-- Réponse Générique -->
+                      <button (click)="setQuickComment(rec.id, 'En guise de dédommagement, votre prochaine réservation de terrain est intégralement prise en charge par le service support. Valable pour n\'importe quel créneau disponible.')" class="btn-quick q-field">
+                        <i class="fas fa-map-marked-alt"></i> Réservation Gratuite
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mt-12 flex justify-end">
+                    <button (click)="resolveReclamation(rec.id)" class="btn btn-success btn-sm">
+                      <i class="fas fa-check"></i> Résoudre & Envoyer
+                    </button>
+                  </div>
                 </div>
               </div>
-              <button (click)="resolveReclamation(rec.id)" class="btn btn-success btn-sm">
-                <i class="fas fa-check"></i> Résoudre
-              </button>
-            </div>
 
-            <p class="reclamation-desc">{{ rec.description }}</p>
+              <p class="reclamation-desc">{{ rec.description }}</p>
 
-            <div class="reclamation-meta info-grid mt-16">
-              <span class="info-key"><i class="fas fa-user"></i> Plaignant</span>
-              <span class="info-val fw-600">{{ rec.userId }}</span>
-              
-              <span class="info-key" *ngIf="rec.targetUserId"><i class="fas fa-bullseye"></i> Cible</span>
-              <span class="info-val text-danger fw-700" *ngIf="rec.targetUserId">{{ rec.targetUserId }}</span>
-              
-              <span class="info-key"><i class="fas fa-gamepad"></i> Match ID</span>
-              <span class="info-val t-mono">{{ rec.matchId || 'N/A' }}</span>
-              
-              <span class="info-key"><i class="fas fa-calendar-alt"></i> Signalé le</span>
-              <span class="info-val">{{ rec.createdAt | date:'medium' }}</span>
-            </div>
-            
-            <div class="ai-response-box mt-20">
-              <div class="ai-label">
-                <i class="fas fa-robot"></i> Médiation IA effectuée
+              <div class="reclamation-meta info-grid mt-16">
+                <span class="info-key"><i class="fas fa-user"></i> Plaignant</span>
+                <div class="user-pill clickable-user" (click)="investigateUser(rec.userId)" title="Investiguer ce joueur">
+                  <div class="user-avatar-mini">{{ getUserName(rec.userId).charAt(0) }}</div>
+                  <div class="user-info-stacked">
+                    <div class="user-name-text">{{ getUserName(rec.userId) }}</div>
+                    <div class="user-id-sub" *ngIf="!isNameResolved(rec.userId)">{{ rec.userId }}</div>
+                  </div>
+                </div>
+
+                <span class="info-key"><i class="fas fa-bullseye"></i> Cible</span>
+                <div class="user-pill clickable-user" *ngIf="rec.targetUserId" (click)="investigateUser(rec.targetUserId)" title="Investiguer ce joueur">
+                  <div class="user-avatar-mini" style="background: #ef4444;">{{ getUserName(rec.targetUserId).charAt(0) }}</div>
+                  <div class="user-info-stacked">
+                    <div class="user-name-text text-danger">{{ getUserName(rec.targetUserId) }}</div>
+                    <div class="user-id-sub" *ngIf="!isNameResolved(rec.targetUserId)">{{ rec.targetUserId }}</div>
+                  </div>
+                </div>
+                <div class="info-val t-muted" *ngIf="!rec.targetUserId">
+                  Aucune cible (Incident général)
+                </div>
+
+                <span class="info-key"><i class="fas fa-gamepad"></i> Match ID</span>
+                <span class="info-val t-mono">{{ rec.matchId || 'N/A' }}</span>
+
+                <span class="info-key"><i class="fas fa-calendar-alt"></i> Signalé le</span>
+                <span class="info-val">{{ rec.createdAt | date:'medium' }}</span>
               </div>
-              <p class="ai-content">{{ rec.aiResponse }}</p>
+
+              <div class="ai-response-box mt-20">
+                <div class="ai-label">
+                  <i class="fas fa-robot"></i> Médiation IA effectuée
+                </div>
+                <p class="ai-content">{{ rec.aiResponse }}</p>
+              </div>
             </div>
-          </div>
+          </ng-container>
+
+          <!-- LISTE TRAITÉES -->
+          <ng-container *ngIf="activeTab === 'traitees'">
+            <div *ngFor="let rec of filteredTraitees" class="reclamation-card resolved-card">
+              <div class="reclamation-header">
+                <div class="reclamation-info">
+                  <div class="flex items-center gap-12">
+                    <h3 class="reclamation-title mb-0">{{ rec.title }}</h3>
+                    <span class="badge badge-disponible">TRAITÉ</span>
+                    <button (click)="deleteReclamation(rec.id)" class="btn-delete-mini" title="Supprimer définitivement">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                  <div class="flex gap-8 mt-8">
+                    <span class="tag"><i class="fas fa-tag"></i> {{ rec.type }}</span>
+                    <span class="t-muted text-xs">Résolu le {{ (rec.updatedAt || rec.createdAt) | date:'medium' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="admin-feedback-box mt-16">
+                <div class="fb-label"><i class="fas fa-comment-dots"></i> Votre réponse :</div>
+                <p class="fb-text">"{{ rec.adminComment || rec.aiResponse }}"</p>
+              </div>
+
+              <div class="reclamation-meta info-grid mt-16">
+                <span class="info-key"><i class="fas fa-user"></i> Plaignant</span>
+                <div class="user-pill clickable-user" (click)="investigateUser(rec.userId)" title="Investiguer ce joueur">
+                  <div class="user-avatar-mini">{{ getUserName(rec.userId).charAt(0) }}</div>
+                  <div class="user-name-text">{{ getUserName(rec.userId) }}</div>
+                </div>
+                
+                <span class="info-key" *ngIf="rec.targetUserId"><i class="fas fa-bullseye"></i> Cible</span>
+                <div class="user-pill clickable-user" *ngIf="rec.targetUserId" (click)="investigateUser(rec.targetUserId)" title="Investiguer ce joueur">
+                  <div class="user-avatar-mini" style="background: #ef4444;">{{ getUserName(rec.targetUserId).charAt(0) }}</div>
+                  <div class="user-name-text text-danger">{{ getUserName(rec.targetUserId) }}</div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
         </div>
       </div>
     </div>
@@ -89,7 +239,7 @@
             <i class="fas fa-gavel t-orange"></i> Casier Judiciaire
           </div>
         </div>
-        
+
         <div class="search-form mt-20">
           <div class="field">
             <label class="field-label">Rechercher un joueur</label>
@@ -107,7 +257,14 @@
         </div>
 
         <div *ngIf="selectedUserSanctions.length > 0" class="sanction-history mt-24">
-          <h4 class="t-label mb-16">Sanctions pour {{ searchUserName }}</h4>
+          <div class="flex justify-between items-center mb-16">
+            <h4 class="t-label mb-0">Historique pour {{ searchUserName }}</h4>
+            <div *ngIf="selectedUserProfile" class="score-pill-large">
+              <span class="score-label">FAIR-PLAY SCORE</span>
+              <span class="score-value">{{ selectedUserProfile.fairPlayScore }}</span>
+              <span class="score-unit">FPS</span>
+            </div>
+          </div>
           <div class="sf-list">
             <div *ngFor="let sanction of selectedUserSanctions" class="sf-row">
               <div class="sf-match">
@@ -126,4 +283,3 @@
     </div>
   </div>
 </div>
-

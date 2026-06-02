@@ -69,8 +69,8 @@ export class AuthService {
       localStorage.setItem('lastName', payload.lastName || '');
       localStorage.setItem('userId', payload.id || payload.userId || payload.sub || '');
       localStorage.setItem('userEmail', payload.email || response.email || '');
-    } catch (e) {
-      console.error('Error decoding token', e);
+    } catch (e) { 
+      console.error('Error decoding token:', e);
     }
 
     if (response.theme) {

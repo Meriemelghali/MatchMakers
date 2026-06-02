@@ -16,6 +16,11 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+# OpenRouter Configuration
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-2.0-flash-001")
     
 app = FastAPI(title="EventType AI Service", description="AI microservice for Event Type suggestions", version="1.0.0")
 
@@ -77,6 +82,9 @@ class EventPredictionRequest(BaseModel):
 
 class QuoteRequest(BaseModel):
     sports: List[str]
+
+class ReclamationRequest(BaseModel):
+    description: str
 
 # Fallback values if API key is not present or fails
 def get_fallback_suggestion(type_name: str) -> dict:
@@ -470,138 +478,136 @@ async def sport_quote(request: QuoteRequest):
             "from_llm": False
         }
 
-class LogoRequest(BaseModel):
-    name: str
-    description: str
-    sports: str
-
-@app.post("/api/ai/generate-logo")
-async def generate_logo(request: LogoRequest):
-    import base64
-
-    svg_fallback = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
-        <rect width="300" height="300" fill="#1a1a2e" rx="20"/>
-        <circle cx="150" cy="110" r="70" fill="#FF6B00" opacity="0.9"/>
-        <text x="150" y="105" font-size="22" text-anchor="middle" fill="white" font-weight="bold" font-family="Arial">{request.name}</text>
-        <text x="150" y="200" font-size="14" text-anchor="middle" fill="#FF6B00" font-family="Arial">{request.sports}</text>
-        <text x="150" y="260" font-size="11" text-anchor="middle" fill="#888" font-family="Arial">MatchMakers</text>
-    </svg>'''
-
-    if not GEMINI_API_KEY:
-        encoded = base64.b64encode(svg_fallback.encode('utf-8')).decode('utf-8')
-        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
-
-    try:
-        model = genai.GenerativeModel('gemini-2.0-flash')
-        prompt = f"""Create a professional SVG logo for a sports club.
-Club name: {request.name}
-Sports: {request.sports}
-Description: {request.description}
-Rules:
-- Return ONLY valid SVG code, starting with <svg and ending with </svg>
-- No markdown, no explanation, no backticks
-- Use colors: orange #FF6B00 and dark #1a1a2e
-- Include the club name as text
-- viewBox="0 0 300 300"
-"""
-        response = model.generate_content(prompt)
-        svg_code = response.text.strip()
-
-        if "```svg" in svg_code:
-            svg_code = svg_code.split("```svg")[1].split("```")[0].strip()
-        elif "```" in svg_code:
-            svg_code = svg_code.split("```")[1].split("```")[0].strip()
-
-        if not svg_code.startswith("<svg"):
-            raise ValueError("Invalid SVG response")
-
-        encoded = base64.b64encode(svg_code.encode('utf-8')).decode('utf-8')
-        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
-
-    except Exception as e:
-        print(f"Gemini error: {str(e)}")
-        encoded = base64.b64encode(svg_fallback.encode('utf-8')).decode('utf-8')
-        return {"imageUrl": f"data:image/svg+xml;base64,{encoded}"}
-
-
-class TeamPerformanceRequest(BaseModel):
-    teamName: str
-    sport: str
-    energy: int
-    fatigue: int
-    morale: int
-    recentActivity: Optional[str] = None
-
-def get_team_performance_fallback(request: TeamPerformanceRequest):
-    """Fallback logic when AI is unavailable or quota exceeded."""
-    f_level = "High" if request.fatigue > 70 else ("Medium" if request.fatigue > 30 else "Low")
-    e_status = "Low" if request.energy < 30 else ("Medium" if request.energy < 70 else "High")
-    m_status = "Excellent" if request.morale > 80 else ("Good" if request.morale > 50 else "Poor")
+@app.post("/api/ai/sport-quote")
+async def sport_quote(request: QuoteRequest):
+    if not GEMINI_API_KEY and not OPENROUTER_API_KEY:
+        import random
+        fallbacks = [
+            "Savais-tu que le golf est le seul sport à avoir été pratiqué sur la Lune (en 1971) ?",
+            "Le sifflet d'arbitre n'a été utilisé pour la première fois qu'en 1878.",
+            "Savais-tu que Cristiano Ronaldo saute plus haut qu'un joueur NBA moyen ?",
+            "Le basket-ball a été inventé en utilisant un panier de pêches comme panier !"
+        ]
+        return {
+            "quote": random.choice(fallbacks),
+            "from_llm": False
+        }
+        
+    sports_str = ", ".join(request.sports) if request.sports else "sports en général"
+    prompt = f"""
+    Tu es un expert en culture sportive pour la plateforme MatchMakers.
+    L'utilisateur est fan de : {sports_str}.
     
-    # Logic for recommendation
-    if request.fatigue > 65:
-        rec = "Niveau de fatigue critique. Repos obligatoire et séances de récupération active recommandées."
-        impact = "Negative"
-    elif request.energy < 40:
-        rec = "Baisse d'énergie détectée. Allégez les entraînements et privilégiez le sommeil."
-        impact = "Negative"
-    elif request.morale < 40:
-        rec = "Le moral de l'équipe est bas. Organisez une activité de teambuilding ou une session de motivation."
-        impact = "Neutral"
-    else:
-        rec = "L'équipe est dans une forme optimale. Continuez sur ce rythme pour les prochains matchs."
-        impact = "Positive"
+    Ta mission : Donne soit un "Fun Fact" sportif fascinant, soit une citation motivante.
+    Règles : Français, captivant, court (max 2 phrases).
+    """
+    
+    # Try OpenRouter
+    if OPENROUTER_API_KEY:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}", "Content-Type": "application/json"}
+                payload = {"model": OPENROUTER_MODEL, "messages": [{"role": "user", "content": prompt}]}
+                response = await client.post(f"{OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                return {"quote": data['choices'][0]['message']['content'].strip(), "from_llm": True}
+        except Exception as e:
+            print(f"Quote OpenRouter Error: {e}")
 
+    # Fallback Gemini
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            return {"quote": response.text.strip(), "from_llm": True}
+        except Exception as e:
+            print(f"Quote Gemini Error: {e}")
+
+    return {"quote": "Le sport est le dépassement de soi. Restez passionné !", "from_llm": False}
+
+@app.post("/reclamation-analyze")
+async def analyze_reclamation(request: ReclamationRequest):
+    """
+    Analyzes a complaint description to determine type, urgency and generate an auto-response.
+    """
+    prompt = f"""
+    Tu es un assistant expert en gestion de la relation client pour MatchMakers.
+    Analyse la réclamation suivante : "{request.description}"
+    
+    Détermine :
+    1. Le type : COMPORTEMENT (insultes, triche), PAIEMENT (remboursement, erreur prix), ou TECHNIQUE (bug app, accès).
+    2. L'urgence : HAUTE (critique), MOYENNE, ou BASSE.
+    3. Une réponse automatique (reponse_auto) : Polie, en français, maximum 2 phrases.
+    
+    Réponds UNIQUEMENT en JSON valide avec cette structure :
+    {{
+        "type": "COMPORTEMENT|PAIEMENT|TECHNIQUE",
+        "urgence": "HAUTE|MOYENNE|BASSE",
+        "reponse_auto": "..."
+    }}
+    """
+    
+    # Try OpenRouter first
+    if OPENROUTER_API_KEY:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                headers = {
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:8002",
+                    "X-OpenRouter-Title": "MatchMakers-Reclamation"
+                }
+                payload = {
+                    "model": OPENROUTER_MODEL,
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                response = await client.post(f"{OPENROUTER_BASE_URL}/chat/completions", headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                text = data['choices'][0]['message']['content'].strip()
+                
+                if "```json" in text:
+                    text = text.split("```json")[1].split("```")[0].strip()
+                elif "```" in text:
+                    text = text.split("```")[1].split("```")[0].strip()
+                
+                return json.loads(text)
+        except Exception as e:
+            print(f"OpenRouter Error: {e}")
+
+    # Fallback Gemini (if configured)
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            text = response.text.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0].strip()
+            return json.loads(text)
+        except Exception as e:
+            print(f"Gemini Error: {e}")
+
+    # Final static fallback
+    desc = request.description.lower()
+    type_found = "TECHNIQUE"
+    urgence = "MOYENNE"
+    
+    if any(w in desc for w in ["paye", "argent", "rembourse", "prix", "finance"]):
+        type_found = "PAIEMENT"
+    elif any(w in desc for w in ["insulte", "comportement", "trich", "m'a dit", "abuse"]):
+        type_found = "COMPORTEMENT"
+        urgence = "HAUTE"
+        
     return {
-        "fatigueLevel": f_level,
-        "energyStatus": e_status,
-        "moraleStatus": m_status,
-        "recommendation": rec,
-        "performanceImpact": impact,
-        "from_llm": False
+        "type": type_found,
+        "urgence": urgence,
+        "reponse_auto": "Nous avons bien reçu votre réclamation. Notre équipe va l'examiner dans les plus brefs délais."
     }
-
-@app.post("/api/ai/analyze-team-performance")
-async def analyze_team_performance(request: TeamPerformanceRequest):
-    if not GEMINI_API_KEY:
-        return get_team_performance_fallback(request)
-        
-    try:
-        model = genai.GenerativeModel('gemini-2.0-flash')
-        prompt = f"""
-        Tu es un expert en médecine du sport et en psychologie d'équipe pour MatchMakers.
-        Analyse l'état actuel de l'équipe suivante et donne des recommandations intelligentes.
-        
-        Équipe : {request.teamName} ({request.sport})
-        Énergie : {request.energy}%
-        Fatigue : {request.fatigue}%
-        Moral : {request.morale}%
-        Activité récente : {request.recentActivity or "Non spécifiée"}
-        
-        Réponds UNIQUEMENT en JSON avec cette structure :
-        {{
-            "fatigueLevel": "Low/Medium/High",
-            "energyStatus": "Low/Medium/High",
-            "moraleStatus": "Poor/Fair/Good/Excellent",
-            "recommendation": "Ta recommandation courte en français (ex: Repos suggéré)",
-            "performanceImpact": "Negative/Neutral/Positive (Impact sur les prochains matchs)"
-        }}
-        """
-        response = model.generate_content(prompt)
-        text = response.text.strip()
-        
-        if "```json" in text:
-            text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text:
-            text = text.split("```")[1].split("```")[0].strip()
-            
-        data = json.loads(text)
-        data["from_llm"] = True
-        return data
-    except Exception as e:
-        print(f"Error analyzing team performance (falling back): {str(e)}")
-        return get_team_performance_fallback(request)
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

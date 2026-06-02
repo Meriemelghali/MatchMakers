@@ -4,14 +4,22 @@ venv/
 __pycache__/
 *.pyc
 
+# Java / Maven
+**/target/
+*.class
+.m2/
+
 # Pip cache
 .pip-cache/
 
 # Temporary files
 .tmp/
 
-# Logs
+# Logs and runtime artifacts
+.logs/
 *.log
+hs_err_pid*
+replay_pid*
 
 # IDE
 .vscode/
@@ -22,5 +30,5 @@ node_modules/
 
 Frontend/src/assets/avatars/*.glb
 
-.logs/
-*.log
+# API Keys — use .env.keys.example as template
+.env.keys
