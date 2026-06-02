@@ -1,4 +1,4 @@
-﻿version: '3.8'
+version: '3.8'
 
 services:
   user-service:
@@ -216,7 +216,7 @@ services:
     restart: unless-stopped
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - GEMINI_API_KEY=${OPENROUTER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     deploy:
       resources:
         limits:
@@ -232,7 +232,7 @@ services:
       - "8002:8002"
     restart: unless-stopped
     environment:
-      - GEMINI_API_KEY=${OPENROUTER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     deploy:
       resources:
         limits:

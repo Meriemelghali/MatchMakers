@@ -29,3 +29,6 @@ replay_pid*
 node_modules/
 
 Frontend/src/assets/avatars/*.glb
+
+# API Keys — use .env.keys.example as template
+.env.keys

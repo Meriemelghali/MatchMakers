@@ -1,9 +1,21 @@
-﻿$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Stop"
 
-# AI API Keys
-$env:OPENROUTER_API_KEY = "${OPENROUTER_API_KEY}"
-$env:GEMINI_API_KEY = "${OPENROUTER_API_KEY}"
-
+# AI API Keys — set these in a local .env.keys file (never commit real keys!)
+# Copy .env.keys.example to .env.keys and fill in your values.
+$envKeysFile = Join-Path $PSScriptRoot ".env.keys"
+if (Test-Path $envKeysFile) {
+  Get-Content $envKeysFile | ForEach-Object {
+    $line = $_.Trim()
+    if (-not $line -or $line.StartsWith('#')) { return }
+    $eq = $line.IndexOf('=')
+    if ($eq -lt 1) { return }
+    $key = $line.Substring(0, $eq).Trim()
+    $val = $line.Substring($eq + 1).Trim()
+    if ($key) { Set-Item -Path ("Env:{0}" -f $key) -Value $val }
+  }
+} else {
+  Write-Warning ".env.keys not found. AI features may not work. Copy .env.keys.example and fill in your API keys."
+}
 
 # Run the full stack (all Spring microservices + Angular frontend + PythonAI).
 # Logs: .logs/<Service>.log
