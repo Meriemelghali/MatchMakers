@@ -60,12 +60,7 @@ public class SponsorController {
         return ResponseEntity.ok(sponsorService.getSponsorById(id));
     }
 
-    // ✅ Get par userId
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<SponsorResponseDTO> getByUserId(
-            @PathVariable String userId) {
-        return ResponseEntity.ok(sponsorService.getSponsorByUserId(userId));
-    }
+
 
     // ✅ Lister tous
     @GetMapping

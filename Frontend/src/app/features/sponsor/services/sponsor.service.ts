@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { Sponsor, SponsorRequest, SponsorStatus, Campaign } from '../models/sponsor.model';
 
 @Injectable({ providedIn: 'root' })
@@ -22,8 +22,15 @@ export class SponsorService {
   }
 
   getByUserId(userId: string): Observable<Sponsor> {
-    return this.http.get<Sponsor>(`${this.base}/user/${userId}`);
+    return this.getAll().pipe(
+      map(sponsors => {
+        const found = sponsors.find(s => (s as any).userId === userId);
+        if (!found) throw new Error('Aucun profil sponsor pour ce user');
+        return found;
+      })
+    );
   }
+
 
   getAll(): Observable<Sponsor[]> {
     return this.http.get<Sponsor[]>(this.base);

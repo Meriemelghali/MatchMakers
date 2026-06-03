@@ -1,9 +1,7 @@
 package tn.matchmakers.sponsorservice.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import tn.matchmakers.sponsorservice.dto.SponsorRequestDTO;
 import tn.matchmakers.sponsorservice.dto.SponsorResponseDTO;
 import tn.matchmakers.sponsorservice.entity.Sponsor;
@@ -62,15 +60,7 @@ public class SponsorServiceImpl implements SponsorService {
         return toDTO(findById(id));
     }
 
-    @Override
-    public SponsorResponseDTO getSponsorByUserId(String userId) {
-        return sponsorRepository.findByUserId(userId)
-            .map(this::toDTO)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Aucun profil sponsor pour ce user"
-            ));
-    }
+
 
     @Override
     public List<SponsorResponseDTO> getAllSponsors() {
@@ -128,10 +118,7 @@ public class SponsorServiceImpl implements SponsorService {
 
     private Sponsor findById(String id) {
         return sponsorRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Sponsor introuvable : " + id
-            ));
+            .orElseThrow(() -> new RuntimeException("Sponsor introuvable : " + id));
     }
 
     private SponsorResponseDTO toDTO(Sponsor s) {

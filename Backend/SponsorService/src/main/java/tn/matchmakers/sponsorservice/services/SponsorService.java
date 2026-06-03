@@ -9,7 +9,6 @@ public interface SponsorService {
     SponsorResponseDTO createSponsor(SponsorRequestDTO dto);
     SponsorResponseDTO updateSponsor(String id, SponsorRequestDTO dto);
     SponsorResponseDTO getSponsorById(String id);
-    SponsorResponseDTO getSponsorByUserId(String userId);
     List<SponsorResponseDTO> getAllSponsors();
     List<SponsorResponseDTO> getSponsorsByStatus(SponsorStatus status);
     SponsorResponseDTO approveSponsor(String id);
