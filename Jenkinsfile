@@ -10,6 +10,7 @@ pipeline {
         FRONTEND_DIR = 'Frontend'
         DOCKER_REGISTRY_PREFIX = 'matchmakers'
     }
+    stages {
         stage('Checkout') {
             steps {
                 checkout([$class: 'GitSCM',
@@ -21,7 +22,7 @@ pipeline {
                          depth: 1,
                          noTags: true]
                     ],
-                    userRemoteConfigs: [[url: 'https://github.com/Meriemelghali/MatchMakers']]
+                           userRemoteConfigs: [[url: 'https://github.com/Meriemelghali/MatchMakers']]
                 ])
             }
         }
