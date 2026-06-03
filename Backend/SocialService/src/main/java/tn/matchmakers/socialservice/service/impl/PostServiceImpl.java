@@ -37,8 +37,26 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Page<PostResponseDto> getAllPosts(Pageable pageable, boolean expand) {
-        log.info("Fetching all posts with pagination (excluding deleted), expand={}", expand);
-        return postRepository.findByIsDeletedFalse(pageable).map(p -> toResponseDto(p, expand));
+        log.info("========== getAllPosts() START ==========");
+        log.info("Pageable: page={}, size={}, expand={}", pageable.getPageNumber(), pageable.getPageSize(), expand);
+        
+        // DEBUG: Count total posts in DB
+        long totalPosts = postRepository.count();
+        log.info("DEBUG: Total posts in collection: {}", totalPosts);
+        
+        // Fetch non-deleted posts
+        Page<Post> postsPage = postRepository.findByIsDeletedFalse(pageable);
+        log.info("DEBUG: Posts retrieved (isDeleted=false): count={}, totalElements={}, totalPages={}", 
+                 postsPage.getContent().size(), postsPage.getTotalElements(), postsPage.getTotalPages());
+        
+        // Log details of each post
+        postsPage.getContent().forEach(post -> {
+            log.info("  - Post ID: {}, idUser: {}, content: '{}', isDeleted: {}, createdAt: {}", 
+                     post.getIdPost(), post.getIdUser(), post.getContent(), post.getIsDeleted(), post.getPostCreated_at());
+        });
+        
+        log.info("========== getAllPosts() END ==========");
+        return postsPage.map(p -> toResponseDto(p, expand));
     }
 
     @Override
@@ -49,7 +67,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponseDto createPost(PostRequestDto post) {
-        log.info("Creating new post");
+        log.info("========== createPost() START ==========");
+        log.info("Creating new post - idUser: {}, content: '{}'", post.getIdUser(), post.getContent());
         
         // Toxicity Check
         toxicityService.checkToxicity(post.getContent());
@@ -60,7 +79,16 @@ public class PostServiceImpl implements PostService {
                 .isDeleted(false)
                 .build();
         entity.onCreate();
-        return toResponseDto(postRepository.save(entity), true);
+        
+        log.info("Post entity before save - idPost: {}, isDeleted: {}", entity.getIdPost(), entity.getIsDeleted());
+        
+        Post savedPost = postRepository.save(entity);
+        
+        log.info("Post SAVED successfully - idPost: {}, isDeleted: {}, createdAt: {}", 
+                 savedPost.getIdPost(), savedPost.getIsDeleted(), savedPost.getPostCreated_at());
+        log.info("========== createPost() END ==========");
+        
+        return toResponseDto(savedPost, true);
     }
 
     @Override
@@ -107,7 +135,10 @@ public class PostServiceImpl implements PostService {
     }
 
     private PostResponseDto toResponseDto(Post post, boolean expand) {
+        log.debug("toResponseDto - idPost: {}, expand: {}, isDeleted: {}", post.getIdPost(), expand, post.getIsDeleted());
+        
         if (!expand) {
+            log.debug("  → Returning minimal DTO (no expand)");
             return PostResponseDto.builder()
                     .idPost(post.getIdPost())
                     .content(post.getContent())
@@ -130,6 +161,8 @@ public class PostServiceImpl implements PostService {
         reactions.sort(Comparator.comparing(Reaction::getPostCreated_at, Comparator.nullsLast(Comparator.naturalOrder())));
         List<ReactionResponseDto> reactionDtos = reactions.stream().map(SocialDtoMapper::toReactionDto).toList();
 
+        log.debug("  → Returning full DTO with {} comments and {} reactions", commentaireDtos.size(), reactionDtos.size());
+        
         return PostResponseDto.builder()
                 .idPost(post.getIdPost())
                 .content(post.getContent())

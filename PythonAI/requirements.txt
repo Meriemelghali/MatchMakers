@@ -4,9 +4,9 @@ httpx
 detoxify
 google-generativeai
 python-dotenv
-nupy
-scikit-learn
-torch
+# nupy était une typo de numpy (déjà listé ci-dessous) — supprimé
+# scikit-learn  # non utilisé dans le code — commenté
+torch --index-url https://download.pytorch.org/whl/cpu
 pydantic
 requests
 xgboost

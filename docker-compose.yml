@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   user-service:
     build:
@@ -95,8 +93,11 @@ services:
     ports:
       - "8086:8086"
     restart: unless-stopped
+    depends_on:
+      - mongo
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/rewardsdb
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true
     deploy:
       resources:
@@ -163,8 +164,11 @@ services:
     ports:
       - "8090:8090"
     restart: unless-stopped
+    depends_on:
+      - mongo
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATA_MONGODB_URI=mongodb+srv://elghalimeriem14_db_user:ubQqFHLaG5GrIML7@clustermatchmakers.ltylxsp.mongodb.net/socialdb
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true
     deploy:
       resources:
@@ -180,8 +184,11 @@ services:
     ports:
       - "8091:8091"
     restart: unless-stopped
+    depends_on:
+      - mongo
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo:27017/sponsorsdb
       - JAVA_TOOL_OPTIONS=-Xms96m -Xmx192m -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true
     deploy:
       resources:
@@ -205,39 +212,54 @@ services:
         limits:
           memory: 256M
 
-  python-ai:
-    build:
-      context: ./PythonAI
-      dockerfile: Dockerfile
-    image: matchmakers-python-ai:latest
-    container_name: python-ai
-    ports:
-      - "8001:8001"
-    restart: unless-stopped
-    environment:
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    deploy:
-      resources:
-        limits:
-          memory: 512M
+  # --- Services AI / Python (commentés) ---
 
-  pevent-ai-service:
-    build:
-      context: ./PEventAIService
-      dockerfile: Dockerfile
-    image: matchmakers-pevent-ai-service:latest
-    container_name: pevent-ai-service
-    ports:
-      - "8002:8002"
-    restart: unless-stopped
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-    deploy:
-      resources:
-        limits:
-          memory: 256M
+  # python-ai:
+  #   build:
+  #     context: ./PythonAI
+  #     dockerfile: Dockerfile
+  #     cache_from:
+  #       - matchmakers-python-ai:latest
+  #   image: matchmakers-python-ai:latest
+  #   container_name: python-ai
+  #   ports:
+  #     - "8001:8001"
+  #   restart: unless-stopped
+  #   environment:
+  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+  #     - GEMINI_API_KEY=${GEMINI_API_KEY}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 512M
 
+  # pevent-ai-service:
+  #   build:
+  #     context: ./PEventAIService
+  #     dockerfile: Dockerfile
+  #     cache_from:
+  #       - matchmakers-pevent-ai-service:latest
+  #   image: matchmakers-pevent-ai-service:latest
+  #   container_name: pevent-ai-service
+  #   ports:
+  #     - "8002:8002"
+  #   restart: unless-stopped
+  #   environment:
+  #     - GEMINI_API_KEY=${GEMINI_API_KEY}
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         memory: 256M
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=rewardsdb
   frontend:
     build:
       context: ./Frontend
@@ -260,9 +282,14 @@ services:
       - social-service
       - sponsor-service
       - product-service
-      - python-ai
-      - pevent-ai-service
+      - mongo
+      # - python-ai
+      # - pevent-ai-service
     deploy:
       resources:
         limits:
           memory: 256M
+
+volumes:
+  mongo-data:
+    driver: local

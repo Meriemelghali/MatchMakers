@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../../../../environments/environment';
 
 export interface UserResponse {
   idUser: string;
@@ -23,20 +24,23 @@ export interface UserResponse {
 })
 export class UserService {
 
-  private apiUrl = 'http://localhost:8081/users/users';
+  private apiUrl = `${environment.userServiceUrl}/users/users`;
 
   constructor(private http: HttpClient) { }
 
-  getAllUsers(): Observable<UserResponse[]> {
-    return this.http.get<any>(this.apiUrl).pipe(
-      // tap(res => console.log('UserService: Raw API Response:', res)),
-      map(response => {
-        if (Array.isArray(response)) return response;
-        if (response && Array.isArray(response.content)) return response.content;
-        return [];
-      })
-    );
-  }
+getAllUsers(): Observable<UserResponse[]> {
+  return this.http.get<any>(this.apiUrl).pipe(
+    map(response => {
+      const list = Array.isArray(response) ? response
+        : Array.isArray(response?.content) ? response.content
+        : [];
+      return list.map((u: any) => ({
+        ...u,
+        idUser: u.idUser ?? u.id
+      }));
+    })
+  );
+}
 
   getUserById(id: string): Observable<UserResponse> {
     return this.http.get<UserResponse>(`${this.apiUrl}/${id}`);

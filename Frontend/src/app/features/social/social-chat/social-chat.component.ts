@@ -279,7 +279,7 @@ export class SocialChatComponent implements OnInit, OnDestroy {
     this.loadingUsers = true;
     this.userService.getAllUsers().subscribe({
       next: (users) => {
-        //console.log('SocialChatComponent: Mapped users received:', users);
+        console.log('SocialChatComponent: Mapped users received:', users);
         this.users = users;
 
         const identifiedUser = users.find(u => String(u.idUser) === String(this.currentUserId));

@@ -1,0 +1,15 @@
+# ─── Dépendances lourdes (cachées dans un layer Docker séparé) ───
+# Ces packages changent rarement → Docker les met en cache
+# Ne modifier ce fichier QUE si une dépendance lourde change de version
+
+# PyTorch CPU-only (~200MB au lieu de ~2GB avec CUDA)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.7.0+cpu
+
+# Analyse de toxicité (dépend de torch + transformers ~500MB)
+detoxify
+
+# Data science
+pandas
+numpy
+xgboost

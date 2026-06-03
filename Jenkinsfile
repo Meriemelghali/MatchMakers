@@ -3,83 +3,106 @@ pipeline {
     tools {
         jdk 'JAVA_HOME' // Assurez-vous que JDK 17 est configuré dans Jenkins sous ce nom
         maven 'M2_HOME' // Assurez-vous que Maven est configuré
+        nodejs 'NODE_HOME' // Assurez-vous que Node.js est configuré si vous voulez builder le frontend
     }
     environment {
-        // Définition des variables pour les images Docker
-        RESERVATION_IMAGE = 'matchmakers-reservation-service:latest'
-        SOCIAL_IMAGE = 'matchmakers-social-service:latest'
+        BACKEND_SERVICES = 'EventCompetitionService MatchService ProductService ReclamationService ReservationService RewardService SocialService SponsorService SportService TeamService TerrainService UserService'
+        FRONTEND_DIR = 'Frontend'
+        DOCKER_REGISTRY_PREFIX = 'matchmakers'
     }
     stages {
-        stage('GIT') {
+        stage('Checkout') {
             steps {
-                // Mettez l'URL correcte de votre dépôt GitHub pi_2026
-                git branch: 'main',
-                    url: 'https://github.com/Meriemelghali/MatchMakers' 
+                git branch: 'main', url: 'https://github.com/Meriemelghali/MatchMakers'
             }
         }
-        stage('Compile') {
+        stage('Backend Compile') {
             steps {
-                // Compilation pour ReservationService
-                dir('Backend/ReservationService') {
-                    sh 'mvn clean compile'
-                }
-                // Compilation pour SocialService
-                dir('Backend/SocialService') {
-                    sh 'mvn clean compile'
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                dir('Backend/ReservationService') {
-                    sh 'mvn test -DskipTests'
-                }
-                dir('Backend/SocialService') {
-                    sh 'mvn test -DskipTests'
-                }
-            }
-        }
-        stage('Package') {
-            steps {
-                dir('Backend/ReservationService') {
-                    sh 'mvn package -DskipTests'
-                }
-                dir('Backend/SocialService') {
-                    sh 'mvn package -DskipTests'
-                }
-            }
-        }
-        stage('SonarQube') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    dir('Backend/ReservationService') {
-                        sh 'mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=ReservationService'
+                script {
+                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
+                        dir("Backend/${service}") {
+                            sh 'mvn clean compile'
+                        }
                     }
-                    dir('Backend/SocialService') {
-                        sh 'mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=SocialService'
+                }
+            }
+        }
+        stage('Backend Test') {
+            steps {
+                script {
+                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
+                        dir("Backend/${service}") {
+                            sh 'mvn test'
+                        }
                     }
+                }
+            }
+        }
+        stage('Backend Package') {
+            steps {
+                script {
+                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
+                        dir("Backend/${service}") {
+                            sh 'mvn package -DskipTests'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Frontend Install') {
+            steps {
+                dir(env.FRONTEND_DIR) {
+                    sh 'npm ci'
+                }
+            }
+        }
+        stage('Frontend Test') {
+            steps {
+                dir(env.FRONTEND_DIR) {
+                    sh 'npm run test -- --watch=false --browsers=ChromeHeadless'
+                }
+            }
+        }
+        stage('Frontend Build') {
+            steps {
+                dir(env.FRONTEND_DIR) {
+                    sh 'npm run build'
                 }
             }
         }
         stage('Build Docker Images') {
             steps {
-                // IMPORTANT : Si vous utilisez Minikube localement, cette ligne indique à Docker de construire 
-                // l'image DIRECTEMENT dans le Docker interne de Minikube (pour qu'elle soit trouvée lors du déploiement).
-                sh 'eval $(minikube docker-env)'
-                
-                dir('Backend/ReservationService') {
-                    sh "docker build --no-cache -t ${RESERVATION_IMAGE} ."
-                }
-                dir('Backend/SocialService') {
-                    sh "docker build --no-cache -t ${SOCIAL_IMAGE} ."
+                script {
+                    sh 'eval $(minikube docker-env) || true'
+                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
+                        dir("Backend/${service}") {
+                            sh "docker build --no-cache -t ${env.DOCKER_REGISTRY_PREFIX}-${service.toLowerCase()}:latest ."
+                        }
+                    }
+                    dir(env.FRONTEND_DIR) {
+                        sh "docker build --no-cache -t ${env.DOCKER_REGISTRY_PREFIX}-frontend:latest ."
+                    }
                 }
             }
         }
         stage('Deploy') {
             steps {
-                // On utilise kubectl pour déployer sur Minikube
-                sh 'kubectl apply -f k8s/reservation-deployment.yaml'
-                sh 'kubectl apply -f k8s/social-deployment.yaml'
+                sh 'docker compose down --remove-orphans || true'
+                sh 'docker compose up -d --no-build \
+                    mongo \
+                    user-service \
+                    reclamation-service \
+                    event-competition-service \
+                    sport-service \
+                    team-service \
+                    reward-service \
+                    match-service \
+                    terrain-service \
+                    reservation-service \
+                    social-service \
+                    sponsor-service \
+                    product-service \
+                    frontend'
             }
         }
     }

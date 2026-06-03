@@ -1,23 +1,22 @@
-# Build stage
+﻿# ── Stage 1 : Build ───────────────────────────────────────────────────────
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy pom.xml and source code
+# Copier pom.xml SEUL en premier → Docker cache cette couche
+# Si seul le code change, Maven ne re-télécharge PAS les dépendances
 COPY pom.xml .
+RUN mvn dependency:go-offline -B --quiet
+
+# Copier le code source et compiler
 COPY src ./src
+RUN mvn clean package -DskipTests -B --quiet
 
-# Build the application, skipping tests to speed up the process
-RUN mvn clean package -DskipTests
-
-# Run stage
+# ── Stage 2 : Runtime (image finale légère ~100MB) ────────────────────────
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy the built jar file from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port configured in application.properties
 EXPOSE 8082
 
-# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

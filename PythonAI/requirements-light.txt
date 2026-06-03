@@ -1,0 +1,12 @@
+# ─── Dépendances légères (installées rapidement) ───
+# Ce fichier peut changer souvent sans rallonger le build
+# car le layer Docker "heavy" est déjà en cache
+
+fastapi
+uvicorn
+httpx
+google-generativeai
+python-dotenv
+pydantic
+requests
+openai

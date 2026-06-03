@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
@@ -53,6 +53,8 @@ export interface SocialMessage {
   idConversation: string;
 }
 
+export type SocialUsersApiResponse = SocialUser[] | { content: SocialUser[] };
+
 /** Shape of a single page-item returned by GET /api/posts?expand=true */
 interface PostApiResponse {
   idPost: string;
@@ -68,7 +70,7 @@ interface PostApiResponse {
   providedIn: 'root'
 })
 export class SocialService {
-  private usersUrl = environment.userServiceUrl + '/users';
+  private usersUrl = `${environment.userServiceUrl}/users/users`;
   private baseApiUrl = environment.socialServiceUrl;
   private postsUrl = this.baseApiUrl + '/posts';
   private commentsUrl = this.baseApiUrl + '/commentaires';
@@ -183,8 +185,12 @@ export class SocialService {
   // --- USERS ---
 
   getUsers(): Observable<SocialUser[]> {
-    return this.http.get<{ content: SocialUser[] }>(this.usersUrl).pipe(
-      map(response => response.content || [])
+    const token = localStorage.getItem('accessToken');
+    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+
+    return this.http.get<SocialUsersApiResponse>(this.usersUrl, { headers }).pipe(
+      map(response => Array.isArray(response) ? response : response.content || [])
     );
   }
 }
+
