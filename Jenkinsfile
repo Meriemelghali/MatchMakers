@@ -47,7 +47,7 @@ pipeline {
         stage('Frontend') {
             steps {
                 dir(env.FRONTEND_DIR) {
-                    sh 'npm ci && npm run build'
+                    sh 'npm install && npm run build'
                 }
             }
         }
