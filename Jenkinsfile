@@ -13,7 +13,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Meriemelghali/MatchMakers'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    extensions: [[$class: 'CloneOption', timeout: 60, shallow: false, honorRefspec: true]],
+                    userRemoteConfigs: [[url: 'https://github.com/Meriemelghali/MatchMakers']]
+                ])
             }
         }
         stage('Backend Compile') {
