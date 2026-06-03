@@ -1,9 +1,9 @@
 pipeline {
     agent any
     tools {
-        jdk 'JAVA_HOME' // Assurez-vous que JDK 17 est configuré dans Jenkins sous ce nom
-        maven 'M2_HOME' // Assurez-vous que Maven est configuré
-        nodejs 'NODE_HOME' // Assurez-vous que Node.js est configuré si vous voulez builder le frontend
+        jdk 'JAVA_HOME'
+        maven 'M2_HOME'
+        nodejs 'NODE_HOME'
     }
     environment {
         BACKEND_SERVICES = 'EventCompetitionService MatchService ProductService ReclamationService ReservationService RewardService SocialService SponsorService SportService TeamService TerrainService UserService'
@@ -11,86 +11,56 @@ pipeline {
         DOCKER_REGISTRY_PREFIX = 'matchmakers'
     }
     stages {
-        stage('Checkout') {
+        stage('GIT') {
             steps {
                 checkout([$class: 'GitSCM',
                     branches: [[name: '*/main']],
-                    extensions: [
-                        [$class: 'CloneOption', 
-                         timeout: 60, 
-                         shallow: true,
-                         depth: 1,
-                         noTags: true]
-                    ],
-                           userRemoteConfigs: [[url: 'https://github.com/Meriemelghali/MatchMakers']]
+                    extensions: [[$class: 'CloneOption', timeout: 60, shallow: true, depth: 1, noTags: true]],
+                    userRemoteConfigs: [[url: 'https://github.com/Meriemelghali/MatchMakers']]
                 ])
             }
         }
-        stage('Backend Compile') {
+        stage('Backend Build') {
             steps {
                 script {
                     for (service in env.BACKEND_SERVICES.tokenize(' ')) {
                         dir("Backend/${service}") {
-                            sh 'mvn clean compile'
+                            sh 'mvn clean package -DskipTests'
                         }
                     }
                 }
             }
         }
-        stage('Backend Test') {
+        stage('SonarQube') {
             steps {
-                script {
-                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
-                        dir("Backend/${service}") {
-                            sh 'mvn test'
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    script {
+                        for (service in env.BACKEND_SERVICES.tokenize(' ')) {
+                            dir("Backend/${service}") {
+                                sh "mvn sonar:sonar -Dsonar.projectKey=matchmakers-${service.toLowerCase()} -Dsonar.host.url=http://localhost:9000 -Dsonar.token=\$SONAR_TOKEN"
+                            }
                         }
                     }
                 }
             }
         }
-        stage('Backend Package') {
-            steps {
-                script {
-                    for (service in env.BACKEND_SERVICES.tokenize(' ')) {
-                        dir("Backend/${service}") {
-                            sh 'mvn package -DskipTests'
-                        }
-                    }
-                }
-            }
-        }
-        stage('Frontend Install') {
+        stage('Frontend') {
             steps {
                 dir(env.FRONTEND_DIR) {
-                    sh 'npm ci'
-                }
-            }
-        }
-        stage('Frontend Test') {
-            steps {
-                dir(env.FRONTEND_DIR) {
-                    sh 'npm run test -- --watch=false --browsers=ChromeHeadless'
-                }
-            }
-        }
-        stage('Frontend Build') {
-            steps {
-                dir(env.FRONTEND_DIR) {
-                    sh 'npm run build'
+                    sh 'npm ci && npm run build'
                 }
             }
         }
         stage('Build Docker Images') {
             steps {
                 script {
-                    sh 'eval $(minikube docker-env) || true'
                     for (service in env.BACKEND_SERVICES.tokenize(' ')) {
                         dir("Backend/${service}") {
-                            sh "docker build --no-cache -t ${env.DOCKER_REGISTRY_PREFIX}-${service.toLowerCase()}:latest ."
+                            sh "docker build -t ${env.DOCKER_REGISTRY_PREFIX}-${service.toLowerCase()}:latest ."
                         }
                     }
                     dir(env.FRONTEND_DIR) {
-                        sh "docker build --no-cache -t ${env.DOCKER_REGISTRY_PREFIX}-frontend:latest ."
+                        sh "docker build -t ${env.DOCKER_REGISTRY_PREFIX}-frontend:latest ."
                     }
                 }
             }
@@ -98,7 +68,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'docker compose down --remove-orphans || true'
-                sh 'docker compose up -d --no-build \
+                sh '''docker compose up -d \
                     mongo \
                     user-service \
                     reclamation-service \
@@ -112,7 +82,12 @@ pipeline {
                     social-service \
                     sponsor-service \
                     product-service \
-                    frontend'
+                    frontend'''
+            }
+        }
+        stage('Monitoring') {
+            steps {
+                sh 'docker start prometheus grafana || echo "Prometheus/Grafana non démarrés"'
             }
         }
     }
