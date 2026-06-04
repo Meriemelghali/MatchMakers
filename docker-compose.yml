@@ -233,18 +233,6 @@ services:
       - "4200:4200"
     restart: unless-stopped
     depends_on:
-      - user-service
-      - reclamation-service
-      - event-competition-service
-      - sport-service
-      - team-service
-      - reward-service
-      - match-service
-      - terrain-service
-      - reservation-service
-      - social-service
-      - sponsor-service
-      - product-service
       - mongo
     deploy:
       resources:
@@ -259,19 +247,6 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
-    depends_on:
-      - user-service
-      - reclamation-service
-      - event-competition-service
-      - sport-service
-      - team-service
-      - reward-service
-      - match-service
-      - terrain-service
-      - reservation-service
-      - social-service
-      - sponsor-service
-      - product-service
 
   grafana:
     image: grafana/grafana
@@ -281,6 +256,8 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     deploy:
       resources:
         limits:
