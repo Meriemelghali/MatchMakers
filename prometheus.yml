@@ -1,0 +1,64 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:8081']
+    metrics_path: '/users/actuator/prometheus'
+
+  - job_name: 'reclamation-service'
+    static_configs:
+      - targets: ['reclamation-service:8082']
+    metrics_path: '/reclamations/actuator/prometheus'
+
+  - job_name: 'event-competition-service'
+    static_configs:
+      - targets: ['event-competition-service:8083']
+    metrics_path: '/eventsCompetitions/actuator/prometheus'
+
+  - job_name: 'sport-service'
+    static_configs:
+      - targets: ['sport-service:8084']
+    metrics_path: '/sports/actuator/prometheus'
+
+  - job_name: 'team-service'
+    static_configs:
+      - targets: ['team-service:8085']
+    metrics_path: '/teams/actuator/prometheus'
+
+  - job_name: 'reward-service'
+    static_configs:
+      - targets: ['reward-service:8086']
+    metrics_path: '/rewards/actuator/prometheus'
+
+  - job_name: 'match-service'
+    static_configs:
+      - targets: ['match-service:8087']
+    metrics_path: '/matchs/actuator/prometheus'
+
+  - job_name: 'terrain-service'
+    static_configs:
+      - targets: ['terrain-service:8088']
+    metrics_path: '/terrains/actuator/prometheus'
+
+  - job_name: 'reservation-service'
+    static_configs:
+      - targets: ['reservation-service:8089']
+    metrics_path: '/reservations/actuator/prometheus'
+
+  - job_name: 'social-service'
+    static_configs:
+      - targets: ['social-service:8090']
+    metrics_path: '/social/actuator/prometheus'
+
+  - job_name: 'sponsor-service'
+    static_configs:
+      - targets: ['sponsor-service:8091']
+    metrics_path: '/actuator/prometheus'
+
+  - job_name: 'product-service'
+    static_configs:
+      - targets: ['product-service:8092']
+    metrics_path: '/products/actuator/prometheus'
