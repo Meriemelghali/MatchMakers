@@ -87,7 +87,7 @@ pipeline {
         }
         stage('Monitoring') {
             steps {
-                sh 'docker start prometheus grafana || echo "Prometheus/Grafana non démarrés"'
+                sh 'docker compose up -d prometheus grafana || echo "Monitoring non démarré"'
             }
         }
     }

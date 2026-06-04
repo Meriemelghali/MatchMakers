@@ -212,44 +212,6 @@ services:
         limits:
           memory: 256M
 
-  # --- Services AI / Python (commentés) ---
-
-  # python-ai:
-  #   build:
-  #     context: ./PythonAI
-  #     dockerfile: Dockerfile
-  #     cache_from:
-  #       - matchmakers-python-ai:latest
-  #   image: matchmakers-python-ai:latest
-  #   container_name: python-ai
-  #   ports:
-  #     - "8001:8001"
-  #   restart: unless-stopped
-  #   environment:
-  #     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-  #     - GEMINI_API_KEY=${GEMINI_API_KEY}
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 512M
-
-  # pevent-ai-service:
-  #   build:
-  #     context: ./PEventAIService
-  #     dockerfile: Dockerfile
-  #     cache_from:
-  #       - matchmakers-pevent-ai-service:latest
-  #   image: matchmakers-pevent-ai-service:latest
-  #   container_name: pevent-ai-service
-  #   ports:
-  #     - "8002:8002"
-  #   restart: unless-stopped
-  #   environment:
-  #     - GEMINI_API_KEY=${GEMINI_API_KEY}
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         memory: 256M
   mongo:
     image: mongo:6.0
     container_name: mongo
@@ -260,6 +222,7 @@ services:
       - mongo-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=rewardsdb
+
   frontend:
     build:
       context: ./Frontend
@@ -283,8 +246,41 @@ services:
       - sponsor-service
       - product-service
       - mongo
-      # - python-ai
-      # - pevent-ai-service
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+    depends_on:
+      - user-service
+      - reclamation-service
+      - event-competition-service
+      - sport-service
+      - team-service
+      - reward-service
+      - match-service
+      - terrain-service
+      - reservation-service
+      - social-service
+      - sponsor-service
+      - product-service
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
     deploy:
       resources:
         limits:
